@@ -41,7 +41,7 @@ sha256sums=('SKIP'
             '258b1cd320bedb6846a996dd63237dd709e22beafde87fa3e6411db40379e0ab'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'a6857ad2f2e2091c6c4fdcde21a59fbeb0138914c0e126df64b50a5af5ff63be'
-            '1fe2da1218f7e5109cda6d7c8da14c4e2139dd10d5bb8ae53e65e6ae48ea376f'
+            'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
@@ -184,8 +184,8 @@ ac_add_options --with-google-safebrowsing-api-keyfile=${PWD@Q}/google-api-key
 ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/mozilla-api-key
 
 # System libraries
-#ac_add_options --with-system-nspr
-#ac_add_options --with-system-nss
+ac_add_options --with-system-nspr
+ac_add_options --with-system-nss
 ac_add_options --with-system-jpeg
 ac_add_options --with-system-webp
 ac_add_options --with-system-zlib

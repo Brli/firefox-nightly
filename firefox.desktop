@@ -150,15 +150,15 @@ Keywords[uk]=Internet;WWW;Browser;Web;Explorer;Інтернет;мережа;п�
 Keywords[vi]=Internet;WWW;Browser;Web;Explorer;Trình duyệt;Trang web
 Keywords[zh_CN]=Internet;WWW;Browser;Web;Explorer;网页;浏览;上网;火狐;Firefox;ff;互联网;网站;
 Keywords[zh_TW]=Internet;WWW;Browser;Web;Explorer;網際網路;網路;瀏覽器;上網;網頁;火狐
-Exec=firefox %u
+Exec=@MOZ_APP_NAME@ %u
 Terminal=false
 X-MultipleArgs=false
 Type=Application
-Icon=firefox-nightly
+Icon=@MOZ_APP_NAME@
 Categories=GNOME;GTK;Network;WebBrowser;
 MimeType=text/html;text/xml;application/xhtml+xml;application/xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/ftp;x-scheme-handler/chrome;video/webm;application/x-xpinstall;
 StartupNotify=true
-StartupWMClass=firefox
+StartupWMClass=@MOZ_APP_NAME@
 Actions=new-window;new-private-window;
 
 [Desktop Action new-window]
@@ -198,7 +198,7 @@ Name[uk]=Відкрити нове вікно
 Name[vi]=Mở cửa sổ mới
 Name[zh_CN]=新建窗口
 Name[zh_TW]=開啟新視窗
-Exec=firefox --new-window %u
+Exec=@MOZ_APP_NAME@ --new-window %u
 
 [Desktop Action new-private-window]
 Name=Open a New Private Window
@@ -220,4 +220,4 @@ Name[sv]=Öppna ett nytt privat fönster
 Name[tr]=Yeni gizli pencere aç
 Name[uk]=Відкрити нове вікно у потайливому режимі
 Name[zh_TW]=開啟新隱私瀏覽視窗
-Exec=firefox --private-window %u
+Exec=@MOZ_APP_NAME@ --private-window %u

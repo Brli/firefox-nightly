@@ -3,7 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox
-pkgver=104.0a1.20220723.f69015bf0e0a
+pkgver=104.0a1.20220725.12a49c2ff116
+pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
 license=(MPL GPL LGPL)

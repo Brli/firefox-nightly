@@ -3,7 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox
-pkgver=104.0a1.20220723.f69015bf0e0a
+pkgver=105.0a1.20220731.656a6bc2f82d
+pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -20,20 +21,22 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'speech-dispatcher: Text-to-Speech'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
+#conflicts=(firefox-i18n-zh-tw)
+#replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=12a49c2ff116e989330b81b275db85b2f606a5e6
+_moz_revision=656a6bc2f82da7d4fdd7ed15cace81f34f617c9b
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
+        hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102-patches-02j.tar.xz
-        https://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central-l10n/linux-x86_64/xpi/firefox-104.0a1.zh-TW.langpack.xpi
         fix_csd_window_buttons.patch zstandard-0.18.0.diff
         $pkgname.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
             'SKIP'
             'SKIP'
+            'SKIP'
             '4dea80f488599ee0799bbc5372d0f4630b887dadab49a4f424564faf2d0a6c99'
-            '258b1cd320bedb6846a996dd63237dd709e22beafde87fa3e6411db40379e0ab'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'a6857ad2f2e2091c6c4fdcde21a59fbeb0138914c0e126df64b50a5af5ff63be'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -60,6 +63,7 @@ pkgver() {
 
 prepare() {
   mkdir mozbuild
+  mv zh-TW mozbuild/
   cd mozilla-central
 
   # Unbreak build with python-zstandard 0.18.0
@@ -97,9 +101,9 @@ prepare() {
   local suse_patch=('mozilla-nongnome-proxies.patch'
                     # 'mozilla-kde.patch'
                     'mozilla-ntlm-full-path.patch'
-                    'mozilla-aarch64-startup-crash.patch'
-                    'mozilla-fix-aarch64-libopus.patch'
-                    'mozilla-s390-context.patch'
+                    # 'mozilla-aarch64-startup-crash.patch'
+                    # 'mozilla-fix-aarch64-libopus.patch'
+                    # 'mozilla-s390-context.patch'
                     # 'mozilla-pgo.patch'
                     'mozilla-reduce-rust-debuginfo.patch'
                     'mozilla-bmo1005535.patch'
@@ -110,13 +114,13 @@ prepare() {
                     # 'mozilla-fix-top-level-asm.patch'
                     'mozilla-bmo849632.patch'
                     'mozilla-bmo998749.patch'
-                    'mozilla-s390x-skia-gradient.patch'
+                    # 'mozilla-s390x-skia-gradient.patch'
                     # 'mozilla-libavcodec58_91.patch'
                     'mozilla-silence-no-return-type.patch'
                     # 'mozilla-bmo531915.patch'
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
-                    'firefox-kde.patch'
+                    # 'firefox-kde.patch'
                     'firefox-branded-icons.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
@@ -124,21 +128,19 @@ prepare() {
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=('faster-package-multi-locale.patch'
-                         'unity-menubar.patch'
-                         'mozilla-kde_after_unity.patch')
+  local librewolf_patch=('faster-package-multi-locale.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
   done
 
-  #msg 'ubuntu patch'
-  #local ubuntu_patch=('dont-checkout-locales.patch'
-  #                    'use-system-icupkg.patch')
-  #for src in "${ubuntu_patch[@]}"; do
-  #  msg "Applying patch $src..."
-  #  patch -Np1 -i "${srcdir}/firefox-trunk/debian/patches/$src"
-  #done
+#   msg 'ubuntu patch'
+#   local ubuntu_patch=('dont-checkout-locales.patch'
+#                      'use-system-icupkg.patch')
+#   for src in "${ubuntu_patch[@]}"; do
+#    msg "Applying patch $src..."
+#    patch -Np1 -i "${srcdir}/firefox-trunk/debian/patches/$src"
+#   done
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
@@ -201,7 +203,14 @@ ac_add_options --disable-necko-wifi
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
+
+# L10n
+ac_add_options --with-l10n-base=$srcdir/mozbuild
+#ac_add_options --enable-ui-locale=zh-TW
 END
+
+  # Fake mozilla version
+  sed "s/105.0a1/103.0/" -i config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,$pkgname,g" -i "${srcdir}/firefox.desktop"
@@ -214,6 +223,7 @@ build() {
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
   export MOZ_ENABLE_FULL_SYMBOLS=0
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=system
+  export MOZ_CHROME_MULTILOCALE="en-US zh-TW"
 
   # LTO needs more open files
   ulimit -n 4096
@@ -249,6 +259,13 @@ ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
 ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 END
   ./mach build
+  
+  msg 'Building locales'
+  ./mach package
+  for AB_CD in $MOZ_CHROME_MULTILOCALE; do
+    msg 'Building locales'
+    ./mach build chrome-$AB_CD
+  done
 }
 
 package() {
@@ -274,14 +291,13 @@ pref("gfx.webrender.all", true);
 pref("media.ffmpeg.vaapi.enabled", true);
 pref("media.ffvpx.enabled", true);
 pref("media.navigator.mediadatadecoder_vpx_enabled", true);
-pref("general.useragent.override", "Mozilla/5.0 (Macintosh; Intel Mac OS X 12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36");
 
-// Prevent fingerprinting
-pref("privacy.resistFingerprinting", true);
+// UA override
+// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 Edg/103.0.1264.71");
 
 // KDE.js
-pref("browser.preferences.instantApply", false);
-pref("browser.backspace_action", 0);
+// pref("browser.preferences.instantApply", false);
+// pref("browser.backspace_action", 0);
 END
 
   local distini="$pkgdir/usr/lib/$pkgname/distribution/distribution.ini"
@@ -289,7 +305,7 @@ END
 [Global]
 id=archlinux
 version=1.0
-about=Mozilla Firefox Nightly for Arch Linux
+about=Mozilla Firefox for Arch Linux
 
 [Preferences]
 app.distributor=archlinux
@@ -297,7 +313,7 @@ app.distributor.channel=$pkgname
 app.partner.archlinux=archlinux
 END
 
-  local i theme=nightly
+  local i theme=official
   for i in 16 22 24 32 48 64 128 256; do
     install -Dvm644 browser/branding/$theme/default$i.png \
       "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/$pkgname.png"
@@ -331,8 +347,8 @@ END
   fi
 
   # Install zh-TW locale
-  local xpi_dest="$pkgdir/usr/lib/$pkgname/browser/extensions"
-  install -Dvm644 "$srcdir/firefox-104.0a1.zh-TW.langpack.xpi" "$xpi_dest/langpack-zh-TW@firefox.mozilla.org.xpi"
+  #local xpi_dest="$pkgdir/usr/lib/$pkgname/browser/extensions"
+  #install -Dvm644 "$srcdir/firefox-105.0a1.zh-TW.langpack.xpi" "$xpi_dest/langpack-zh-TW@firefox.mozilla.org.xpi"
 }
 
 # vim:set sw=2 et:

@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox
-pkgver=105.0a1.20220731.656a6bc2f82d
+pkgver=105.0a1.20220801.656a6bc2f82d
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -14,7 +14,7 @@ makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
              python-setuptools python-zstandard lld dump_syms
              wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
-             mercurial breezy python-dulwich)
+             mercurial breezy python-dulwich rsync)
 optdepends=('networkmanager: Location detection via available WiFi networks'
             'libnotify: Notification integration'
             'pulseaudio: Audio support'
@@ -29,14 +29,16 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102-patches-02j.tar.xz
+        git+https://github.com/Brli/firefox-trunk.git
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-103-patches-02j.tar.xz
         fix_csd_window_buttons.patch zstandard-0.18.0.diff
-        $pkgname.desktop identity-icons-brand.svg)
+        firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '4dea80f488599ee0799bbc5372d0f4630b887dadab49a4f424564faf2d0a6c99'
+            'SKIP'
+            '929481502b13ff454469e057da2325cb61aacf99d90679f52661adba00afbddd'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'a6857ad2f2e2091c6c4fdcde21a59fbeb0138914c0e126df64b50a5af5ff63be'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -83,13 +85,15 @@ prepare() {
                       '0021-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
                       '0022-build-Disable-Werror.patch'
                       '0023-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0024-Disable-FFVPX-with-VA-API.patch'
-                      '0025-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0026-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
-                      '0027-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
-                      '0028-bgo-816975-fix-build-on-x86.patch'
-                      '0029-bmo-1559213-fix-system-av1-libs.patch'
-                      '0030-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch')
+                      '0024-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
+                      '0025-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
+                      '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
+                      '0027-bgo-816975-fix-build-on-x86.patch'
+                      '0028-bmo-1559213-fix-system-av1-libs.patch'
+                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch')
+                      # '0032-p05-bmo-1776724-build-wayland-only-D150485.patch' # upstreamed
+                      # '0035-bmo-1773336-disable_audio_thread_priority_default_features.patch'
+                      # '0036-vaapi-fixes.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -134,13 +138,13 @@ prepare() {
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
   done
 
-#   msg 'ubuntu patch'
-#   local ubuntu_patch=('dont-checkout-locales.patch'
-#                      'use-system-icupkg.patch')
-#   for src in "${ubuntu_patch[@]}"; do
-#    msg "Applying patch $src..."
-#    patch -Np1 -i "${srcdir}/firefox-trunk/debian/patches/$src"
-#   done
+  msg 'ubuntu patch'
+  local ubuntu_patch=('dont-checkout-locales.patch'
+                     'use-system-icupkg.patch')
+  for src in "${ubuntu_patch[@]}"; do
+   msg "Applying patch $src..."
+   patch -Np1 -i "${srcdir}/firefox-trunk/debian/patches/$src"
+  done
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
@@ -203,10 +207,6 @@ ac_add_options --disable-necko-wifi
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
-
-# L10n
-ac_add_options --with-l10n-base=$srcdir/mozbuild
-#ac_add_options --enable-ui-locale=zh-TW
 END
 
   # Fake mozilla version
@@ -223,7 +223,6 @@ build() {
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
   export MOZ_ENABLE_FULL_SYMBOLS=0
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=system
-  export MOZ_CHROME_MULTILOCALE="en-US zh-TW"
 
   # LTO needs more open files
   ulimit -n 4096
@@ -257,13 +256,17 @@ ac_add_options --enable-lto=cross
 ac_add_options --enable-profile-use=cross
 ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
 ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
+
+# L10n
+ac_add_options --with-l10n-base=$srcdir/mozbuild
 END
   ./mach build
   
   msg 'Building locales'
   ./mach package
+  export MOZ_CHROME_MULTILOCALE="zh-TW"
   for AB_CD in $MOZ_CHROME_MULTILOCALE; do
-    msg 'Building locales'
+    msg "Building locales $AB_CD"
     ./mach build chrome-$AB_CD
   done
 }

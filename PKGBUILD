@@ -24,7 +24,7 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 #conflicts=(firefox-i18n-zh-tw)
 #replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=656a6bc2f82da7d4fdd7ed15cace81f34f617c9b
+_moz_revision=ee74de02b6635c2f598ec6c7640a16055a0a419a
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -264,11 +264,8 @@ END
   
   msg 'Building locales'
   ./mach package
-  export MOZ_CHROME_MULTILOCALE="zh-TW"
-  for AB_CD in $MOZ_CHROME_MULTILOCALE; do
-    msg "Building locales $AB_CD"
-    ./mach build chrome-$AB_CD
-  done
+  msg "Building locales zh-TW"
+  ./mach build chrome-zh-TW
 }
 
 package() {

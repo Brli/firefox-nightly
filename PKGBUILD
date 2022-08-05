@@ -210,7 +210,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  sed "s/105.0a1/103.0/" -i config/milestone.txt
+  sed "s/105.0a1/103.0.1/" -i config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,$pkgname,g" -i "${srcdir}/firefox.desktop"

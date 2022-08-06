@@ -3,8 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox
-pkgver=105.0a1.20220801.656a6bc2f82d
-pkgrel=1
+pkgver=105.0a1.20220805.ee74de02b663
+pkgrel=2
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -264,8 +264,11 @@ END
   
   msg 'Building locales'
   ./mach package
-  msg "Building locales zh-TW"
-  ./mach build chrome-zh-TW
+  export MOZ_CHROME_MULTILOCALE="zh-TW"
+  for AB_CD in $MOZ_CHROME_MULTILOCALE; do
+    msg "Building locales $AB_CD"
+    ./mach build chrome-$AB_CD
+  done
 }
 
 package() {

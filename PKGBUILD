@@ -3,8 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox
-pkgver=105.0a1.20220805.ee74de02b663
-pkgrel=2
+pkgver=105.0a1.20220810.aeac2e82d88d
+pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -24,13 +24,13 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 #conflicts=(firefox-i18n-zh-tw)
 #replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=ee74de02b6635c2f598ec6c7640a16055a0a419a
+_moz_revision=aeac2e82d88d2535598de558b8cc9069780f034d
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-103-patches-02j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-103-patches-03j.tar.xz
         fix_csd_window_buttons.patch zstandard-0.18.0.diff
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
@@ -38,7 +38,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '929481502b13ff454469e057da2325cb61aacf99d90679f52661adba00afbddd'
+            'e0de9f2010eb06603aee11cc3fdefb9bd4987c8ea70da3ac0dd3b4f53428b3f5'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'a6857ad2f2e2091c6c4fdcde21a59fbeb0138914c0e126df64b50a5af5ff63be'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -120,7 +120,7 @@ prepare() {
                     'mozilla-bmo998749.patch'
                     # 'mozilla-s390x-skia-gradient.patch'
                     # 'mozilla-libavcodec58_91.patch'
-                    'mozilla-silence-no-return-type.patch'
+                    # 'mozilla-silence-no-return-type.patch'
                     # 'mozilla-bmo531915.patch'
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
@@ -140,7 +140,7 @@ prepare() {
 
   msg 'ubuntu patch'
   local ubuntu_patch=('dont-checkout-locales.patch'
-                     'use-system-icupkg.patch')
+                      'use-system-icupkg.patch')
   for src in "${ubuntu_patch[@]}"; do
    msg "Applying patch $src..."
    patch -Np1 -i "${srcdir}/firefox-trunk/debian/patches/$src"
@@ -275,32 +275,56 @@ package() {
   cd mozilla-central
   DESTDIR="$pkgdir" ./mach install
 
-  local vendorjs="$pkgdir/usr/lib/$pkgname/browser/defaults/preferences/vendor.js"
-  install -Dvm644 /dev/stdin "$vendorjs" <<END
-// Use LANG environment variable to choose locale
-pref("intl.locale.requested", "");
-
+  local pref="$pkgdir/usr/lib/$pkgname/browser/defaults/preferences"
+  install -Dvm644 /dev/stdin "$pref/vendor.js" <<END
 // Use system-provided dictionaries
 pref("spellchecker.dictionary_path", "/usr/share/hunspell");
-
-// Disable default browser checking.
-pref("browser.shell.checkDefaultBrowser", false);
 
 // Don't disable extensions in the application directory
 pref("extensions.autoDisableScopes", 11);
 
 // VA-API hardware acceleration
-pref("gfx.webrender.all", true);
 pref("media.ffmpeg.vaapi.enabled", true);
-pref("media.ffvpx.enabled", true);
+pref("media.ffvpx.enabled", false);
 pref("media.navigator.mediadatadecoder_vpx_enabled", true);
 
 // UA override
 // pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 Edg/103.0.1264.71");
+END
 
+  install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END
+/* gentoo ebuild */
+pref("gfx.x11-egl.force-enabled", false);
+sticky_pref("gfx.font_rendering.graphite.enabled", true);
+pref("media.gmp-gmpopenh264.autoupdate", false);
+pref("media.gmp-widevinecdm.autoupdate", false);
+
+/* gentoo-default-prefs.js */
+pref("general.smoothScroll",               true);
+pref("general.autoScroll",                 false);
+pref("browser.urlbar.hideGoButton",        true);
+pref("accessibility.typeaheadfind",        true);
+pref("browser.shell.checkDefaultBrowser",  false);
+pref("browser.EULA.override",              true);
+pref("general.useragent.locale",           "chrome://global/locale/intl.properties");
+pref("intl.locale.requested",              "");
+/* Disable DoH by default */
+pref("network.trr.mode",                   5);
+/* Disable use of Mozilla Normandy service by default */
+pref("app.normandy.enabled",               false);
+
+/* gentoo-hwaccel-prefs.js-r2 */
+/* Force hardware accelerated rendering due to USE=hwaccel */
+pref("gfx.webrender.all",                  true);
+pref("layers.acceleration.force-enabled",  true);
+pref("media.hardware-video-decoding.enabled", true);
+pref("webgl.force-enabled",                true);
+END
+
+  install -Dvm644 /dev/stdin "$pref/kde.js" <<END
 // KDE.js
-// pref("browser.preferences.instantApply", false);
-// pref("browser.backspace_action", 0);
+pref("browser.preferences.instantApply", false);
+pref("browser.backspace_action", 0);
 END
 
   local distini="$pkgdir/usr/lib/$pkgname/distribution/distribution.ini"

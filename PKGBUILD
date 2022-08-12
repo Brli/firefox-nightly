@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox
-pkgver=105.0a1.20220810.aeac2e82d88d
+pkgver=105.0a1.20220812.66e3220110ba
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -31,7 +31,7 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-103-patches-03j.tar.xz
-        fix_csd_window_buttons.patch zstandard-0.18.0.diff arc4random.diff
+        fix_csd_window_buttons.patch zstandard-0.18.0.diff
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
             'SKIP'
@@ -70,9 +70,6 @@ prepare() {
 
   # Unbreak build with python-zstandard 0.18.0
   patch -Np1 -i ../zstandard-0.18.0.diff
-  
-  # Unbreak build with glibc 2.36
-  patch -Np1 -i ../arc4random.diff
 
   #fix csd window buttons patch
   patch -Np1 -i ../fix_csd_window_buttons.patch
@@ -127,7 +124,7 @@ prepare() {
                     # 'mozilla-bmo531915.patch'
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
-                    # 'firefox-kde.patch'
+                    'firefox-kde.patch'
                     'firefox-branded-icons.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
@@ -135,7 +132,8 @@ prepare() {
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=('faster-package-multi-locale.patch')
+  local librewolf_patch=('faster-package-multi-locale.patch'
+                         'unity-menubar.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"

@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox
-pkgver=105.0a1.20220812.66e3220110ba
+pkgver=104.0b9
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -25,7 +25,7 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 #replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
 _moz_revision=66e3220110ba0dd99ba7d45684ac4731886a59a9
-source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
+source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"{,.asc}
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
@@ -33,7 +33,8 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-103-patches-03j.tar.xz
         fix_csd_window_buttons.patch zstandard-0.18.0.diff
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('SKIP'
+sha256sums=('72200dbf70b6d83925faf3867a4613b5ed4971b701a8213cf5cf02887fc06ce8'
+            'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -133,7 +134,8 @@ prepare() {
 
   msg 'librewolf patch'
   local librewolf_patch=('faster-package-multi-locale.patch'
-                         'unity-menubar.patch')
+                         'unity-menubar.patch'
+                         'mozilla-kde_after_unity.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
@@ -216,7 +218,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  sed "s/105.0a1/103.0.2/" -i config/milestone.txt
+  sed "s/104.0b9/103.0.2/" -i config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,$pkgname,g" -i "${srcdir}/firefox.desktop"

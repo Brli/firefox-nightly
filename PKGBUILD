@@ -71,9 +71,6 @@ prepare() {
   # Unbreak build with python-zstandard 0.18.0
   patch -Np1 -i ../zstandard-0.18.0.diff
 
-  #fix csd window buttons patch
-  patch -Np1 -i ../fix_csd_window_buttons.patch
-
   msg 'Gentoo patch'
   # local source=($(ls $srcdir/firefox-patches/))
   local gentoo_patch=('0004-bmo-847568-Support-system-harfbuzz.patch'
@@ -151,7 +148,7 @@ prepare() {
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
   
   # Try to fix graphite2 error
-  sed 's,"graphite2,<graphite2,g;s,.h",.h>,g' \
+  sed 's,"graphite2/Segment.h",<graphite2/Segment.h>,g;s,"graphite2/Font.h",<graphite2/Font.h>,g' \
       -i gfx/graphite2/geckoextra/include/GraphiteExtra.h \
       -i gfx/graphite2/geckoextra/src/GraphiteExtra.cpp
 
@@ -329,8 +326,8 @@ END
 
   install -Dvm644 /dev/stdin "$pref/kde.js" <<END
 // KDE.js
-pref("browser.preferences.instantApply", false);
-pref("browser.backspace_action", 0);
+// pref("browser.preferences.instantApply", false);
+// pref("browser.backspace_action", 0);
 END
 
   local distini="$pkgdir/usr/lib/$pkgname/distribution/distribution.ini"

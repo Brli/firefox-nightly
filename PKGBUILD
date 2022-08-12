@@ -24,14 +24,14 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 #conflicts=(firefox-i18n-zh-tw)
 #replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=aeac2e82d88d2535598de558b8cc9069780f034d
+_moz_revision=66e3220110ba0dd99ba7d45684ac4731886a59a9
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-103-patches-03j.tar.xz
-        fix_csd_window_buttons.patch zstandard-0.18.0.diff
+        fix_csd_window_buttons.patch zstandard-0.18.0.diff arc4random.diff
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
             'SKIP'
@@ -70,6 +70,9 @@ prepare() {
 
   # Unbreak build with python-zstandard 0.18.0
   patch -Np1 -i ../zstandard-0.18.0.diff
+  
+  # Unbreak build with glibc 2.36
+  patch -Np1 -i ../arc4random.diff
 
   #fix csd window buttons patch
   patch -Np1 -i ../fix_csd_window_buttons.patch
@@ -148,6 +151,11 @@ prepare() {
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
+  
+  # Try to fix graphite2 error
+  sed 's,"graphite2,<graphite2,g;s,.h",.h>,g' \
+      -i gfx/graphite2/geckoextra/include/GraphiteExtra.h \
+      -i gfx/graphite2/geckoextra/src/GraphiteExtra.cpp
 
   echo -n "$_google_api_key" >google-api-key
   echo -n "$_mozilla_api_key" >mozilla-api-key
@@ -192,7 +200,7 @@ ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
-# ac_add_options --with-system-graphite2
+ac_add_options --with-system-graphite2
 ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
 ac_add_options --enable-system-ffi

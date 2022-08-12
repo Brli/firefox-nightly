@@ -10,6 +10,7 @@ keys/pgp
 identity-icons-brand.svg
 upload-symbol-archive
 zstandard-0.18.0.diff
+arc4random.diff
 ```
 
 `PKGBUILD` originated from official's, is later diverged into my own.

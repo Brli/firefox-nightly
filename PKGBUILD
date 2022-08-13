@@ -147,11 +147,6 @@ prepare() {
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
   
-  # Try to fix graphite2 error
-  sed 's,"graphite2/Segment.h",<graphite2/Segment.h>,g;s,"graphite2/Font.h",<graphite2/Font.h>,g' \
-      -i gfx/graphite2/geckoextra/include/GraphiteExtra.h \
-      -i gfx/graphite2/geckoextra/src/GraphiteExtra.cpp
-
   echo -n "$_google_api_key" >google-api-key
   echo -n "$_mozilla_api_key" >mozilla-api-key
 
@@ -195,7 +190,7 @@ ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
-ac_add_options --with-system-graphite2
+# ac_add_options --with-system-graphite2
 ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
 ac_add_options --enable-system-ffi

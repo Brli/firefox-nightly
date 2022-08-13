@@ -58,12 +58,6 @@ _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 # more information.
 _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 
-pkgver() {
-  cd firefox-${pkgver%%b*}
-  _pkgver=$(cat browser/config/version.txt)
-  printf "${_pkgver}.%s.%s" "$(date -u +%Y%m%d)" "$(hg identify -i)" | sed 's/\+//g'
-}
-
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/

@@ -281,11 +281,6 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 // Don't disable extensions in the application directory
 pref("extensions.autoDisableScopes", 11);
 
-// VA-API hardware acceleration
-pref("media.ffmpeg.vaapi.enabled", true);
-pref("media.ffvpx.enabled", false);
-pref("media.navigator.mediadatadecoder_vpx_enabled", true);
-
 // UA override
 // pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 Edg/103.0.1264.71");
 END
@@ -310,13 +305,23 @@ pref("intl.locale.requested",              "");
 pref("network.trr.mode",                   5);
 /* Disable use of Mozilla Normandy service by default */
 pref("app.normandy.enabled",               false);
+END
 
+  install -Dvm644 /dev/stdin "$pref/media_decoding.js" <<END
 /* gentoo-hwaccel-prefs.js-r2 */
 /* Force hardware accelerated rendering due to USE=hwaccel */
 pref("gfx.webrender.all",                  true);
 pref("layers.acceleration.force-enabled",  true);
-pref("media.hardware-video-decoding.enabled", true);
+sticky_pref("media.hardware-video-decoding.enabled", true);
 pref("webgl.force-enabled",                true);
+
+// hardware acceleration
+sticky_pref("media.ffmpeg.vaapi.enabled", true);
+sticky_pref("media.ffvpx.enabled", false);
+sticky_pref("media.hardware-video-decoding.force-enabled", true);
+sticky_pref("media.navigator.mediadatadecoder_vpx_enabled", true);
+sticky_pref("media.rdd-ffvpx.enabled", false);
+sticky_pref("media.rdd-vpx.enabled", false);
 END
 
   install -Dvm644 /dev/stdin "$pref/kde.js" <<END

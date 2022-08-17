@@ -328,9 +328,15 @@ pref("media.rdd-vpx.enabled", false);
 END
 
   install -Dvm644 /dev/stdin "$pref/kde.js" <<END
-// KDE.js
 pref("browser.preferences.instantApply", false);
 pref("browser.backspace_action", 0);
+END
+
+  install -Dvm644 /dev/stdin "$pref/disable_typeahead.js" <<END
+sticky_pref("accessibility.typeaheadfind", false);
+sticky_pref("accessibility.typeaheadfind.autostart", false);
+sticky_pref("accessibility.typeaheadfind.manual", false);
+sticky_pref("accessibility.typeaheadfind.flashBar", 0);
 END
 
   local distini="$pkgdir/usr/lib/$pkgname/distribution/distribution.ini"

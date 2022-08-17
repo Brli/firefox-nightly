@@ -330,6 +330,13 @@ END
 // pref("browser.backspace_action", 0);
 END
 
+  install -Dvm644 /dev/stdin "$pref/disable_typeahead.js" <<END
+sticky_pref("accessibility.typeaheadfind", false);
+sticky_pref("accessibility.typeaheadfind.autostart", false);
+sticky_pref("accessibility.typeaheadfind.manual", false);
+sticky_pref("accessibility.typeaheadfind.flashBar", 0);
+END
+
   local distini="$pkgdir/usr/lib/$pkgname/distribution/distribution.ini"
   install -Dvm644 /dev/stdin "$distini" <<END
 [Global]

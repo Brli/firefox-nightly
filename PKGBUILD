@@ -24,7 +24,7 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 #conflicts=(firefox-i18n-zh-tw)
 #replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=66e3220110ba0dd99ba7d45684ac4731886a59a9
+_moz_revision=d07260cc487a1c22c21426714d146b89c34d0628
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -208,7 +208,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  sed "s/105.0a1/103.0.2/" -i config/milestone.txt
+  sed "s/.*10.*/104.0/" -i config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,$pkgname,g" -i "${srcdir}/firefox.desktop"

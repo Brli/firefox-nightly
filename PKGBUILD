@@ -3,8 +3,9 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox
-pkgver=104.0b9
-pkgrel=2
+_pkgver_stable=104.0
+pkgver=105.0b2
+pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -30,10 +31,10 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-103-patches-03j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-03j.tar.xz
         fix_csd_window_buttons.patch zstandard-0.18.0.diff arc4random.diff
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('72200dbf70b6d83925faf3867a4613b5ed4971b701a8213cf5cf02887fc06ce8'
+sha256sums=('ac7311317c754f7b906365f9535a15eb3a50d47a234fca0059334188536b5f2e'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -89,10 +90,10 @@ prepare() {
                       '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
                       '0027-bgo-816975-fix-build-on-x86.patch'
                       '0028-bmo-1559213-fix-system-av1-libs.patch'
-                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch')
-                      # '0032-p05-bmo-1776724-build-wayland-only-D150485.patch' # upstreamed
-                      # '0035-bmo-1773336-disable_audio_thread_priority_default_features.patch'
-                      # '0036-vaapi-fixes.patch')
+                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0032-p05-bmo-1776724-build-wayland-only-D150485.patch' # upstreamed
+                      '0035-bmo-1773336-disable_audio_thread_priority_default_features.patch'
+                      '0036-vaapi-fixes.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -102,9 +103,9 @@ prepare() {
   msg 'opensuse patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=('mozilla-nongnome-proxies.patch'
-                    # 'mozilla-kde.patch'
+                    # 'mozilla-kde.patch' # do it in Librewolf patch
                     'mozilla-ntlm-full-path.patch'
-                    # 'mozilla-aarch64-startup-crash.patch'
+                    # 'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
                     # 'mozilla-fix-aarch64-libopus.patch'
                     # 'mozilla-s390-context.patch'
                     # 'mozilla-pgo.patch'
@@ -118,7 +119,7 @@ prepare() {
                     'mozilla-bmo849632.patch'
                     'mozilla-bmo998749.patch'
                     # 'mozilla-s390x-skia-gradient.patch'
-                    # 'mozilla-libavcodec58_91.patch'
+                    # 'mozilla-libavcodec58_91.patch' # We don't fallback-support ffmpeg
                     # 'mozilla-silence-no-return-type.patch'
                     # 'mozilla-bmo531915.patch'
                     'one_swizzle_to_rule_them_all.patch'
@@ -155,7 +156,7 @@ prepare() {
 
   cat >../mozconfig <<END
 ac_add_options --enable-application=browser
-ac_add_options --with-app-name=$pkgname
+ac_add_options --with-app-name=${pkgname}
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 
 ac_add_options --prefix=/usr
@@ -193,7 +194,7 @@ ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
-#ac_add_options --with-system-graphite2
+ac_add_options --with-system-graphite2
 ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
 ac_add_options --enable-system-ffi
@@ -211,7 +212,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  sed "s/${pkgver%%b*}/103.0.2/" -i config/milestone.txt
+  sed "s/${pkgver%%b*}/${_pkgver_stable}/" -i config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,$pkgname,g" -i "${srcdir}/firefox.desktop"

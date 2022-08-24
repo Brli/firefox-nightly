@@ -40,7 +40,7 @@ sha256sums=('ac7311317c754f7b906365f9535a15eb3a50d47a234fca0059334188536b5f2e'
             'SKIP'
             'SKIP'
             'SKIP'
-            'e0de9f2010eb06603aee11cc3fdefb9bd4987c8ea70da3ac0dd3b4f53428b3f5'
+            'ac6e8607be14d0d6620b4c4003af74c26d5bbfc829d46ba5160b2e363882c4f6'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'a6857ad2f2e2091c6c4fdcde21a59fbeb0138914c0e126df64b50a5af5ff63be'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -87,9 +87,11 @@ prepare() {
                       '0027-bgo-816975-fix-build-on-x86.patch'
                       '0028-bmo-1559213-fix-system-av1-libs.patch'
                       '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0032-p05-bmo-1776724-build-wayland-only-D150485.patch' # upstreamed
-                      '0035-bmo-1773336-disable_audio_thread_priority_default_features.patch'
-                      '0036-vaapi-fixes.patch')
+                      '0030-bmo-1754469-memory_mozalloc_throw.patch'
+                      '0031-bmo-1769631-python-3.11-compatibility.patch'
+                      '0032-bmo-1773336-disable_audio_thread_priority_default_features.patch'
+                      '0033-rhbz-2115253-vaapi-fixes.patch'
+                      '0034-bgo-860033-firefox-wayland-no-dbus.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."

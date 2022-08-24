@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox
-pkgver=105.0a1.20220812.66e3220110ba
+pkgver=106.0a1.20220824.d3dc65398cce
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,13 +24,14 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 #conflicts=(firefox-i18n-zh-tw)
 #replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=d07260cc487a1c22c21426714d146b89c34d0628
+_moz_revision=d3dc65398cce28924be6381cef27f3751233e7a9
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-104-patches-01j.tar.xz
+        0028-bmo-1559213-fix-system-av1-libs.patch
         fix_csd_window_buttons.patch zstandard-0.18.0.diff
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
@@ -38,7 +39,8 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'e0de9f2010eb06603aee11cc3fdefb9bd4987c8ea70da3ac0dd3b4f53428b3f5'
+            'ac6e8607be14d0d6620b4c4003af74c26d5bbfc829d46ba5160b2e363882c4f6'
+            'a5ccfaf882eb8201d5253885a3b3a36ff4fb7491274483eef85efa8c0fe21de6'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'a6857ad2f2e2091c6c4fdcde21a59fbeb0138914c0e126df64b50a5af5ff63be'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -86,12 +88,12 @@ prepare() {
                       '0025-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
                       '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
                       '0027-bgo-816975-fix-build-on-x86.patch'
-                      '0028-bmo-1559213-fix-system-av1-libs.patch'
+                      # '0028-bmo-1559213-fix-system-av1-libs.patch' # edited
                       '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch')
                       # '0032-p05-bmo-1776724-build-wayland-only-D150485.patch' # upstreamed
                       # '0035-bmo-1773336-disable_audio_thread_priority_default_features.patch'
                       # '0036-vaapi-fixes.patch')
-
+  patch -Np1 -i "$srcdir/0028-bmo-1559213-fix-system-av1-libs.patch"
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 < "$srcdir/firefox-patches/$src"

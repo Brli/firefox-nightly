@@ -1,0 +1,33 @@
+From 31f010cb96a9919edca77f2bc3e43e0c48792a08 Mon Sep 17 00:00:00 2001
+From: BrLi <brli@chakralinux.org>
+Date: Wed, 24 Aug 2022 16:17:25 +0800
+Subject: [PATCH] 0028-bmo-1559213-fix-system-av1-libs.patch
+
+---
+ media/ffvpx/libavcodec/moz.build | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/media/ffvpx/libavcodec/moz.build b/media/ffvpx/libavcodec/moz.build
+index 9aad9b92e2..4e01b938fe 100644
+--- a/media/ffvpx/libavcodec/moz.build
++++ b/media/ffvpx/libavcodec/moz.build
+@@ -108,10 +108,14 @@ if not CONFIG['MOZ_FFVPX_AUDIOONLY']:
+         'vp9prob.c',
+         'vp9recon.c'
+     ]
+-    USE_LIBS += [
++    if CONFIG["MOZ_SYSTEM_AV1"]:
++      CFLAGS += CONFIG['MOZ_SYSTEM_LIBDAV1D_CFLAGS']
++      OS_LIBS += CONFIG['MOZ_SYSTEM_LIBDAV1D_LIBS']
++    else:
++      USE_LIBS += [
+         'dav1d',
+         'media_libdav1d_asm',
+-    ]
++      ]
+     if CONFIG['MOZ_WAYLAND']:
+         LOCAL_INCLUDES += ['/media/mozva']
+         SOURCES += [
+-- 
+2.37.2
+

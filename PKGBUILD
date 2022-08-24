@@ -31,7 +31,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-03j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-01j.tar.xz
         fix_csd_window_buttons.patch zstandard-0.18.0.diff arc4random.diff
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('ac7311317c754f7b906365f9535a15eb3a50d47a234fca0059334188536b5f2e'

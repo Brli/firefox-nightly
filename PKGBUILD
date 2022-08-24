@@ -3,8 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox
-_pkgver_stable=104.0
-pkgver=105.0b2
+pkgver=104.0
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -12,7 +11,7 @@ license=(MPL GPL LGPL)
 url="https://www.mozilla.org/firefox/"
 depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
-             autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
+             autoconf2.13 rust clang llvm jack2 nodejs cbindgen nasm
              python-setuptools python-zstandard lld dump_syms
              wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
              mercurial breezy python-dulwich rsync)
@@ -22,8 +21,8 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'speech-dispatcher: Text-to-Speech'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
-#conflicts=(firefox-i18n-zh-tw)
-#replaces=(firefox-i18n-zh-tw)
+conflicts=(firefox-i18n-zh-tw)
+replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
 _moz_revision=66e3220110ba0dd99ba7d45684ac4731886a59a9
 source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"{,.asc}
@@ -31,8 +30,8 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-01j.tar.xz
-        fix_csd_window_buttons.patch zstandard-0.18.0.diff
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01j.tar.xz
+        fix_csd_window_buttons.patch zstandard-0.18.0.diff arc4random.diff
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('ac7311317c754f7b906365f9535a15eb3a50d47a234fca0059334188536b5f2e'
             'SKIP'
@@ -67,6 +66,9 @@ prepare() {
   # Unbreak build with python-zstandard 0.18.0
   patch -Np1 -i ../zstandard-0.18.0.diff
 
+  # Unbreak build with glibc 2.36
+  patch -Np1 -i ../arc4random.diff
+
   #fix csd window buttons patch
   patch -Np1 -i ../fix_csd_window_buttons.patch
 
@@ -89,6 +91,7 @@ prepare() {
                       '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
                       '0030-bmo-1754469-memory_mozalloc_throw.patch'
                       '0031-bmo-1769631-python-3.11-compatibility.patch'
+                      '0032-bmo-1773336-disable_audio_thread_priority_default_features.patch'
                       '0033-rhbz-2115253-vaapi-fixes.patch'
                       '0034-bgo-860033-firefox-wayland-no-dbus.patch')
 
@@ -200,16 +203,13 @@ ac_add_options --enable-system-pixman
 
 # Features
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
-ac_add_options --disable-alsa
-ac_add_options --disable-jack
+ac_add_options --enable-alsa
+ac_add_options --enable-jack
 ac_add_options --disable-necko-wifi
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
 END
-
-  # Fake mozilla version
-  sed "s/${pkgver%%b*}/${_pkgver_stable}/" -i config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,$pkgname,g" -i "${srcdir}/firefox.desktop"
@@ -382,10 +382,6 @@ END
   if [[ -e $nssckbi ]]; then
     ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
   fi
-
-  # Install zh-TW locale
-  #local xpi_dest="$pkgdir/usr/lib/$pkgname/browser/extensions"
-  #install -Dvm644 "$srcdir/firefox-105.0a1.zh-TW.langpack.xpi" "$xpi_dest/langpack-zh-TW@firefox.mozilla.org.xpi"
 }
 
 # vim:set sw=2 et:

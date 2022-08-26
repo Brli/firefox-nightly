@@ -165,8 +165,8 @@ ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-# ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-ac_add_options --without-wasm-sandboxed-libraries
+ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+# ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
 ac_add_options --enable-official-branding
@@ -192,7 +192,7 @@ ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
-ac_add_options --with-system-graphite2
+# ac_add_options --with-system-graphite2
 ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
 ac_add_options --enable-system-ffi
@@ -324,6 +324,7 @@ sticky_pref("media.hardware-video-decoding.force-enabled", true);
 sticky_pref("media.navigator.mediadatadecoder_vpx_enabled", true);
 sticky_pref("media.rdd-ffvpx.enabled", false);
 sticky_pref("media.rdd-vpx.enabled", false);
+sticky_pref("media.rdd-ffmpeg.enabled", false);
 END
 
   install -Dvm644 /dev/stdin "$pref/kde.js" <<END

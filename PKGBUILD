@@ -118,7 +118,7 @@ prepare() {
                     'mozilla-bmo1504834-part1.patch'
                     'mozilla-bmo1504834-part3.patch'
                     'mozilla-bmo1512162.patch'
-                    'mozilla-fix-top-level-asm.patch'
+                    # 'mozilla-fix-top-level-asm.patch' # broken patch
                     'mozilla-bmo849632.patch'
                     'mozilla-bmo998749.patch'
                     # 'mozilla-s390x-skia-gradient.patch'

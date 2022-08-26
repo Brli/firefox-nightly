@@ -111,7 +111,7 @@ prepare() {
                     # 'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
                     # 'mozilla-fix-aarch64-libopus.patch'
                     # 'mozilla-s390-context.patch'
-                    'mozilla-pgo.patch'
+                    # 'mozilla-pgo.patch' # previous patch detected
                     'mozilla-reduce-rust-debuginfo.patch'
                     'mozilla-bmo1005535.patch'
                     'mozilla-bmo1568145.patch'

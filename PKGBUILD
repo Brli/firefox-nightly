@@ -33,7 +33,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01j.tar.xz
         fix_csd_window_buttons.patch zstandard-0.18.0.diff arc4random.diff
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('ac7311317c754f7b906365f9535a15eb3a50d47a234fca0059334188536b5f2e'
+sha256sums=('1a294a651dc6260f9a72a3ab9f10e7792a4ab41a9cfa8527ad3dd9979cdc98ce'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -42,6 +42,7 @@ sha256sums=('ac7311317c754f7b906365f9535a15eb3a50d47a234fca0059334188536b5f2e'
             'ac6e8607be14d0d6620b4c4003af74c26d5bbfc829d46ba5160b2e363882c4f6'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'a6857ad2f2e2091c6c4fdcde21a59fbeb0138914c0e126df64b50a5af5ff63be'
+            '714ca50b2ce0cac470dbd5a60e9a0101b28072f08a5e7a9bba94fef2058321c4'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -78,8 +79,10 @@ prepare() {
                       '0005-bmo-847568-Support-system-graphite2.patch'
                       '0006-bmo-1559213-Support-system-av1.patch'
                       '0008-bmo-1516803-Fix-building-sandbox.patch'
+                      '0017-Make-PGO-use-toolchain.patch'
                       '0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
                       '0019-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
+                      '0020-Fix-building-with-PGO-when-using-GCC.patch'
                       '0021-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
                       '0022-build-Disable-Werror.patch'
                       '0023-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
@@ -108,14 +111,14 @@ prepare() {
                     # 'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
                     # 'mozilla-fix-aarch64-libopus.patch'
                     # 'mozilla-s390-context.patch'
-                    # 'mozilla-pgo.patch'
+                    'mozilla-pgo.patch'
                     'mozilla-reduce-rust-debuginfo.patch'
                     'mozilla-bmo1005535.patch'
                     'mozilla-bmo1568145.patch'
                     'mozilla-bmo1504834-part1.patch'
                     'mozilla-bmo1504834-part3.patch'
                     'mozilla-bmo1512162.patch'
-                    # 'mozilla-fix-top-level-asm.patch'
+                    'mozilla-fix-top-level-asm.patch'
                     'mozilla-bmo849632.patch'
                     'mozilla-bmo998749.patch'
                     # 'mozilla-s390x-skia-gradient.patch'
@@ -167,8 +170,8 @@ ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-# ac_add_options --without-wasm-sandboxed-libraries
+# ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
 ac_add_options --enable-official-branding

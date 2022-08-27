@@ -31,7 +31,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01j.tar.xz
-        fix_csd_window_buttons.patch zstandard-0.18.0.diff arc4random.diff
+        5022efe33088.patch fix_csd_window_buttons.patch zstandard-0.18.0.diff arc4random.diff
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('1a294a651dc6260f9a72a3ab9f10e7792a4ab41a9cfa8527ad3dd9979cdc98ce'
             'SKIP'
@@ -40,6 +40,7 @@ sha256sums=('1a294a651dc6260f9a72a3ab9f10e7792a4ab41a9cfa8527ad3dd9979cdc98ce'
             'SKIP'
             'SKIP'
             'ac6e8607be14d0d6620b4c4003af74c26d5bbfc829d46ba5160b2e363882c4f6'
+            'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'a6857ad2f2e2091c6c4fdcde21a59fbeb0138914c0e126df64b50a5af5ff63be'
             '714ca50b2ce0cac470dbd5a60e9a0101b28072f08a5e7a9bba94fef2058321c4'
@@ -70,31 +71,34 @@ prepare() {
   # Unbreak build with glibc 2.36
   patch -Np1 -i ../arc4random.diff
 
-  #fix csd window buttons patch
+  # fix csd window buttons patch
   patch -Np1 -i ../fix_csd_window_buttons.patch
 
+  # Revert use of system sqlite
+  patch -Np1 -i ../5022efe33088.patch
+
   msg 'Gentoo patch'
-  # local source=($(ls $srcdir/firefox-patches/))
-  local gentoo_patch=('0004-bmo-847568-Support-system-harfbuzz.patch'
-                      '0005-bmo-847568-Support-system-graphite2.patch'
-                      '0006-bmo-1559213-Support-system-av1.patch'
-                      '0008-bmo-1516803-Fix-building-sandbox.patch'
-                      '0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
-                      '0019-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
-                      '0021-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
-                      '0022-build-Disable-Werror.patch'
-                      '0023-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0024-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0025-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
-                      '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
-                      '0027-bgo-816975-fix-build-on-x86.patch'
-                      '0028-bmo-1559213-fix-system-av1-libs.patch'
-                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0030-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0031-bmo-1769631-python-3.11-compatibility.patch'
-                      '0032-bmo-1773336-disable_audio_thread_priority_default_features.patch'
-                      '0033-rhbz-2115253-vaapi-fixes.patch'
-                      '0034-bgo-860033-firefox-wayland-no-dbus.patch')
+  local source=($(ls $srcdir/firefox-patches/))
+  # local gentoo_patch=('0004-bmo-847568-Support-system-harfbuzz.patch'
+  #                     '0005-bmo-847568-Support-system-graphite2.patch'
+  #                     '0006-bmo-1559213-Support-system-av1.patch'
+  #                     '0008-bmo-1516803-Fix-building-sandbox.patch'
+  #                     '0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
+  #                     '0019-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
+  #                     '0021-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
+  #                     '0022-build-Disable-Werror.patch'
+  #                     '0023-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
+  #                     '0024-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
+  #                     '0025-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
+  #                     '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
+  #                     '0027-bgo-816975-fix-build-on-x86.patch'
+  #                     '0028-bmo-1559213-fix-system-av1-libs.patch'
+  #                     '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+  #                     '0030-bmo-1754469-memory_mozalloc_throw.patch'
+  #                     '0031-bmo-1769631-python-3.11-compatibility.patch'
+  #                     '0032-bmo-1773336-disable_audio_thread_priority_default_features.patch'
+  #                     '0033-rhbz-2115253-vaapi-fixes.patch'
+  #                     '0034-bgo-860033-firefox-wayland-no-dbus.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -193,14 +197,15 @@ ac_add_options --with-system-nss
 ac_add_options --with-system-jpeg
 ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
+ac_add_options --with-system-libevent
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-graphite2
-ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman
+ac_add_options --enable-system-sqlite
 
 # Features
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland

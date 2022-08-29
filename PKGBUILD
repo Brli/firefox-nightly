@@ -74,7 +74,7 @@ prepare() {
   patch -Np1 -i ../zstandard-0.18.0.diff
 
   msg 'Gentoo patch'
-  # local source=($(ls $srcdir/firefox-patches/))
+  # local gentoo_patch=($(ls $srcdir/firefox-patches/))
   local gentoo_patch=('0004-bmo-847568-Support-system-harfbuzz.patch'
                       '0005-bmo-847568-Support-system-graphite2.patch'
                       '0006-bmo-1559213-Support-system-av1.patch'

@@ -222,10 +222,9 @@ END
 
   # remove checksum for files patched
   local _audio_cargo=(audioipc-client audioipc audioipc-server)
-  for file in "${_audio_cargo[@]}"; do \
-    crate="third_party/rust/${file}"; \
-    fn=$${crate}/.cargo-checksum.json; \
-    sed -i -e 's/"Cargo.toml":"[a-z0-9]\+",//g' ${fn}; \
+  for file in "${_audio_cargo[@]}"; do
+    checksum="third_party/rust/${file}"/.cargo-checksum.json
+    sed -i -e 's/"Cargo.toml":"[a-z0-9]\+",//g' "${checksum}"
   done
 }
 

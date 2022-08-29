@@ -70,7 +70,25 @@ prepare() {
   patch -Np1 -i ../fix_csd_window_buttons.patch
 
   msg 'Gentoo patch'
-  local gentoo_patch=($(ls $srcdir/firefox-patches/))
+  local gentoo_patch=('0004-bmo-847568-Support-system-harfbuzz.patch'
+                      '0005-bmo-847568-Support-system-graphite2.patch'
+                      '0006-bmo-1559213-Support-system-av1.patch'
+                      '0008-bmo-1516803-Fix-building-sandbox.patch'
+                      '0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
+                      '0019-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
+                      '0021-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
+                      '0022-build-Disable-Werror.patch'
+                      '0023-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
+                      '0024-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
+                      '0025-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
+                      '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
+                      '0027-bgo-816975-fix-build-on-x86.patch'
+                      '0028-bmo-1559213-fix-system-av1-libs.patch'
+                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0030-bmo-1754469-memory_mozalloc_throw.patch'
+                      '0031-bmo-1769631-python-3.11-compatibility.patch'
+                      '0033-rhbz-2115253-vaapi-fixes.patch'
+                      '0034-bgo-860033-firefox-wayland-no-dbus.patch')
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 < "$srcdir/firefox-patches/$src"

@@ -221,11 +221,8 @@ END
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,$pkgname,g" -i "${srcdir}/firefox.desktop"
 
   # remove checksum for files patched
-  local _audio_cargo=(audioipc-client audioipc audioipc-server)
-  for file in "${_audio_cargo[@]}"; do
-    checksum="third_party/rust/${file}"/.cargo-checksum.json
-    sed -i -e 's/"Cargo.toml":"[a-z0-9]\+",//g' "${checksum}"
-  done
+  sed 's/\("files":{\)[^}]*/\1/' -i \
+    third_party/rust/{audioipc-client,audioipc,audioipc-server}/.cargo-checksum.json
 }
 
 build() {

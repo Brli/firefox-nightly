@@ -96,6 +96,7 @@ prepare() {
                       '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
                       '0030-bmo-1754469-memory_mozalloc_throw.patch'
                       '0031-bmo-1769631-python-3.11-compatibility.patch'
+                      '0032-bmo-1773336-disable_audio_thread_priority_default_features.patch'
                       '0033-rhbz-2115253-vaapi-fixes.patch'
                       '0034-bgo-860033-firefox-wayland-no-dbus.patch')
 
@@ -218,6 +219,9 @@ END
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,$pkgname,g" -i "${srcdir}/firefox.desktop"
+
+  # remove rust's cargo checksum json
+  rm -v third_party/rust/{audioipc-client,audioipc,audioipc-server}/.cargo-checksum.json
 }
 
 build() {

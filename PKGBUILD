@@ -136,9 +136,9 @@ prepare() {
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=('faster-package-multi-locale.patch')
-                        #  'unity-menubar.patch'
-                        #  'mozilla-kde_after_unity.patch')
+  local librewolf_patch=('faster-package-multi-locale.patch'
+                         'unity-menubar.patch'
+                         'mozilla-kde_after_unity.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"

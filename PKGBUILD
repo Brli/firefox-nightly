@@ -4,7 +4,7 @@
 
 pkgname=firefox
 _pkgver_stable=104.0
-pkgver=105.0b2
+pkgver=105.0b4
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -25,7 +25,6 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 #conflicts=(firefox-i18n-zh-tw)
 #replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=66e3220110ba0dd99ba7d45684ac4731886a59a9
 source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"{,.asc}
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -34,7 +33,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-01j.tar.xz
         fix_csd_window_buttons.patch zstandard-0.18.0.diff
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('ac7311317c754f7b906365f9535a15eb3a50d47a234fca0059334188536b5f2e'
+sha256sums=('68b278d9964357770e71e795c263d6f601f0b9848f2de00a5b52a6e438334161'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -71,27 +70,7 @@ prepare() {
   patch -Np1 -i ../fix_csd_window_buttons.patch
 
   msg 'Gentoo patch'
-  # local source=($(ls $srcdir/firefox-patches/))
-  local gentoo_patch=('0004-bmo-847568-Support-system-harfbuzz.patch'
-                      '0005-bmo-847568-Support-system-graphite2.patch'
-                      '0006-bmo-1559213-Support-system-av1.patch'
-                      '0008-bmo-1516803-Fix-building-sandbox.patch'
-                      '0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
-                      '0019-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
-                      '0021-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
-                      '0022-build-Disable-Werror.patch'
-                      '0023-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0024-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0025-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
-                      '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
-                      '0027-bgo-816975-fix-build-on-x86.patch'
-                      '0028-bmo-1559213-fix-system-av1-libs.patch'
-                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0030-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0031-bmo-1769631-python-3.11-compatibility.patch'
-                      '0033-rhbz-2115253-vaapi-fixes.patch'
-                      '0034-bgo-860033-firefox-wayland-no-dbus.patch')
-
+  local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 < "$srcdir/firefox-patches/$src"
@@ -164,8 +143,8 @@ ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-# ac_add_options --without-wasm-sandboxed-libraries
+# ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
 ac_add_options --enable-official-branding
@@ -209,7 +188,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  sed "s/${pkgver%%b*}/${_pkgver_stable}/" -i config/milestone.txt
+  echo "${_pkgver_stable}" > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,$pkgname,g" -i "${srcdir}/firefox.desktop"
@@ -382,10 +361,6 @@ END
   if [[ -e $nssckbi ]]; then
     ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
   fi
-
-  # Install zh-TW locale
-  #local xpi_dest="$pkgdir/usr/lib/$pkgname/browser/extensions"
-  #install -Dvm644 "$srcdir/firefox-105.0a1.zh-TW.langpack.xpi" "$xpi_dest/langpack-zh-TW@firefox.mozilla.org.xpi"
 }
 
 # vim:set sw=2 et:

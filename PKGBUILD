@@ -107,7 +107,7 @@ prepare() {
   msg 'opensuse patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=('mozilla-nongnome-proxies.patch'
-                    'mozilla-kde.patch' # do it in Librewolf patch
+                    # 'mozilla-kde.patch' # do it in Librewolf patch
                     'mozilla-ntlm-full-path.patch'
                     # 'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
                     # 'mozilla-fix-aarch64-libopus.patch'

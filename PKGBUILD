@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox
-pkgver=104.0
+pkgver=104.0.1
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -33,7 +33,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01j.tar.xz
         5022efe33088.patch fix_csd_window_buttons.patch zstandard-0.18.0.diff arc4random.diff
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('1a294a651dc6260f9a72a3ab9f10e7792a4ab41a9cfa8527ad3dd9979cdc98ce'
+sha256sums=('f23f4198bd9ba1bbb7420a622080301adb924fafbd6d83b00b1e6cc687e75f4e'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -78,31 +78,11 @@ prepare() {
   patch -Np1 -i ../5022efe33088.patch
 
   msg 'Gentoo patch'
-  # local gentoo_source=($(ls $srcdir/firefox-patches/))
-  local gentoo_patch=('0004-bmo-847568-Support-system-harfbuzz.patch'
-                      '0005-bmo-847568-Support-system-graphite2.patch'
-                      '0006-bmo-1559213-Support-system-av1.patch'
-                      '0008-bmo-1516803-Fix-building-sandbox.patch'
-                      '0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
-                      '0019-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
-                      '0021-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
-                      '0022-build-Disable-Werror.patch'
-                      '0023-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0024-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0025-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
-                      '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
-                      '0027-bgo-816975-fix-build-on-x86.patch'
-                      '0028-bmo-1559213-fix-system-av1-libs.patch'
-                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0030-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0031-bmo-1769631-python-3.11-compatibility.patch'
-                      '0032-bmo-1773336-disable_audio_thread_priority_default_features.patch'
-                      '0033-rhbz-2115253-vaapi-fixes.patch'
-                      '0034-bgo-860033-firefox-wayland-no-dbus.patch')
+  local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
-    patch -Np1 < "$srcdir/firefox-patches/$src"
+    patch -Np1 -i "$srcdir/firefox-patches/$src"
   done
 
   msg 'opensuse patch'

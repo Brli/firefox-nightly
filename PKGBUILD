@@ -4,7 +4,7 @@
 
 pkgname=firefox
 _pkgver_stable=104.0
-pkgver=105.0b4
+pkgver=105.0b5
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -33,7 +33,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-01j.tar.xz
         fix_csd_window_buttons.patch zstandard-0.18.0.diff
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('68b278d9964357770e71e795c263d6f601f0b9848f2de00a5b52a6e438334161'
+sha256sums=('236908ed493f4b67c12cfefab9564d0d7d778b99ec595df854904c9aa110ab93'
             'SKIP'
             'SKIP'
             'SKIP'

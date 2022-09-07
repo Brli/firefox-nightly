@@ -13,7 +13,6 @@ depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
              python-setuptools python-zstandard lld dump_syms
-             wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
              mercurial breezy python-dulwich rsync)
 optdepends=('networkmanager: Location detection via available WiFi networks'
             'libnotify: Notification integration'
@@ -24,13 +23,13 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 #conflicts=(firefox-i18n-zh-tw)
 #replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=9887a9dd3dd25f318595ccc7796d7c0902ccd6da
+_moz_revision=49a271c42001f7bc5b9efadfc3e0b66dc0b67777
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-104-patches-01j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-104-patches-02j.tar.xz
         0028-bmo-1559213-fix-system-av1-libs.patch
         fix_csd_window_buttons.patch zstandard-0.18.0.diff
         firefox.desktop identity-icons-brand.svg)
@@ -89,9 +88,9 @@ prepare() {
                       '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
                       '0027-bgo-816975-fix-build-on-x86.patch'
                       # '0028-bmo-1559213-fix-system-av1-libs.patch' # edited
-                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch')
+                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0035-bmo-1773336-disable_audio_thread_priority_default_features.patch')
                       # '0032-p05-bmo-1776724-build-wayland-only-D150485.patch' # upstreamed
-                      # '0035-bmo-1773336-disable_audio_thread_priority_default_features.patch'
                       # '0036-vaapi-fixes.patch')
   patch -Np1 -i "$srcdir/0028-bmo-1559213-fix-system-av1-libs.patch"
   for src in "${gentoo_patch[@]}"; do
@@ -165,8 +164,8 @@ ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-# ac_add_options --without-wasm-sandboxed-libraries
+# ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
 ac_add_options --enable-official-branding
@@ -192,7 +191,7 @@ ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
-# ac_add_options --with-system-graphite2
+ac_add_options --with-system-graphite2
 ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
 ac_add_options --enable-system-ffi
@@ -210,10 +209,14 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  sed "s/.*10.*/104.0/" -i config/milestone.txt
+  echo '104.0.2' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,$pkgname,g" -i "${srcdir}/firefox.desktop"
+
+  # remove checksum for files patched
+  sed 's/\("files":{\)[^}]*/\1/' -i \
+    third_party/rust/{audioipc-client,audioipc,audioipc-server}/.cargo-checksum.json
 }
 
 build() {

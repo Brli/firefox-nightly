@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox
-pkgver=106.0a1.20220826.9887a9dd3dd2
+pkgver=106.0a1.20220907.49a271c42001
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -38,7 +38,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'ac6e8607be14d0d6620b4c4003af74c26d5bbfc829d46ba5160b2e363882c4f6'
+            'a5514822831057b694ccc615fceae1119756542f335ec846cd589cc34682ba62'
             'a5ccfaf882eb8201d5253885a3b3a36ff4fb7491274483eef85efa8c0fe21de6'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'a6857ad2f2e2091c6c4fdcde21a59fbeb0138914c0e126df64b50a5af5ff63be'
@@ -88,8 +88,8 @@ prepare() {
                       '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
                       '0027-bgo-816975-fix-build-on-x86.patch'
                       # '0028-bmo-1559213-fix-system-av1-libs.patch' # edited
-                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0035-bmo-1773336-disable_audio_thread_priority_default_features.patch')
+                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch')
+                      # '0032-bmo-1773336-disable_audio_thread_priority_default_features.patch' # upstreamed
                       # '0032-p05-bmo-1776724-build-wayland-only-D150485.patch' # upstreamed
                       # '0036-vaapi-fixes.patch')
   patch -Np1 -i "$srcdir/0028-bmo-1559213-fix-system-av1-libs.patch"

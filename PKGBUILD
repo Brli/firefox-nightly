@@ -67,6 +67,7 @@ prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
   mv -fv mozilla-kde_after_unity.patch "${srcdir}/librewolf-patch/patches/"
+  mv -fv 0028-bmo-1559213-fix-system-av1-libs.patch "$srcdir/firefox-patches/"
   cd mozilla-central
 
   msg 'Gentoo patch'
@@ -84,12 +85,11 @@ prepare() {
                       '0025-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
                       '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
                       '0027-bgo-816975-fix-build-on-x86.patch'
-                      # '0028-bmo-1559213-fix-system-av1-libs.patch' # edited
+                      '0028-bmo-1559213-fix-system-av1-libs.patch' # edited
                       '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch')
                       # '0032-bmo-1773336-disable_audio_thread_priority_default_features.patch' # upstreamed
                       # '0032-p05-bmo-1776724-build-wayland-only-D150485.patch' # upstreamed
                       # '0036-vaapi-fixes.patch')
-  patch -Np1 -i "$srcdir/0028-bmo-1559213-fix-system-av1-libs.patch"
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 < "$srcdir/firefox-patches/$src"
@@ -129,7 +129,7 @@ prepare() {
   msg 'librewolf patch'
   local librewolf_patch=('faster-package-multi-locale.patch'
                          'unity-menubar.patch'
-                         'mozilla-kde_after_unity.patch')
+                         'mozilla-kde_after_unity.patch') # edited
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"

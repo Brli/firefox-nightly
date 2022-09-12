@@ -4,7 +4,7 @@
 
 pkgname=firefox
 _pkgver_stable=104.0
-pkgver=105.0b5
+pkgver=105.0b9
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -13,8 +13,7 @@ url="https://www.mozilla.org/firefox/"
 depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
-             python-setuptools python-zstandard lld dump_syms
-             wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
+             lld dump_syms wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
              mercurial breezy python-dulwich rsync)
 optdepends=('networkmanager: Location detection via available WiFi networks'
             'libnotify: Notification integration'
@@ -31,9 +30,9 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-01j.tar.xz
-        fix_csd_window_buttons.patch zstandard-0.18.0.diff
+        fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('236908ed493f4b67c12cfefab9564d0d7d778b99ec595df854904c9aa110ab93'
+sha256sums=('16d20d6c65e9bf1408ecbb3cd010a952f533b4408bb8f77fff416a208ed1288f'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -41,7 +40,6 @@ sha256sums=('236908ed493f4b67c12cfefab9564d0d7d778b99ec595df854904c9aa110ab93'
             'SKIP'
             'ac6e8607be14d0d6620b4c4003af74c26d5bbfc829d46ba5160b2e363882c4f6'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            'a6857ad2f2e2091c6c4fdcde21a59fbeb0138914c0e126df64b50a5af5ff63be'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -62,9 +60,6 @@ prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
   cd firefox-${pkgver%%b*}
-
-  # Unbreak build with python-zstandard 0.18.0
-  patch -Np1 -i ../zstandard-0.18.0.diff
 
   #fix csd window buttons patch
   patch -Np1 -i ../fix_csd_window_buttons.patch
@@ -218,7 +213,7 @@ build() {
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
   export MOZ_ENABLE_FULL_SYMBOLS=0
-  export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=system
+  export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
 
   # LTO needs more open files
   ulimit -n 4096

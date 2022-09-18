@@ -22,7 +22,7 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 #conflicts=(firefox-i18n-zh-tw)
 #replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=49a271c42001f7bc5b9efadfc3e0b66dc0b67777
+_moz_revision=d6f893afbba29bed217abae89b6037c6fdf6ee65
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -108,8 +108,8 @@ prepare() {
                     'mozilla-reduce-rust-debuginfo.patch'
                     'mozilla-bmo1005535.patch'
                     'mozilla-bmo1568145.patch'
-                    'mozilla-bmo1504834-part1.patch'
-                    'mozilla-bmo1504834-part3.patch'
+                    # 'mozilla-bmo1504834-part1.patch'
+                    # 'mozilla-bmo1504834-part3.patch'
                     'mozilla-bmo1512162.patch'
                     # 'mozilla-fix-top-level-asm.patch'
                     'mozilla-bmo849632.patch'

@@ -60,7 +60,8 @@ _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 pkgver() {
   cd mozilla-central
   _pkgver=$(cat browser/config/version.txt)
-  printf "${_pkgver}.%s.%s" "$(date -u +%Y%m%d)" "$(hg identify -i)" | sed 's/\+//g'
+  _date=$(hg identify -T '{date|shortdate}')
+  printf "${_pkgver}.%s.%s" "$(date -u +%Y%m%d -d $_date)" "$(hg identify -i)" | sed 's/\+//g'
 }
 
 prepare() {

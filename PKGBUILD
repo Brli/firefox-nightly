@@ -2,8 +2,8 @@
 # Contributor: Ionut Biru <ibiru@archlinux.org>
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
-pkgname=firefox
-pkgver=106.0a1.20220918.d6f893afbba2
+pkgname=firefox-nightly-brli
+pkgver=107.0a1.20220922.7c0a787fe65a
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -19,10 +19,11 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'speech-dispatcher: Text-to-Speech'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
-#conflicts=(firefox-i18n-zh-tw)
-#replaces=(firefox-i18n-zh-tw)
+provides=(firefox=$pkgver)
+conflicts=(firefox firefox-i18n-zh-tw)
+replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=d6f893afbba29bed217abae89b6037c6fdf6ee65
+_moz_revision=7c0a787fe65ac4e0f9c12cad3d9a94156c9d9ad5
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -152,7 +153,7 @@ prepare() {
 
   cat >../mozconfig <<END
 ac_add_options --enable-application=browser
-ac_add_options --with-app-name=$pkgname
+ac_add_options --with-app-name=firefox
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 
 ac_add_options --prefix=/usr
@@ -173,7 +174,7 @@ ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
 export MOZILLA_OFFICIAL=1
-export MOZ_APP_REMOTINGNAME=${pkgname//-/}
+export MOZ_APP_REMOTINGNAME=firefox
 export MOZ_REQUIRE_SIGNING=1
 unset MOZ_TELEMETRY_REPORTING
 
@@ -211,9 +212,9 @@ END
   echo '104.0.2' > config/milestone.txt
 
   # Desktop file
-  sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,$pkgname,g" -i "${srcdir}/firefox.desktop"
+  sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"
 
-  # remove checksum for files patched
+  # Remove patched rust file checksums
   sed 's/\("files":{\)[^}]*/\1/' -i \
     third_party/rust/{audioipc-client,audioipc,audioipc-server}/.cargo-checksum.json
 }
@@ -277,7 +278,7 @@ package() {
   cd mozilla-central
   DESTDIR="$pkgdir" ./mach install
 
-  local pref="$pkgdir/usr/lib/$pkgname/browser/defaults/preferences"
+  local pref="$pkgdir/usr/lib/firefox/browser/defaults/preferences"
   install -Dvm644 /dev/stdin "$pref/vendor.js" <<END
 // Use system-provided dictionaries
 pref("spellchecker.dictionary_path", "/usr/share/hunspell");
@@ -342,7 +343,7 @@ sticky_pref("accessibility.typeaheadfind.manual", false);
 sticky_pref("accessibility.typeaheadfind.flashBar", 0);
 END
 
-  local distini="$pkgdir/usr/lib/$pkgname/distribution/distribution.ini"
+  local distini="$pkgdir/usr/lib/firefox/distribution/distribution.ini"
   install -Dvm644 /dev/stdin "$distini" <<END
 [Global]
 id=archlinux
@@ -351,45 +352,45 @@ about=Mozilla Firefox for Arch Linux
 
 [Preferences]
 app.distributor=archlinux
-app.distributor.channel=$pkgname
+app.distributor.channel=firefox
 app.partner.archlinux=archlinux
 END
 
   local i theme=official
   for i in 16 22 24 32 48 64 128 256; do
     install -Dvm644 browser/branding/$theme/default$i.png \
-      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/$pkgname.png"
+      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/firefox.png"
   done
   install -Dvm644 browser/branding/$theme/content/about-logo.png \
-    "$pkgdir/usr/share/icons/hicolor/192x192/apps/$pkgname.png"
+    "$pkgdir/usr/share/icons/hicolor/192x192/apps/firefox.png"
   install -Dvm644 browser/branding/$theme/content/about-logo@2x.png \
-    "$pkgdir/usr/share/icons/hicolor/384x384/apps/$pkgname.png"
+    "$pkgdir/usr/share/icons/hicolor/384x384/apps/firefox.png"
   install -Dvm644 browser/branding/$theme/content/about-logo.svg \
-    "$pkgdir/usr/share/icons/hicolor/scalable/apps/$pkgname.svg"
+    "$pkgdir/usr/share/icons/hicolor/scalable/apps/firefox.svg"
   install -Dvm644 ../identity-icons-brand.svg \
-    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/$pkgname-symbolic.svg"
+    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/firefox-symbolic.svg"
 
-  install -Dvm644 $srcdir/$pkgname.desktop \
-    "$pkgdir/usr/share/applications/$pkgname.desktop"
+  install -Dvm644 $srcdir/firefox.desktop \
+    "$pkgdir/usr/share/applications/firefox.desktop"
 
   # Install a wrapper to avoid confusion about binary path
-  install -Dvm755 /dev/stdin "$pkgdir/usr/bin/$pkgname" <<END
+  install -Dvm755 /dev/stdin "$pkgdir/usr/bin/firefox" <<END
 #!/bin/sh
-exec /usr/lib/$pkgname/$pkgname "\$@"
+exec /usr/lib/firefox/firefox "\$@"
 END
 
   # Replace duplicate binary with wrapper
   # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
-  ln -srfv "$pkgdir/usr/bin/$pkgname" "$pkgdir/usr/lib/$pkgname/$pkgname-bin"
+  ln -srfv "$pkgdir/usr/bin/firefox" "$pkgdir/usr/lib/firefox/firefox-bin"
 
   # Use system certificates
-  local nssckbi="$pkgdir/usr/lib/$pkgname/libnssckbi.so"
+  local nssckbi="$pkgdir/usr/lib/firefox/libnssckbi.so"
   if [[ -e $nssckbi ]]; then
     ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
   fi
 
   # Install zh-TW locale
-  #local xpi_dest="$pkgdir/usr/lib/$pkgname/browser/extensions"
+  #local xpi_dest="$pkgdir/usr/lib/firefox/browser/extensions"
   #install -Dvm644 "$srcdir/firefox-105.0a1.zh-TW.langpack.xpi" "$xpi_dest/langpack-zh-TW@firefox.mozilla.org.xpi"
 }
 

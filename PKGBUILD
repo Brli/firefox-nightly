@@ -29,8 +29,7 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-104-patches-02j.tar.xz
-        0028-bmo-1559213-fix-system-av1-libs.patch
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-105-patches-05j.tar.xz
         fix_csd_window_buttons.patch mozilla-kde_after_unity.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'

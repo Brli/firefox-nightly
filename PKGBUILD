@@ -39,6 +39,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             '32792aac31d2bc83f62ba27e5ead46cb7e312e422e13c7f622e951713e24d491'
+            'a5ccfaf882eb8201d5253885a3b3a36ff4fb7491274483eef85efa8c0fe21de6'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'f0894706c09fed2912ad7ce09a3408032504fb11d151b68dbf10a26b0fd4ce6d'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -146,7 +147,10 @@ prepare() {
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
-  
+
+  # Fix identifier name change
+  sed 's,(uri,(aDocURI,g' -i dom/xul/XULPersist.cpp
+
   echo -n "$_google_api_key" >google-api-key
   echo -n "$_mozilla_api_key" >mozilla-api-key
 

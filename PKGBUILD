@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=107.0a1.20220922.7c0a787fe65a
+pkgver=107.0a1.20221005.c14f7934269f
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -23,13 +23,14 @@ provides=(firefox=$pkgver)
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=a1267596287f4c01f63f0a7070ecfecb8bc2a43f
+_moz_revision=c14f7934269f333be9e65958c7a012899b3123bd
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-105-patches-05j.tar.xz
+        0028-bmo-1559213-fix-system-av1-libs.patch
         fix_csd_window_buttons.patch mozilla-kde_after_unity.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
@@ -37,8 +38,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'a5514822831057b694ccc615fceae1119756542f335ec846cd589cc34682ba62'
-            'a5ccfaf882eb8201d5253885a3b3a36ff4fb7491274483eef85efa8c0fe21de6'
+            '32792aac31d2bc83f62ba27e5ead46cb7e312e422e13c7f622e951713e24d491'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'f0894706c09fed2912ad7ce09a3408032504fb11d151b68dbf10a26b0fd4ce6d'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'

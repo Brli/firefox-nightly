@@ -23,7 +23,7 @@ provides=(firefox=$pkgver)
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=7c0a787fe65ac4e0f9c12cad3d9a94156c9d9ad5
+_moz_revision=a1267596287f4c01f63f0a7070ecfecb8bc2a43f
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -88,10 +88,10 @@ prepare() {
                       '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
                       '0027-bgo-816975-fix-build-on-x86.patch'
                       '0028-bmo-1559213-fix-system-av1-libs.patch' # edited
-                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch')
-                      # '0032-bmo-1773336-disable_audio_thread_priority_default_features.patch' # upstreamed
-                      # '0032-p05-bmo-1776724-build-wayland-only-D150485.patch' # upstreamed
-                      # '0036-vaapi-fixes.patch')
+                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0030-bmo-1754469-memory_mozalloc_throw.patch'
+                      '0032-rhbz-2115253-vaapi-fixes.patch')
+
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 < "$srcdir/firefox-patches/$src"

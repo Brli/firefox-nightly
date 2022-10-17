@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=107.0a1.20221009.f431baa08b81
+pkgver=107.0a1.20221017.835cae546ffb
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -70,6 +70,7 @@ prepare() {
   mv zh-TW mozbuild/
   mv -fv mozilla-kde_after_unity.patch "${srcdir}/librewolf-patch/patches/"
   mv -fv 0028-bmo-1559213-fix-system-av1-libs.patch "$srcdir/firefox-patches/"
+  sed 's,(const nsINode,(nsINode,g' -i "${srcdir}/librewolf-patch/patches/unity-menubar.patch"
   cd mozilla-central
 
   msg 'Gentoo patch'

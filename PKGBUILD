@@ -23,7 +23,7 @@ provides=(firefox=$pkgver)
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=f431baa08b8171708c87c836dc5ce078df7dd494
+_moz_revision=835cae546ffb5a2a1cb86d6f5186a7ffdda5c535
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -61,8 +61,8 @@ _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 pkgver() {
   cd mozilla-central
   _pkgver=$(cat browser/config/version.txt)
-  _date=$(hg identify -T '{date|shortdate}')
-  printf "${_pkgver}.%s.%s" "$(date -u +%Y%m%d -d $_date)" "$(hg identify -i)" | sed 's/\+//g'
+  _date=$(hg log -l1 --template '{word(0, date|hgdate)}')
+  printf "${_pkgver}.%s.%s" "$(date -u +%Y%m%d -d @$_date)" "$(hg identify -i)" | sed 's/\+//g'
 }
 
 prepare() {

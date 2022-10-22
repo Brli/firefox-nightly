@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=107.0a1.20221017.835cae546ffb
+pkgver=107.0a1.20221017.ae6fe577313f
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -23,14 +23,13 @@ provides=(firefox=$pkgver)
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=835cae546ffb5a2a1cb86d6f5186a7ffdda5c535
+_moz_revision=ae6fe577313f922a596a2818be572fe4e0b3c75c
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-105-patches-05j.tar.xz
-        0028-bmo-1559213-fix-system-av1-libs.patch
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-106-patches-02j.tar.xz
         fix_csd_window_buttons.patch mozilla-kde_after_unity.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
@@ -38,8 +37,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '32792aac31d2bc83f62ba27e5ead46cb7e312e422e13c7f622e951713e24d491'
-            'a5ccfaf882eb8201d5253885a3b3a36ff4fb7491274483eef85efa8c0fe21de6'
+            'd366d664460fccf7267e7e767cb0137a02b5a4c2ea2fa2b60117eaf00ee553d0'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'f0894706c09fed2912ad7ce09a3408032504fb11d151b68dbf10a26b0fd4ce6d'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -62,14 +60,13 @@ pkgver() {
   cd mozilla-central
   _pkgver=$(cat browser/config/version.txt)
   _date=$(hg log -l1 --template '{word(0, date|hgdate)}')
-  printf "${_pkgver}.%s.%s" "$(date -u +%Y%m%d -d @$_date)" "$(hg identify -i)" | sed 's/\+//g'
+  printf "%s.%s.%s" "${_pkgver}" "$(date -u +%Y%m%d -d @$_date)" "$(hg identify -i)" | sed 's/\+//g'
 }
 
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
   mv -fv mozilla-kde_after_unity.patch "${srcdir}/librewolf-patch/patches/"
-  mv -fv 0028-bmo-1559213-fix-system-av1-libs.patch "$srcdir/firefox-patches/"
   sed 's,(const nsINode,(nsINode,g' -i "${srcdir}/librewolf-patch/patches/unity-menubar.patch"
   cd mozilla-central
 
@@ -210,7 +207,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '104.0.2' > config/milestone.txt
+  echo '106.0.1' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"

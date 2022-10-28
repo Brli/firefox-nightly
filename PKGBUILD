@@ -23,7 +23,7 @@ provides=(firefox=$pkgver)
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=ae6fe577313f922a596a2818be572fe4e0b3c75c
+_moz_revision=58f13f9ef40a25161f105647b98940de9a8c0da4
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -31,6 +31,7 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-106-patches-02j.tar.xz
         fix_csd_window_buttons.patch mozilla-kde_after_unity.patch
+        libwebrtc-screen-cast-sync.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
             'SKIP'
@@ -40,6 +41,7 @@ sha256sums=('SKIP'
             'd366d664460fccf7267e7e767cb0137a02b5a4c2ea2fa2b60117eaf00ee553d0'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'f0894706c09fed2912ad7ce09a3408032504fb11d151b68dbf10a26b0fd4ce6d'
+            'ce16a6cc61be2e5e892c5b0b22e9ca3edbd0bd32938908b6d102272ef99dfa6f'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -69,6 +71,11 @@ prepare() {
   mv -fv mozilla-kde_after_unity.patch "${srcdir}/librewolf-patch/patches/"
   sed 's,(const nsINode,(nsINode,g' -i "${srcdir}/librewolf-patch/patches/unity-menubar.patch"
   cd mozilla-central
+
+  # https://bugs.archlinux.org/task/76231
+  # https://bugzilla.mozilla.org/show_bug.cgi?id=1790496
+  # https://src.fedoraproject.org/rpms/firefox/blob/rawhide/f/libwebrtc-screen-cast-sync.patch
+  patch -Np1 -i ../libwebrtc-screen-cast-sync.patch
 
   msg 'Gentoo patch'
   # local gentoo_patch=($(ls $srcdir/firefox-patches/))
@@ -207,7 +214,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '106.0.1' > config/milestone.txt
+  echo '106.0.2' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"

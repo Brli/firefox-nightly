@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox
-pkgver=104.0.1
+pkgver=106.0.4
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -14,7 +14,7 @@ makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack2 nodejs cbindgen nasm
              python-setuptools python-zstandard lld dump_syms
              wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
-             mercurial breezy python-dulwich rsync)
+             mercurial rsync)
 optdepends=('networkmanager: Location detection via available WiFi networks'
             'libnotify: Notification integration'
             'pulseaudio: Audio support'
@@ -30,20 +30,18 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01j.tar.xz
-        5022efe33088.patch fix_csd_window_buttons.patch zstandard-0.18.0.diff arc4random.diff
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-02j.tar.xz
+        5022efe33088.patch fix_csd_window_buttons.patch 0001-libwebrtc-screen-cast-sync.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('f23f4198bd9ba1bbb7420a622080301adb924fafbd6d83b00b1e6cc687e75f4e'
+sha256sums=('e619d0f524c95bf78af0008cc22fe284ff398d72fc0b6cc9d8737b3b5a9b9eb7'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'ac6e8607be14d0d6620b4c4003af74c26d5bbfc829d46ba5160b2e363882c4f6'
+            'd366d664460fccf7267e7e767cb0137a02b5a4c2ea2fa2b60117eaf00ee553d0'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            'a6857ad2f2e2091c6c4fdcde21a59fbeb0138914c0e126df64b50a5af5ff63be'
-            '714ca50b2ce0cac470dbd5a60e9a0101b28072f08a5e7a9bba94fef2058321c4'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -65,14 +63,10 @@ prepare() {
   mv zh-TW mozbuild/
   cd firefox-${pkgver%%b*}
 
-  # Unbreak build with python-zstandard 0.18.0
-  patch -Np1 -i ../zstandard-0.18.0.diff
-
-  # Unbreak build with glibc 2.36
-  patch -Np1 -i ../arc4random.diff
-
-  # fix csd window buttons patch
-  patch -Np1 -i ../fix_csd_window_buttons.patch
+  # https://bugs.archlinux.org/task/76231
+  # https://bugzilla.mozilla.org/show_bug.cgi?id=1790496
+  # https://src.fedoraproject.org/rpms/firefox/blob/rawhide/f/libwebrtc-screen-cast-sync.patch
+  patch -Np1 -i ../0001-libwebrtc-screen-cast-sync.patch
 
   # Revert use of system sqlite
   patch -Np1 -i ../5022efe33088.patch
@@ -90,9 +84,9 @@ prepare() {
   local suse_patch=('mozilla-nongnome-proxies.patch'
                     # 'mozilla-kde.patch' # do it in Librewolf patch
                     'mozilla-ntlm-full-path.patch'
-                    # 'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
-                    # 'mozilla-fix-aarch64-libopus.patch'
-                    # 'mozilla-s390-context.patch'
+                    'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
+                    'mozilla-fix-aarch64-libopus.patch'
+                    'mozilla-s390-context.patch'
                     # 'mozilla-pgo.patch' # previous patch detected
                     'mozilla-reduce-rust-debuginfo.patch'
                     'mozilla-bmo1005535.patch'
@@ -103,10 +97,10 @@ prepare() {
                     # 'mozilla-fix-top-level-asm.patch' # broken patch
                     'mozilla-bmo849632.patch'
                     'mozilla-bmo998749.patch'
-                    # 'mozilla-s390x-skia-gradient.patch'
+                    'mozilla-s390x-skia-gradient.patch'
                     # 'mozilla-libavcodec58_91.patch' # We don't fallback-support ffmpeg
-                    # 'mozilla-silence-no-return-type.patch'
-                    # 'mozilla-bmo531915.patch'
+                    'mozilla-silence-no-return-type.patch'
+                    'mozilla-bmo531915.patch'
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
                     'firefox-kde.patch'
@@ -182,15 +176,15 @@ ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-graphite2
 ac_add_options --with-system-icu
+ac_add_options --with-system-sqlite
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman
-ac_add_options --enable-system-sqlite
 
 # Features
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
-ac_add_options --enable-alsa
-ac_add_options --enable-jack
+ac_add_options --disable-alsa
+ac_add_options --disable-jack
 ac_add_options --disable-necko-wifi
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
@@ -211,7 +205,7 @@ build() {
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
   export MOZ_ENABLE_FULL_SYMBOLS=0
-  export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=system
+  export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
 
   # LTO needs more open files
   ulimit -n 4096

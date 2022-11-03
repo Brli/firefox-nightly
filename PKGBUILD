@@ -101,7 +101,7 @@ prepare() {
                     'mozilla-s390x-skia-gradient.patch'
                     # 'mozilla-libavcodec58_91.patch' # We don't fallback-support ffmpeg
                     'mozilla-silence-no-return-type.patch'
-                    'mozilla-bmo531915.patch'
+                    # 'mozilla-bmo531915.patch' # broken patch
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
                     'firefox-kde.patch'

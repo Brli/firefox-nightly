@@ -2,7 +2,7 @@
 # Contributor: Ionut Biru <ibiru@archlinux.org>
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
-pkgname=firefox
+pkgname=firefox-brli
 pkgver=106.0.4
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
@@ -21,7 +21,8 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'speech-dispatcher: Text-to-Speech'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
-conflicts=(firefox-i18n-zh-tw)
+provides=(firefox)
+conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
 _moz_revision=66e3220110ba0dd99ba7d45684ac4731886a59a9
@@ -31,7 +32,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-02j.tar.xz
-        5022efe33088.patch fix_csd_window_buttons.patch 0001-libwebrtc-screen-cast-sync.patch
+        fix_csd_window_buttons.patch 0001-libwebrtc-screen-cast-sync.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('e619d0f524c95bf78af0008cc22fe284ff398d72fc0b6cc9d8737b3b5a9b9eb7'
             'SKIP'
@@ -40,7 +41,6 @@ sha256sums=('e619d0f524c95bf78af0008cc22fe284ff398d72fc0b6cc9d8737b3b5a9b9eb7'
             'SKIP'
             'SKIP'
             'd366d664460fccf7267e7e767cb0137a02b5a4c2ea2fa2b60117eaf00ee553d0'
-            'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             '5c164f6dfdf2d97f3f317e417aaa2e6ae46a9b3a160c3162d5073fe39d203286'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -69,9 +69,6 @@ prepare() {
   # https://src.fedoraproject.org/rpms/firefox/blob/rawhide/f/libwebrtc-screen-cast-sync.patch
   patch -Np1 -i ../0001-libwebrtc-screen-cast-sync.patch
 
-  # Revert use of system sqlite
-  patch -Np1 -i ../5022efe33088.patch
-
   msg 'Gentoo patch'
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
@@ -84,10 +81,10 @@ prepare() {
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=('mozilla-nongnome-proxies.patch'
                     # 'mozilla-kde.patch' # do it in Librewolf patch
-                    'mozilla-ntlm-full-path.patch'
-                    'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
-                    'mozilla-fix-aarch64-libopus.patch'
-                    'mozilla-s390-context.patch'
+                    # 'mozilla-ntlm-full-path.patch'
+                    # 'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
+                    # 'mozilla-fix-aarch64-libopus.patch'
+                    # 'mozilla-s390-context.patch'
                     # 'mozilla-pgo.patch' # previous patch detected
                     'mozilla-reduce-rust-debuginfo.patch'
                     'mozilla-bmo1005535.patch'
@@ -136,7 +133,7 @@ prepare() {
 
   cat >../mozconfig <<END
 ac_add_options --enable-application=browser
-ac_add_options --with-app-name=${pkgname}
+ac_add_options --with-app-name=firefox
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 
 ac_add_options --prefix=/usr
@@ -157,7 +154,7 @@ ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
 export MOZILLA_OFFICIAL=1
-export MOZ_APP_REMOTINGNAME=${pkgname//-/}
+export MOZ_APP_REMOTINGNAME=firefox
 export MOZ_REQUIRE_SIGNING=1
 unset MOZ_TELEMETRY_REPORTING
 
@@ -177,7 +174,6 @@ ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-graphite2
 ac_add_options --with-system-icu
-ac_add_options --with-system-sqlite
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman
@@ -193,7 +189,7 @@ ac_add_options --disable-tests
 END
 
   # Desktop file
-  sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,$pkgname,g" -i "${srcdir}/firefox.desktop"
+  sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"
 
   # remove checksum for files patched
   sed 's/\("files":{\)[^}]*/\1/' -i \
@@ -259,7 +255,7 @@ package() {
   cd firefox-${pkgver%%b*}
   DESTDIR="$pkgdir" ./mach install
 
-  local pref="$pkgdir/usr/lib/$pkgname/browser/defaults/preferences"
+  local pref="$pkgdir/usr/lib/firefox/browser/defaults/preferences"
   install -Dvm644 /dev/stdin "$pref/vendor.js" <<END
 // Use system-provided dictionaries
 pref("spellchecker.dictionary_path", "/usr/share/hunspell");
@@ -268,7 +264,7 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 pref("extensions.autoDisableScopes", 11);
 
 // UA override
-// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 Edg/103.0.1264.71");
+// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.35");
 END
 
   install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END
@@ -322,7 +318,7 @@ sticky_pref("accessibility.typeaheadfind.manual", false);
 sticky_pref("accessibility.typeaheadfind.flashBar", 0);
 END
 
-  local distini="$pkgdir/usr/lib/$pkgname/distribution/distribution.ini"
+  local distini="$pkgdir/usr/lib/firefox/distribution/distribution.ini"
   install -Dvm644 /dev/stdin "$distini" <<END
 [Global]
 id=archlinux
@@ -331,39 +327,39 @@ about=Mozilla Firefox for Arch Linux
 
 [Preferences]
 app.distributor=archlinux
-app.distributor.channel=$pkgname
+app.distributor.channel=firefox
 app.partner.archlinux=archlinux
 END
 
   local i theme=official
   for i in 16 22 24 32 48 64 128 256; do
     install -Dvm644 browser/branding/$theme/default$i.png \
-      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/$pkgname.png"
+      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/firefox.png"
   done
   install -Dvm644 browser/branding/$theme/content/about-logo.png \
-    "$pkgdir/usr/share/icons/hicolor/192x192/apps/$pkgname.png"
+    "$pkgdir/usr/share/icons/hicolor/192x192/apps/firefox.png"
   install -Dvm644 browser/branding/$theme/content/about-logo@2x.png \
-    "$pkgdir/usr/share/icons/hicolor/384x384/apps/$pkgname.png"
+    "$pkgdir/usr/share/icons/hicolor/384x384/apps/firefox.png"
   install -Dvm644 browser/branding/$theme/content/about-logo.svg \
-    "$pkgdir/usr/share/icons/hicolor/scalable/apps/$pkgname.svg"
+    "$pkgdir/usr/share/icons/hicolor/scalable/apps/firefox.svg"
   install -Dvm644 ../identity-icons-brand.svg \
-    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/$pkgname-symbolic.svg"
+    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/firefox-symbolic.svg"
 
-  install -Dvm644 $srcdir/$pkgname.desktop \
-    "$pkgdir/usr/share/applications/$pkgname.desktop"
+  install -Dvm644 $srcdir/firefox.desktop \
+    "$pkgdir/usr/share/applications/firefox.desktop"
 
   # Install a wrapper to avoid confusion about binary path
-  install -Dvm755 /dev/stdin "$pkgdir/usr/bin/$pkgname" <<END
+  install -Dvm755 /dev/stdin "$pkgdir/usr/bin/firefox" <<END
 #!/bin/sh
-exec /usr/lib/$pkgname/$pkgname "\$@"
+exec /usr/lib/firefox/firefox "\$@"
 END
 
   # Replace duplicate binary with wrapper
   # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
-  ln -srfv "$pkgdir/usr/bin/$pkgname" "$pkgdir/usr/lib/$pkgname/$pkgname-bin"
+  ln -srfv "$pkgdir/usr/bin/firefox" "$pkgdir/usr/lib/firefox/firefox-bin"
 
   # Use system certificates
-  local nssckbi="$pkgdir/usr/lib/$pkgname/libnssckbi.so"
+  local nssckbi="$pkgdir/usr/lib/firefox/libnssckbi.so"
   if [[ -e $nssckbi ]]; then
     ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
   fi

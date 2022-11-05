@@ -213,16 +213,16 @@ diff --git a/toolkit/system/unixproxy/nsUnixSystemProxySettings.cpp b/toolkit/sy
 index ef110b1287bf..e29e8a5b62de 100644
 --- a/toolkit/system/unixproxy/nsUnixSystemProxySettings.cpp
 +++ b/toolkit/system/unixproxy/nsUnixSystemProxySettings.cpp
-@@ -15,6 +15,8 @@
- #include "nsNetUtil.h"
+@@ -16,6 +16,8 @@
  #include "nsISupportsPrimitives.h"
  #include "nsIGSettingsService.h"
+ #include "nsReadableUtils.h"
 +#include "nsPrintfCString.h"
 +#include "nsKDEUtils.h"
  
  using namespace mozilla;
  
-@@ -38,6 +40,8 @@ class nsUnixSystemProxySettings final : public nsISystemProxySettings {
+@@ -39,6 +41,8 @@ class nsUnixSystemProxySettings final : public nsISystemProxySettings {
                                   nsACString& aResult);
    nsresult SetProxyResultFromGSettings(const char* aKeyBase, const char* aType,
                                         nsACString& aResult);
@@ -231,7 +231,7 @@ index ef110b1287bf..e29e8a5b62de 100644
  };
  
  NS_IMPL_ISUPPORTS(nsUnixSystemProxySettings, nsISystemProxySettings)
-@@ -379,6 +383,9 @@ nsresult nsUnixSystemProxySettings::GetProxyForURI(const nsACString& aSpec,
+@@ -397,6 +401,9 @@ nsresult nsUnixSystemProxySettings::GetProxyForURI(const nsACString& aSpec,
                                                     const nsACString& aHost,
                                                     const int32_t aPort,
                                                     nsACString& aResult) {
@@ -241,7 +241,7 @@ index ef110b1287bf..e29e8a5b62de 100644
    if (mProxySettings) {
      nsresult rv = GetProxyFromGSettings(aScheme, aHost, aPort, aResult);
      if (NS_SUCCEEDED(rv)) return rv;
-@@ -387,6 +394,32 @@ nsresult nsUnixSystemProxySettings::GetProxyForURI(const nsACString& aSpec,
+@@ -405,6 +412,30 @@ nsresult nsUnixSystemProxySettings::GetProxyForURI(const nsACString& aSpec,
    return GetProxyFromEnvironment(aScheme, aHost, aPort, aResult);
  }
  
@@ -249,8 +249,7 @@ index ef110b1287bf..e29e8a5b62de 100644
 +nsUnixSystemProxySettings::GetProxyFromKDE(const nsACString& aScheme,
 +                                           const nsACString& aHost,
 +                                           PRInt32 aPort,
-+                                           nsACString& aResult)
-+{
++                                           nsACString& aResult) {
 +  nsAutoCString url;
 +  url = aScheme;
 +  url += "://";
@@ -269,7 +268,6 @@ index ef110b1287bf..e29e8a5b62de 100644
 +  aResult = result[0];
 +  return NS_OK;
 +}
-+
 +
  NS_IMPL_COMPONENT_FACTORY(nsUnixSystemProxySettings) {
    auto result = MakeRefPtr<nsUnixSystemProxySettings>();

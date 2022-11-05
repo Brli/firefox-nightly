@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=106.0.4
+pkgver=106.0.5
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -34,7 +34,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-02j.tar.xz
         fix_csd_window_buttons.patch 0001-libwebrtc-screen-cast-sync.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('e619d0f524c95bf78af0008cc22fe284ff398d72fc0b6cc9d8737b3b5a9b9eb7'
+sha256sums=('9471a7610d0adc350f14c363f1fcd2e15a85f22744f5850604af01aa844bc8a8'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -179,7 +179,7 @@ ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman
 
 # Features
-ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
+# ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --disable-alsa
 ac_add_options --disable-jack
 ac_add_options --disable-necko-wifi

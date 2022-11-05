@@ -221,7 +221,7 @@ END
 
   # Remove patched rust file checksums
   sed 's/\("files":{\)[^}]*/\1/' -i \
-    third_party/rust/{audioipc-client,audioipc,audioipc-server}/.cargo-checksum.json
+    third_party/rust/bindgen/.cargo-checksum.json
 }
 
 build() {

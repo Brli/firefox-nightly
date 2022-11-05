@@ -23,7 +23,7 @@ provides=(firefox=$pkgver)
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=3a8f19bd829a7d77a27f05f8824a8c1d70e1c5eb
+_moz_revision=2dfe4630c45a7959d39dea8cbf5a8457e36dc64b
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -31,7 +31,7 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-106-patches-02j.tar.xz
         fix_csd_window_buttons.patch mozilla-kde_after_unity.patch
-        libwebrtc-screen-cast-sync.patch
+        libwebrtc-screen-cast-sync.patch revert-nss.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
             'SKIP'
@@ -42,6 +42,7 @@ sha256sums=('SKIP'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             '6fb63ac5e51f8eacdaaf5ffe0277a14038c05468aa36699e6e1bfb16c1064f31'
             'ce16a6cc61be2e5e892c5b0b22e9ca3edbd0bd32938908b6d102272ef99dfa6f'
+            '1472d95637e2981cf40111a6e7da7e19375e3f04c0c07ad70136dcd1d39965b8'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -69,13 +70,15 @@ prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
   mv -fv mozilla-kde_after_unity.patch "${srcdir}/librewolf-patch/patches/"
-  sed 's,(const nsINode,(nsINode,g' -i "${srcdir}/librewolf-patch/patches/unity-menubar.patch"
   cd mozilla-central
 
   # https://bugs.archlinux.org/task/76231
   # https://bugzilla.mozilla.org/show_bug.cgi?id=1790496
   # https://src.fedoraproject.org/rpms/firefox/blob/rawhide/f/libwebrtc-screen-cast-sync.patch
   patch -Np1 -i ../libwebrtc-screen-cast-sync.patch
+
+  msg 'Revert NSS'
+  patch -Rp1 -i $srcdir/revert-nss.patch
 
   msg 'Gentoo patch'
   # local gentoo_patch=($(ls $srcdir/firefox-patches/))
@@ -205,9 +208,8 @@ ac_add_options --enable-system-pixman
 
 # Features
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
-ac_add_options --disable-alsa
-ac_add_options --disable-jack
-ac_add_options --disable-necko-wifi
+ac_add_options --enable-alsa
+ac_add_options --enable-jack
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests

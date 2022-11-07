@@ -4,12 +4,12 @@
 
 pkgname=firefox-brli
 pkgver=106.0.5
-pkgrel=1
+pkgrel=2
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
 license=(MPL GPL LGPL)
 url="https://www.mozilla.org/firefox/"
-depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
+depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse kmozillahelper)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack2 nodejs cbindgen nasm
              python-setuptools python-zstandard lld dump_syms
@@ -32,7 +32,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-02j.tar.xz
-        fix_csd_window_buttons.patch 0001-libwebrtc-screen-cast-sync.patch
+        5022efe33088.patch fix_csd_window_buttons.patch 0001-libwebrtc-screen-cast-sync.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('9471a7610d0adc350f14c363f1fcd2e15a85f22744f5850604af01aa844bc8a8'
             'SKIP'
@@ -41,6 +41,7 @@ sha256sums=('9471a7610d0adc350f14c363f1fcd2e15a85f22744f5850604af01aa844bc8a8'
             'SKIP'
             'SKIP'
             'd366d664460fccf7267e7e767cb0137a02b5a4c2ea2fa2b60117eaf00ee553d0'
+            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             '5c164f6dfdf2d97f3f317e417aaa2e6ae46a9b3a160c3162d5073fe39d203286'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -69,6 +70,9 @@ prepare() {
   # https://src.fedoraproject.org/rpms/firefox/blob/rawhide/f/libwebrtc-screen-cast-sync.patch
   patch -Np1 -i ../0001-libwebrtc-screen-cast-sync.patch
 
+  # Revert use of system sqlite
+  patch -Np1 -i ../5022efe33088.patch
+
   msg 'Gentoo patch'
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
@@ -80,7 +84,7 @@ prepare() {
   msg 'opensuse patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=('mozilla-nongnome-proxies.patch'
-                    # 'mozilla-kde.patch' # do it in Librewolf patch
+                    'mozilla-kde.patch'
                     # 'mozilla-ntlm-full-path.patch'
                     # 'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
                     # 'mozilla-fix-aarch64-libopus.patch'
@@ -110,8 +114,7 @@ prepare() {
 
   msg 'librewolf patch'
   local librewolf_patch=('faster-package-multi-locale.patch'
-                         'unity-menubar.patch'
-                         'mozilla-kde_after_unity.patch')
+                         'unity-menubar.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
@@ -174,14 +177,15 @@ ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-graphite2
 ac_add_options --with-system-icu
+ac_add_options --with-system-sqlite
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman
 
 # Features
-# ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
-ac_add_options --disable-alsa
-ac_add_options --disable-jack
+ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
+ac_add_options --enable-alsa
+ac_add_options --enable-jack
 ac_add_options --disable-necko-wifi
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater

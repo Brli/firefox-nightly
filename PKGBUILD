@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=108.0a1.20221028.3a8f19bd829a
+pkgver=108.0a1.20221111.b71647765896
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -23,15 +23,16 @@ provides=(firefox=$pkgver)
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=2dfe4630c45a7959d39dea8cbf5a8457e36dc64b
+_moz_revision=b7164776589657b7d7fd40d32268b2a489eed789
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-106-patches-02j.tar.xz
-        fix_csd_window_buttons.patch mozilla-kde_after_unity.patch
-        libwebrtc-screen-cast-sync.patch revert-nss.patch
+        5022efe33088.patch
+        fix_csd_window_buttons.patch
+        libwebrtc-screen-cast-sync.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
             'SKIP'
@@ -39,8 +40,8 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'd366d664460fccf7267e7e767cb0137a02b5a4c2ea2fa2b60117eaf00ee553d0'
+            'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            '6fb63ac5e51f8eacdaaf5ffe0277a14038c05468aa36699e6e1bfb16c1064f31'
             'ce16a6cc61be2e5e892c5b0b22e9ca3edbd0bd32938908b6d102272ef99dfa6f'
             '1472d95637e2981cf40111a6e7da7e19375e3f04c0c07ad70136dcd1d39965b8'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -69,7 +70,6 @@ pkgver() {
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv -fv mozilla-kde_after_unity.patch "${srcdir}/librewolf-patch/patches/"
   cd mozilla-central
 
   # https://bugs.archlinux.org/task/76231
@@ -77,8 +77,8 @@ prepare() {
   # https://src.fedoraproject.org/rpms/firefox/blob/rawhide/f/libwebrtc-screen-cast-sync.patch
   patch -Np1 -i ../libwebrtc-screen-cast-sync.patch
 
-  msg 'Revert NSS'
-  patch -Rp1 -i $srcdir/revert-nss.patch
+  # Revert use of system sqlite
+  patch -Np1 -i ../5022efe33088.patch
 
   msg 'Gentoo patch'
   # local gentoo_patch=($(ls $srcdir/firefox-patches/))
@@ -202,6 +202,7 @@ ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-graphite2
 ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
+ac_add_options --with-system-sqlite
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman

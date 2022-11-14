@@ -3,8 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=108.0a1.20221111.b71647765896
-pkgrel=1
+pkgver=108.0a1.20221112.6479051196c1
+pkgrel=2
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -12,7 +12,8 @@ url="https://www.mozilla.org/firefox/"
 depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
-             lld dump_syms mercurial breezy python-dulwich rsync)
+             lld dump_syms wasi-compiler-rt wasi-libc wasi-libc++ wasi-li
+             mercurial breezy python-dulwich rsync)
 optdepends=('networkmanager: Location detection via available WiFi networks'
             'libnotify: Notification integration'
             'pulseaudio: Audio support'
@@ -23,14 +24,14 @@ provides=(firefox=$pkgver)
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=b7164776589657b7d7fd40d32268b2a489eed789
+_moz_revision=6479051196c1165c23a1964a00422e3be55f7ff1
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-106-patches-02j.tar.xz
-        5022efe33088.patch
+        5022efe33088.patch mozilla-kde_after_unity.patch
         fix_csd_window_buttons.patch
         libwebrtc-screen-cast-sync.patch
         firefox.desktop identity-icons-brand.svg)
@@ -41,9 +42,9 @@ sha256sums=('SKIP'
             'SKIP'
             'd366d664460fccf7267e7e767cb0137a02b5a4c2ea2fa2b60117eaf00ee553d0'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
+            '6fb63ac5e51f8eacdaaf5ffe0277a14038c05468aa36699e6e1bfb16c1064f31'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ce16a6cc61be2e5e892c5b0b22e9ca3edbd0bd32938908b6d102272ef99dfa6f'
-            '1472d95637e2981cf40111a6e7da7e19375e3f04c0c07ad70136dcd1d39965b8'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -70,6 +71,7 @@ pkgver() {
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
+  mv -fv mozilla-kde_after_unity.patch "${srcdir}/librewolf-patch/patches/"
   cd mozilla-central
 
   # https://bugs.archlinux.org/task/76231
@@ -138,7 +140,6 @@ prepare() {
 
   msg 'librewolf patch'
   local librewolf_patch=('faster-package-multi-locale.patch'
-                         'unity-menubar.patch'
                          'mozilla-kde_after_unity.patch') # edited
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
@@ -172,8 +173,8 @@ ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-# ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-ac_add_options --without-wasm-sandboxed-libraries
+ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+# ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
 ac_add_options --enable-official-branding
@@ -199,7 +200,6 @@ ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
-ac_add_options --with-system-graphite2
 ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
 ac_add_options --with-system-sqlite

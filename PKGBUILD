@@ -12,7 +12,7 @@ url="https://www.mozilla.org/firefox/"
 depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
-             lld dump_syms wasi-compiler-rt wasi-libc wasi-libc++ wasi-li
+             lld dump_syms wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
              mercurial breezy python-dulwich rsync)
 optdepends=('networkmanager: Location detection via available WiFi networks'
             'libnotify: Notification integration'
@@ -217,7 +217,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '106.0.2' > config/milestone.txt
+  echo '106.0.5' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"

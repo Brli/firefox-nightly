@@ -3,8 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=108.0a1.20221112.6479051196c1
-pkgrel=2
+pkgver=108.0a1.20221128.5e694f184bda
+pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -24,14 +24,14 @@ provides=(firefox=$pkgver)
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=6479051196c1165c23a1964a00422e3be55f7ff1
+_moz_revision=5e694f184bda4ee6a8dbfd6f71bac9e05a1d7c5c
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-106-patches-02j.tar.xz
-        5022efe33088.patch mozilla-kde_after_unity.patch
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-107-patches-02j.tar.xz
+        5022efe33088.patch
         fix_csd_window_buttons.patch
         libwebrtc-screen-cast-sync.patch
         firefox.desktop identity-icons-brand.svg)
@@ -40,9 +40,8 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'd366d664460fccf7267e7e767cb0137a02b5a4c2ea2fa2b60117eaf00ee553d0'
+            'f8b7b42dac6d6fd41bfb52ae4aa57f22095b363d110a69a523047c535f5b387e'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
-            '6fb63ac5e51f8eacdaaf5ffe0277a14038c05468aa36699e6e1bfb16c1064f31'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ce16a6cc61be2e5e892c5b0b22e9ca3edbd0bd32938908b6d102272ef99dfa6f'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -71,7 +70,6 @@ pkgver() {
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv -fv mozilla-kde_after_unity.patch "${srcdir}/librewolf-patch/patches/"
   cd mozilla-central
 
   # https://bugs.archlinux.org/task/76231
@@ -140,6 +138,7 @@ prepare() {
 
   msg 'librewolf patch'
   local librewolf_patch=('faster-package-multi-locale.patch'
+                         'unity-menubar.patch'
                          'mozilla-kde_after_unity.patch') # edited
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
@@ -217,7 +216,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '106.0.5' > config/milestone.txt
+  echo '107.0' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"

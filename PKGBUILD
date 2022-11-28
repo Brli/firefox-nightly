@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=108.0a1.20221128.5e694f184bda
+pkgver=109.0a1.20221128.5e694f184bda
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -31,7 +31,7 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-107-patches-02j.tar.xz
-        5022efe33088.patch
+        5022efe33088.patch mozilla-kde_after_unity.patch
         fix_csd_window_buttons.patch
         libwebrtc-screen-cast-sync.patch
         firefox.desktop identity-icons-brand.svg)
@@ -42,6 +42,7 @@ sha256sums=('SKIP'
             'SKIP'
             'f8b7b42dac6d6fd41bfb52ae4aa57f22095b363d110a69a523047c535f5b387e'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
+            '6fb63ac5e51f8eacdaaf5ffe0277a14038c05468aa36699e6e1bfb16c1064f31'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ce16a6cc61be2e5e892c5b0b22e9ca3edbd0bd32938908b6d102272ef99dfa6f'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -70,12 +71,8 @@ pkgver() {
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
+  mv -fv mozilla-kde_after_unity.patch "${srcdir}/librewolf-patch/patches/"
   cd mozilla-central
-
-  # https://bugs.archlinux.org/task/76231
-  # https://bugzilla.mozilla.org/show_bug.cgi?id=1790496
-  # https://src.fedoraproject.org/rpms/firefox/blob/rawhide/f/libwebrtc-screen-cast-sync.patch
-  patch -Np1 -i ../libwebrtc-screen-cast-sync.patch
 
   # Revert use of system sqlite
   patch -Np1 -i ../5022efe33088.patch
@@ -138,7 +135,6 @@ prepare() {
 
   msg 'librewolf patch'
   local librewolf_patch=('faster-package-multi-locale.patch'
-                         'unity-menubar.patch'
                          'mozilla-kde_after_unity.patch') # edited
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."

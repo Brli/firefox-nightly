@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=109.0a1.20221128.5e694f184bda
+pkgver=109.0a1.20221206.a6095e92ad7a
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,7 +24,7 @@ provides=(firefox=$pkgver)
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=5e694f184bda4ee6a8dbfd6f71bac9e05a1d7c5c
+_moz_revision=a6095e92ad7a6af9b92f95f8e121016603ca7669
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -135,6 +135,7 @@ prepare() {
 
   msg 'librewolf patch'
   local librewolf_patch=('faster-package-multi-locale.patch'
+                         'unity-menubar.patch'
                          'mozilla-kde_after_unity.patch') # edited
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
@@ -212,7 +213,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '107.0' > config/milestone.txt
+  echo '107.0.1' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"

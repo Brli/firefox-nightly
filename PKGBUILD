@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=110.0a1.20221215.7ff758e0d08b
+pkgver=110.0a1.20221225.dfbd00b278b0
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -20,33 +20,31 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'speech-dispatcher: Text-to-Speech'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
-provides=(firefox=$pkgver)
+provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=7ff758e0d08b4bdf0ce3bd2abe84a1bff3be8ff4
+_moz_revision=dfbd00b278b023a3f187d55d8caf245f6a057ce4
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-108-patches-02j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-108-patches-03j.tar.xz
         5022efe33088.patch mozilla-kde_after_unity.patch
         unity-menubar.patch
         fix_csd_window_buttons.patch
-        libwebrtc-screen-cast-sync.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '33357cd722873514232a9b7b7855dec0bcb85506c711097ce6e5d5fcc901f824'
+            '4b3b86ea4d8f228c5a2bcf9995f56fc435480926727160b8c95f3125896b7e41'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             '6fb63ac5e51f8eacdaaf5ffe0277a14038c05468aa36699e6e1bfb16c1064f31'
             'e416e946d3c8a9e3c35715d2606423d3dda12671ef04d8b669fb74884226c65a'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            'ce16a6cc61be2e5e892c5b0b22e9ca3edbd0bd32938908b6d102272ef99dfa6f'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -81,23 +79,26 @@ prepare() {
 
   msg 'Gentoo patch'
   # local gentoo_patch=($(ls $srcdir/firefox-patches/))
-  local gentoo_patch=('0004-bmo-847568-Support-system-harfbuzz.patch'
-                      '0005-bmo-847568-Support-system-graphite2.patch'
-                      '0006-bmo-1559213-Support-system-av1.patch'
-                      '0008-bmo-1516803-Fix-building-sandbox.patch'
-                      '0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
-                      '0019-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
-                      '0021-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
-                      '0022-build-Disable-Werror.patch'
-                      '0023-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0024-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0025-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
-                      '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
-                      '0027-bgo-816975-fix-build-on-x86.patch'
-                      '0028-bmo-1559213-fix-system-av1-libs.patch' # edited
-                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0030-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0032-rhbz-2115253-vaapi-fixes.patch')
+  local gentoo_patch=('0003-bmo-847568-Support-system-harfbuzz.patch'
+                      '0004-bmo-847568-Support-system-graphite2.patch'
+                      '0005-bmo-1559213-Support-system-av1.patch'
+                      '0006-bmo-1516803-Fix-building-sandbox.patch'
+                      '0016-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
+                      '0017-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
+                      '0019-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
+                      '0020-build-Disable-Werror.patch'
+                      '0021-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
+                      '0022-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
+                      '0023-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
+                      '0024-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
+                      '0025-bgo-816975-fix-build-on-x86.patch'
+                      '0026-bmo-1559213-fix-system-av1-libs.patch' # edited
+                      '0027-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0028-bmo-1754469-memory_mozalloc_throw.patch'
+                      '0029-rhbz-2115253-vaapi-fixes.patch'
+                      '0030-bgo-860033-firefox-wayland-no-dbus.patch'
+                      '0034-bgo-877267-rust-opaque-binding-type.patch'
+                      '0035-bmo-1805371-fix-static-nss-with-pgo.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -215,7 +216,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '108.0' > config/milestone.txt
+  echo '108.0.1' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"
@@ -294,6 +295,9 @@ pref("extensions.autoDisableScopes", 11);
 
 // UA override
 // pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 Edg/103.0.1264.71");
+
+// Scale UI
+pref("layout.css.devPixelsPerPx",    "1.2");
 END
 
   install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END

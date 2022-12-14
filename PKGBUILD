@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=109.0a1.20221206.a6095e92ad7a
+pkgver=110.0a1.20221215.7ff758e0d08b
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,14 +24,15 @@ provides=(firefox=$pkgver)
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=a6095e92ad7a6af9b92f95f8e121016603ca7669
+_moz_revision=7ff758e0d08b4bdf0ce3bd2abe84a1bff3be8ff4
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-107-patches-02j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-108-patches-02j.tar.xz
         5022efe33088.patch mozilla-kde_after_unity.patch
+        unity-menubar.patch
         fix_csd_window_buttons.patch
         libwebrtc-screen-cast-sync.patch
         firefox.desktop identity-icons-brand.svg)
@@ -40,9 +41,10 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'f8b7b42dac6d6fd41bfb52ae4aa57f22095b363d110a69a523047c535f5b387e'
+            '33357cd722873514232a9b7b7855dec0bcb85506c711097ce6e5d5fcc901f824'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             '6fb63ac5e51f8eacdaaf5ffe0277a14038c05468aa36699e6e1bfb16c1064f31'
+            'e416e946d3c8a9e3c35715d2606423d3dda12671ef04d8b669fb74884226c65a'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ce16a6cc61be2e5e892c5b0b22e9ca3edbd0bd32938908b6d102272ef99dfa6f'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -71,7 +73,7 @@ pkgver() {
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv -fv mozilla-kde_after_unity.patch "${srcdir}/librewolf-patch/patches/"
+  mv -fv mozilla-kde_after_unity.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/"
   cd mozilla-central
 
   # Revert use of system sqlite
@@ -113,7 +115,7 @@ prepare() {
                     # 'mozilla-pgo.patch'
                     'mozilla-reduce-rust-debuginfo.patch'
                     'mozilla-bmo1005535.patch'
-                    'mozilla-bmo1568145.patch'
+                    # 'mozilla-bmo1568145.patch'
                     # 'mozilla-bmo1504834-part1.patch'
                     # 'mozilla-bmo1504834-part3.patch'
                     'mozilla-bmo1512162.patch'
@@ -213,7 +215,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '107.0.1' > config/milestone.txt
+  echo '108.0' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"

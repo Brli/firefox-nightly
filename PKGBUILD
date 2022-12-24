@@ -35,6 +35,7 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         mozilla-kde_after_unity.patch
         unity-menubar.patch
         0003-bmo-847568-Support-system-harfbuzz.patch
+        firefox-kde.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
@@ -47,6 +48,7 @@ sha256sums=('SKIP'
             '6fb63ac5e51f8eacdaaf5ffe0277a14038c05468aa36699e6e1bfb16c1064f31'
             'e416e946d3c8a9e3c35715d2606423d3dda12671ef04d8b669fb74884226c65a'
             'c5fd719721ce1df420b5713c18c0fed0f52b583def129379d52f879e0f8d888f'
+            '712f4e0599537b0e85549f493f39345b0053689578fa399dd32db3d0a164acae'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
@@ -76,6 +78,7 @@ prepare() {
   mv zh-TW mozbuild/
   mv -fv mozilla-kde_after_unity.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/"
   mv -fv 0003-bmo-847568-Support-system-harfbuzz.patch -t "${srcdir}/firefox-patches/"
+  mv -fv firefox-kde.patch -t "${srcdir}/firefox-maintenance/firefox/"
   cd mozilla-central
 
   # Revert use of system sqlite
@@ -96,13 +99,11 @@ prepare() {
                       '0023-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
                       '0024-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
                       '0025-bgo-816975-fix-build-on-x86.patch'
-                      '0026-bmo-1559213-fix-system-av1-libs.patch' # edited
+                      '0026-bmo-1559213-fix-system-av1-libs.patch'
                       '0027-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
                       '0028-bmo-1754469-memory_mozalloc_throw.patch'
                       '0029-rhbz-2115253-vaapi-fixes.patch'
-                      '0030-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0034-bgo-877267-rust-opaque-binding-type.patch'
-                      '0035-bmo-1805371-fix-static-nss-with-pgo.patch')
+                      '0030-bgo-860033-firefox-wayland-no-dbus.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."

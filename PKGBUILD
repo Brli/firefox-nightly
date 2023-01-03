@@ -184,7 +184,7 @@ ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 
 # Branding
 ac_add_options --enable-official-branding
-ac_add_options --enable-update-channel=nightly
+ac_add_options --enable-update-channel=release
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
@@ -339,12 +339,8 @@ pref("webgl.force-enabled",                true);
 
 // hardware acceleration
 sticky_pref("media.ffmpeg.vaapi.enabled", true);
-sticky_pref("media.ffvpx.enabled", false);
 sticky_pref("media.hardware-video-decoding.force-enabled", true);
 sticky_pref("media.navigator.mediadatadecoder_vpx_enabled", true);
-sticky_pref("media.rdd-ffvpx.enabled", false);
-sticky_pref("media.rdd-vpx.enabled", false);
-sticky_pref("media.rdd-ffmpeg.enabled", false);
 END
 
   install -Dvm644 /dev/stdin "$pref/kde.js" <<END

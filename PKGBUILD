@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=110.0a1.20230102.0ba768d14b4e
+pkgver=110.0a1.20230103.764c051fe1d4
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,7 +24,7 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=0ba768d14b4efb3528dbeac03597f78b5d15a754
+_moz_revision=764c051fe1d40356b1a565c163159afa7730cfd9
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -173,7 +173,6 @@ ac_add_options --with-app-name=firefox
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 
 ac_add_options --prefix=/usr
-ac_add_options --enable-release
 ac_add_options --enable-hardening
 ac_add_options --enable-optimize
 ac_add_options --enable-rust-simd
@@ -185,7 +184,7 @@ ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 
 # Branding
 ac_add_options --enable-official-branding
-ac_add_options --enable-update-channel=release
+ac_add_options --enable-update-channel=nightly
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload

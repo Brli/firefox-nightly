@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=110.0a1.20230106.5ce095aa44f1
+pkgver=110.0a1.20230118.60b4965aa0ca
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,13 +24,13 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=5ce095aa44f11a4a8769c7233f86628333e1b5c2
+_moz_revision=60b4965aa0ca5a7a60c71229600092a65df8bc1d
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-108-patches-03j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-109-patches-02j.tar.xz
         5022efe33088.patch
         mozilla-kde_after_unity.patch
         unity-menubar.patch
@@ -43,7 +43,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '4b3b86ea4d8f228c5a2bcf9995f56fc435480926727160b8c95f3125896b7e41'
+            'a34dac5743cf1ce4cd65c6395f77667e57e374237c11e10a9f186bbb9d9155e6'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             '6fb63ac5e51f8eacdaaf5ffe0277a14038c05468aa36699e6e1bfb16c1064f31'
             'e416e946d3c8a9e3c35715d2606423d3dda12671ef04d8b669fb74884226c65a'
@@ -95,18 +95,19 @@ prepare() {
                       '0006-bmo-1516803-Fix-building-sandbox.patch'
                       '0016-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
                       '0017-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
-                      '0019-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
-                      '0020-build-Disable-Werror.patch'
-                      '0021-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0022-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0023-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
-                      '0024-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
-                      '0025-bgo-816975-fix-build-on-x86.patch'
-                      '0026-bmo-1559213-fix-system-av1-libs.patch'
-                      '0027-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0028-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0029-rhbz-2115253-vaapi-fixes.patch'
-                      '0030-bgo-860033-firefox-wayland-no-dbus.patch')
+                      '0018-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
+                      '0019-build-Disable-Werror.patch'
+                      '0020-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
+                      '0021-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
+                      '0022-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
+                      '0023-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
+                      '0024-bgo-816975-fix-build-on-x86.patch'
+                      '0025-bmo-1559213-fix-system-av1-libs.patch'
+                      '0026-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0027-bmo-1754469-memory_mozalloc_throw.patch'
+                      '0028-rhbz-2115253-vaapi-fixes.patch'
+                      '0029-bgo-860033-firefox-wayland-no-dbus.patch'
+                      '0032-fix-building-gcc-pgo.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -223,7 +224,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '108.0.2' > config/milestone.txt
+  echo '109.0' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"

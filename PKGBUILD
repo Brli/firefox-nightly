@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=110.0a1.20230118.60b4965aa0ca
+pkgver=111.0a1.20230129.6f4a1b340a89
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,7 +24,7 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=60b4965aa0ca5a7a60c71229600092a65df8bc1d
+_moz_revision=6f4a1b340a8993d54fbbe853d17989b414a1c6d4
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -302,10 +302,10 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 pref("extensions.autoDisableScopes", 11);
 
 // UA override
-// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 Edg/103.0.1264.71");
+pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.61");
 
 // Scale UI
-pref("layout.css.devPixelsPerPx",    "1.2");
+// pref("layout.css.devPixelsPerPx",    "1.2");
 END
 
   install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END
@@ -346,8 +346,8 @@ END
 
   install -Dvm644 /dev/stdin "$pref/kde.js" <<END
 // KDE.js
-// pref("browser.preferences.instantApply", false);
-// pref("browser.backspace_action", 0);
+pref("browser.preferences.instantApply", false);
+pref("browser.backspace_action", 0);
 END
 
   install -Dvm644 /dev/stdin "$pref/disable_typeahead.js" <<END

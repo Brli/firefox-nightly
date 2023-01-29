@@ -14,15 +14,10 @@ How to apply this patch:
 diff --git a/browser/components/preferences/main.js b/browser/components/preferences/main.js
 --- a/browser/components/preferences/main.js
 +++ b/browser/components/preferences/main.js
-@@ -303,16 +303,23 @@ var gMainPane = {
-         }, backoffTimes[this._backoffIndex + 1 < backoffTimes.length ? this._backoffIndex++ : backoffTimes.length - 1]);
-       };
- 
-       window.setTimeout(() => {
-         window.requestIdleCallback(pollForDefaultBrowser);
+@@ -301,6 +301,13 @@ var gMainPane = {
        }, backoffTimes[this._backoffIndex]);
      }
- 
+
 +    var env = Components.classes["@mozilla.org/process/environment;1"]
 +      .getService(Components.interfaces.nsIEnvironment);
 +    var kde_session = 0;
@@ -32,13 +27,8 @@ diff --git a/browser/components/preferences/main.js b/browser/components/prefere
 +
      this.initBrowserContainers();
      this.buildContentProcessCountMenuList();
- 
-     let performanceSettingsLink = document.getElementById(
-       "performanceSettingsLearnMore"
-     );
-     let performanceSettingsUrl =
-       Services.urlFormatter.formatURLPref("app.support.baseURL") +
-@@ -1338,6 +1338,17 @@ var gMainPane = {
+
+@@ -1294,6 +1301,17 @@ var gMainPane = {
        }
        try {
          shellSvc.setDefaultBrowser(true, false);

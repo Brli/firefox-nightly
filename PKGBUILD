@@ -85,7 +85,7 @@ prepare() {
   patch -Np1 -i ../5022efe33088.patch
 
   # Revert NSS requirement
-  sed 's,nss >= 3.87,nss >= 3.86,' -i build/moz.configure/nss.configure
+  sed 's,nss >= 3.88,nss >= 3.87,' -i build/moz.configure/nss.configure
 
   msg 'Gentoo patch'
   # local gentoo_patch=($(ls $srcdir/firefox-patches/))

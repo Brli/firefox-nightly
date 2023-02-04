@@ -2,10 +2,10 @@
 # Contributor: Ionut Biru <ibiru@archlinux.org>
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
-pkgname=firefox-nightly-brli
-pkgver=111.0a1.202300202.193873a76970
+pkgname=floorps
+pkgver=10.9.0
 pkgrel=1
-pkgdesc="Standalone web browser from mozilla.org"
+pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
 url="https://www.mozilla.org/firefox/"
@@ -20,35 +20,21 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'speech-dispatcher: Text-to-Speech'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
-provides=(firefox=${pkgver:0:5})
-conflicts=(firefox firefox-i18n-zh-tw)
-replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=193873a769705e43125bf048e01f18ac964d91b4
-source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
-        hg+https://hg.mozilla.org/l10n-central/zh-TW
-        git+https://github.com/openSUSE/firefox-maintenance.git
+source=(https://github.com/Floorp-Projects/Floorp/archive/refs/heads/ESR102.zip
+        git+https://github.com/Floorp-Projects/l10n-central.git
+        git+https://github.com/openSUSE/firefox-maintenance.git#branch=102esr
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-109-patches-02j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-08j.tar.xz
         5022efe33088.patch
-        mozilla-kde_after_unity.patch
-        unity-menubar.patch
-        0003-bmo-847568-Support-system-harfbuzz.patch
-        firefox-kde.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('SKIP'
+sha256sums=('edbd301f5e7c4fc2225e3b920757953e6085e2a039731be98c95317e7bc9def7'
             'SKIP'
             'SKIP'
             'SKIP'
-            'SKIP'
-            'a34dac5743cf1ce4cd65c6395f77667e57e374237c11e10a9f186bbb9d9155e6'
+            'e52becbf1a14a03849aaafd9ef43910a97d91f4232f62166871c13e1c6e29a2a'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
-            '6fb63ac5e51f8eacdaaf5ffe0277a14038c05468aa36699e6e1bfb16c1064f31'
-            'e416e946d3c8a9e3c35715d2606423d3dda12671ef04d8b669fb74884226c65a'
-            'c5fd719721ce1df420b5713c18c0fed0f52b583def129379d52f879e0f8d888f'
-            'cf1c372cdcdc42b79df73c411430e22b45202e31f75999001bd664e94e143913'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
@@ -66,49 +52,15 @@ _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 # more information.
 _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 
-pkgver() {
-  cd mozilla-central
-  _pkgver=$(cat browser/config/version.txt)
-  _date=$(hg log -l1 --template '{word(0, date|hgdate)}')
-  printf "%s.%s.%s" "${_pkgver}" "$(date -u +%Y%m%d -d @$_date)" "$(hg identify -i)" | sed 's/\+//g'
-}
-
 prepare() {
   mkdir mozbuild
-  mv zh-TW mozbuild/
-  mv -fv mozilla-kde_after_unity.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/"
-  mv -fv 0003-bmo-847568-Support-system-harfbuzz.patch -t "${srcdir}/firefox-patches/"
-  mv -fv firefox-kde.patch -t "${srcdir}/firefox-maintenance/firefox/"
-  cd mozilla-central
+  cd Floorp-ESR102 || exit
 
   # Revert use of system sqlite
   patch -Np1 -i ../5022efe33088.patch
 
-  # Revert NSS requirement
-  sed 's,nss >= 3.88,nss >= 3.87,' -i build/moz.configure/nss.configure
-
   msg 'Gentoo patch'
-  # local gentoo_patch=($(ls $srcdir/firefox-patches/))
-  local gentoo_patch=('0003-bmo-847568-Support-system-harfbuzz.patch'
-                      '0004-bmo-847568-Support-system-graphite2.patch'
-                      '0005-bmo-1559213-Support-system-av1.patch'
-                      '0006-bmo-1516803-Fix-building-sandbox.patch'
-                      '0016-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
-                      '0017-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
-                      '0018-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
-                      '0019-build-Disable-Werror.patch'
-                      '0020-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0021-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0022-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
-                      '0023-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
-                      '0024-bgo-816975-fix-build-on-x86.patch'
-                      '0025-bmo-1559213-fix-system-av1-libs.patch'
-                      '0026-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0027-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0028-rhbz-2115253-vaapi-fixes.patch'
-                      '0029-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0032-fix-building-gcc-pgo.patch')
-
+  local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 < "$srcdir/firefox-patches/$src"
@@ -117,7 +69,7 @@ prepare() {
   msg 'opensuse patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=('mozilla-nongnome-proxies.patch'
-                    # 'mozilla-kde.patch'
+                    'mozilla-kde.patch'
                     'mozilla-ntlm-full-path.patch'
                     # 'mozilla-aarch64-startup-crash.patch'
                     # 'mozilla-fix-aarch64-libopus.patch'
@@ -146,20 +98,10 @@ prepare() {
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=('faster-package-multi-locale.patch'
-                         'unity-menubar.patch'
-                         'mozilla-kde_after_unity.patch') # edited
+  local librewolf_patch=('faster-package-multi-locale.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
-  done
-
-  msg 'ubuntu patch'
-  local ubuntu_patch=('dont-checkout-locales.patch'
-                      'use-system-icupkg.patch')
-  for src in "${ubuntu_patch[@]}"; do
-   msg "Applying patch $src..."
-   patch -Np1 -i "${srcdir}/firefox-trunk/debian/patches/$src"
   done
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
@@ -170,12 +112,13 @@ prepare() {
 
   cat >../mozconfig <<END
 ac_add_options --enable-application=browser
-ac_add_options --with-app-name=firefox
+ac_add_options --with-app-name=floorp
+ac_add_options --with-app-basename=Floorp
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 
 ac_add_options --prefix=/usr
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize
+ac_add_options --enable-optimize="-O3"
 ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
@@ -190,8 +133,9 @@ ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
 export MOZILLA_OFFICIAL=1
-export MOZ_APP_REMOTINGNAME=firefox
+export MOZ_APP_REMOTINGNAME=floorp
 export MOZ_REQUIRE_SIGNING=1
+export RUSTC_OPT_LEVEL=2
 unset MOZ_TELEMETRY_REPORTING
 
 # Keys
@@ -216,11 +160,14 @@ ac_add_options --enable-system-pixman
 
 # Features
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
+ac_add_options --enable-proxy-bypass-protection
 ac_add_options --enable-alsa
 ac_add_options --enable-jack
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
+ac_add_options --disable-debug
+ac_add_options --disable-verify-mar
 END
 
   # Fake mozilla version
@@ -235,7 +182,7 @@ END
 }
 
 build() {
-  cd mozilla-central
+  cd Floorp-ESR102 || exit
 
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
@@ -276,13 +223,13 @@ ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
 ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 
 # L10n
-ac_add_options --with-l10n-base=$srcdir/mozbuild
+ac_add_options --with-l10n-base=${srcdir}/l10n-central/l10n-central
 END
   ./mach build
   
   msg 'Building locales'
   ./mach package
-  export MOZ_CHROME_MULTILOCALE="zh-TW"
+  export MOZ_CHROME_MULTILOCALE="ja zh-TW"
   for AB_CD in $MOZ_CHROME_MULTILOCALE; do
     msg "Building locales $AB_CD"
     ./mach build chrome-$AB_CD
@@ -290,10 +237,10 @@ END
 }
 
 package() {
-  cd mozilla-central
+  cd Floorp-ESR102 || exit
   DESTDIR="$pkgdir" ./mach install
 
-  local pref="$pkgdir/usr/lib/firefox/browser/defaults/preferences"
+  local pref="$pkgdir/usr/lib/floorp/browser/defaults/preferences"
   install -Dvm644 /dev/stdin "$pref/vendor.js" <<END
 // Use system-provided dictionaries
 pref("spellchecker.dictionary_path", "/usr/share/hunspell");
@@ -357,54 +304,54 @@ sticky_pref("accessibility.typeaheadfind.manual", false);
 sticky_pref("accessibility.typeaheadfind.flashBar", 0);
 END
 
-  local distini="$pkgdir/usr/lib/firefox/distribution/distribution.ini"
+  local distini="$pkgdir/usr/lib/floorp/distribution/distribution.ini"
   install -Dvm644 /dev/stdin "$distini" <<END
 [Global]
 id=archlinux
 version=1.0
-about=Mozilla Firefox for Arch Linux
+about=Floorp for Arch Linux
 
 [Preferences]
 app.distributor=archlinux
-app.distributor.channel=firefox
+app.distributor.channel=floorp
 app.partner.archlinux=archlinux
 END
 
   local i theme=official
   for i in 16 22 24 32 48 64 128 256; do
     install -Dvm644 browser/branding/$theme/default$i.png \
-      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/firefox.png"
+      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/floorp.png"
   done
   install -Dvm644 browser/branding/$theme/content/about-logo.png \
-    "$pkgdir/usr/share/icons/hicolor/192x192/apps/firefox.png"
+    "$pkgdir/usr/share/icons/hicolor/192x192/apps/floorp.png"
   install -Dvm644 browser/branding/$theme/content/about-logo@2x.png \
-    "$pkgdir/usr/share/icons/hicolor/384x384/apps/firefox.png"
+    "$pkgdir/usr/share/icons/hicolor/384x384/apps/floorp.png"
   install -Dvm644 browser/branding/$theme/content/about-logo.svg \
-    "$pkgdir/usr/share/icons/hicolor/scalable/apps/firefox.svg"
+    "$pkgdir/usr/share/icons/hicolor/scalable/apps/floorp.svg"
   install -Dvm644 ../identity-icons-brand.svg \
-    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/firefox-symbolic.svg"
+    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/floorp-symbolic.svg"
 
-  install -Dvm644 $srcdir/firefox.desktop \
-    "$pkgdir/usr/share/applications/firefox.desktop"
+  install -Dvm644 $srcdir/Floorp-ESR102/.github/floorp-debian.desktop \
+    "$pkgdir/usr/share/applications/floorp.desktop"
 
   # Install a wrapper to avoid confusion about binary path
-  install -Dvm755 /dev/stdin "$pkgdir/usr/bin/firefox" <<END
+  install -Dvm755 /dev/stdin "$pkgdir/usr/bin/floorp" <<END
 #!/bin/sh
-exec /usr/lib/firefox/firefox "\$@"
+exec /usr/lib/floorp/floorp "\$@"
 END
 
   # Replace duplicate binary with wrapper
   # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
-  ln -srfv "$pkgdir/usr/bin/firefox" "$pkgdir/usr/lib/firefox/firefox-bin"
+  ln -srfv "$pkgdir/usr/bin/floorp" "$pkgdir/usr/lib/floorp/floorp-bin"
 
   # Use system certificates
-  local nssckbi="$pkgdir/usr/lib/firefox/libnssckbi.so"
+  local nssckbi="$pkgdir/usr/lib/floorp/libnssckbi.so"
   if [[ -e $nssckbi ]]; then
     ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
   fi
 
   # Install zh-TW locale
-  #local xpi_dest="$pkgdir/usr/lib/firefox/browser/extensions"
+  #local xpi_dest="$pkgdir/usr/lib/floorp/browser/extensions"
   #install -Dvm644 "$srcdir/firefox-105.0a1.zh-TW.langpack.xpi" "$xpi_dest/langpack-zh-TW@firefox.mozilla.org.xpi"
 }
 

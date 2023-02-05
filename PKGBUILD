@@ -2,7 +2,7 @@
 # Contributor: Ionut Biru <ibiru@archlinux.org>
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
-pkgname=floorps
+pkgname=floorp
 pkgver=10.9.0
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
@@ -23,14 +23,12 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 options=(!emptydirs !makeflags !strip !lto !debug)
 source=(https://github.com/Floorp-Projects/Floorp/archive/refs/heads/ESR102.zip
         git+https://github.com/Floorp-Projects/l10n-central.git
-        git+https://github.com/openSUSE/firefox-maintenance.git#branch=102esr
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-08j.tar.xz
         5022efe33088.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('edbd301f5e7c4fc2225e3b920757953e6085e2a039731be98c95317e7bc9def7'
-            'SKIP'
             'SKIP'
             'SKIP'
             'e52becbf1a14a03849aaafd9ef43910a97d91f4232f62166871c13e1c6e29a2a'
@@ -66,37 +64,6 @@ prepare() {
     patch -Np1 < "$srcdir/firefox-patches/$src"
   done
 
-  msg 'opensuse patch'
-  # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
-  local suse_patch=('mozilla-nongnome-proxies.patch'
-                    'mozilla-kde.patch'
-                    'mozilla-ntlm-full-path.patch'
-                    # 'mozilla-aarch64-startup-crash.patch'
-                    # 'mozilla-fix-aarch64-libopus.patch'
-                    # 'mozilla-s390-context.patch'
-                    # 'mozilla-pgo.patch'
-                    'mozilla-reduce-rust-debuginfo.patch'
-                    'mozilla-bmo1005535.patch'
-                    # 'mozilla-bmo1568145.patch'
-                    # 'mozilla-bmo1504834-part1.patch'
-                    # 'mozilla-bmo1504834-part3.patch'
-                    'mozilla-bmo1512162.patch'
-                    # 'mozilla-fix-top-level-asm.patch'
-                    'mozilla-bmo849632.patch'
-                    'mozilla-bmo998749.patch'
-                    # 'mozilla-s390x-skia-gradient.patch'
-                    # 'mozilla-libavcodec58_91.patch'
-                    # 'mozilla-silence-no-return-type.patch'
-                    # 'mozilla-bmo531915.patch'
-                    'one_swizzle_to_rule_them_all.patch'
-                    'svg-rendering.patch'
-                    'firefox-kde.patch'
-                    'firefox-branded-icons.patch')
-  for src in "${suse_patch[@]}"; do
-    msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/$src"
-  done
-
   msg 'librewolf patch'
   local librewolf_patch=('faster-package-multi-locale.patch')
   for src in "${librewolf_patch[@]}"; do
@@ -127,12 +94,11 @@ ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 # ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
-ac_add_options --enable-official-branding
 ac_add_options --enable-update-channel=release
+ac_add_options --with-branding=browser/branding/official
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
-export MOZILLA_OFFICIAL=1
 export MOZ_APP_REMOTINGNAME=floorp
 export MOZ_REQUIRE_SIGNING=1
 export RUSTC_OPT_LEVEL=2
@@ -239,70 +205,6 @@ END
 package() {
   cd Floorp-ESR102 || exit
   DESTDIR="$pkgdir" ./mach install
-
-  local pref="$pkgdir/usr/lib/floorp/browser/defaults/preferences"
-  install -Dvm644 /dev/stdin "$pref/vendor.js" <<END
-// Use system-provided dictionaries
-pref("spellchecker.dictionary_path", "/usr/share/hunspell");
-
-// Don't disable extensions in the application directory
-pref("extensions.autoDisableScopes", 11);
-
-// UA override
-pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.61");
-
-// Scale UI
-// pref("layout.css.devPixelsPerPx",    "1.2");
-END
-
-  install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END
-/* gentoo ebuild */
-pref("gfx.x11-egl.force-enabled", false);
-sticky_pref("gfx.font_rendering.graphite.enabled", true);
-pref("media.gmp-gmpopenh264.autoupdate", false);
-pref("media.gmp-widevinecdm.autoupdate", false);
-
-/* gentoo-default-prefs.js */
-pref("general.smoothScroll",               true);
-pref("general.autoScroll",                 false);
-pref("browser.urlbar.hideGoButton",        true);
-pref("accessibility.typeaheadfind",        true);
-pref("browser.shell.checkDefaultBrowser",  false);
-pref("browser.EULA.override",              true);
-pref("general.useragent.locale",           "chrome://global/locale/intl.properties");
-pref("intl.locale.requested",              "");
-/* Disable DoH by default */
-pref("network.trr.mode",                   5);
-/* Disable use of Mozilla Normandy service by default */
-pref("app.normandy.enabled",               false);
-END
-
-  install -Dvm644 /dev/stdin "$pref/media_decoding.js" <<END
-/* gentoo-hwaccel-prefs.js-r2 */
-/* Force hardware accelerated rendering due to USE=hwaccel */
-pref("gfx.webrender.all",                  true);
-pref("layers.acceleration.force-enabled",  true);
-sticky_pref("media.hardware-video-decoding.enabled", true);
-pref("webgl.force-enabled",                true);
-
-// hardware acceleration
-sticky_pref("media.ffmpeg.vaapi.enabled", true);
-sticky_pref("media.hardware-video-decoding.force-enabled", true);
-sticky_pref("media.navigator.mediadatadecoder_vpx_enabled", true);
-END
-
-  install -Dvm644 /dev/stdin "$pref/kde.js" <<END
-// KDE.js
-pref("browser.preferences.instantApply", false);
-pref("browser.backspace_action", 0);
-END
-
-  install -Dvm644 /dev/stdin "$pref/disable_typeahead.js" <<END
-sticky_pref("accessibility.typeaheadfind", false);
-sticky_pref("accessibility.typeaheadfind.autostart", false);
-sticky_pref("accessibility.typeaheadfind.manual", false);
-sticky_pref("accessibility.typeaheadfind.flashBar", 0);
-END
 
   local distini="$pkgdir/usr/lib/floorp/distribution/distribution.ini"
   install -Dvm644 /dev/stdin "$distini" <<END

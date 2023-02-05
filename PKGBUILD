@@ -99,9 +99,14 @@ ac_add_options --with-branding=browser/branding/official
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
+
+# Floorp environment variables
+ac_add_options MOZ_PGO=1
+export MOZ_INCLUDE_SOURCE_INFO=1
 export MOZ_APP_REMOTINGNAME=floorp
-export MOZ_REQUIRE_SIGNING=1
 export RUSTC_OPT_LEVEL=2
+unset MOZ_REQUIRE_SIGNING
+unset MOZ_DATA_REPORTING
 unset MOZ_TELEMETRY_REPORTING
 
 # Keys
@@ -134,13 +139,10 @@ ac_add_options --disable-updater
 ac_add_options --disable-tests
 ac_add_options --disable-debug
 ac_add_options --disable-verify-mar
+
+# L10n
+ac_add_options --with-l10n-base=${srcdir}/l10n-central/l10n-central
 END
-
-  # Fake mozilla version
-  echo '109.0.1' > config/milestone.txt
-
-  # Desktop file
-  sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"
 
   # Remove patched rust file checksums
   sed 's/\("files":{\)[^}]*/\1/' -i \
@@ -158,43 +160,11 @@ build() {
   # LTO needs more open files
   ulimit -n 4096
 
-  # Do 3-tier PGO
-  msg "Building instrumented browser..."
-  cat >.mozconfig ../mozconfig - <<END
-ac_add_options --enable-profile-generate=cross
-END
-  ./mach build
-
-  msg "Profiling instrumented browser..."
+  xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
+    ./mach build
   ./mach package
-  LLVM_PROFDATA=llvm-profdata \
-    JARLOG_FILE="$PWD/jarlog" \
-    xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
-    ./mach python build/pgo/profileserver.py
 
-  stat -c "Profile data found (%s bytes)" merged.profdata
-  test -s merged.profdata
-
-  stat -c "Jar log found (%s bytes)" jarlog
-  test -s jarlog
-
-  msg "Removing instrumented browser..."
-  ./mach clobber
-
-  msg "Building optimized browser..."
-  cat >.mozconfig ../mozconfig - <<END
-ac_add_options --enable-lto=cross
-ac_add_options --enable-profile-use=cross
-ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
-ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
-
-# L10n
-ac_add_options --with-l10n-base=${srcdir}/l10n-central/l10n-central
-END
-  ./mach build
-  
   msg 'Building locales'
-  ./mach package
   export MOZ_CHROME_MULTILOCALE="ja zh-TW"
   for AB_CD in $MOZ_CHROME_MULTILOCALE; do
     msg "Building locales $AB_CD"

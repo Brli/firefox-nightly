@@ -8,7 +8,7 @@ pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
-url="https://www.mozilla.org/firefox/"
+url="https://floorp.ablaze.one/"
 depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
@@ -26,17 +26,13 @@ source=(https://github.com/Floorp-Projects/Floorp/archive/refs/heads/ESR102.zip
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-08j.tar.xz
         5022efe33088.patch
-        fix_csd_window_buttons.patch
-        firefox.desktop identity-icons-brand.svg)
+        fix_csd_window_buttons.patch)
 sha256sums=('edbd301f5e7c4fc2225e3b920757953e6085e2a039731be98c95317e7bc9def7'
             'SKIP'
             'SKIP'
             'e52becbf1a14a03849aaafd9ef43910a97d91f4232f62166871c13e1c6e29a2a'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
-            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
-            'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
-validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
+            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
 # Note: These are for Arch Linux use ONLY. For your own distribution, please
@@ -200,8 +196,6 @@ END
     "$pkgdir/usr/share/icons/hicolor/384x384/apps/floorp.png"
   install -Dvm644 browser/branding/$theme/content/about-logo.svg \
     "$pkgdir/usr/share/icons/hicolor/scalable/apps/floorp.svg"
-  install -Dvm644 ../identity-icons-brand.svg \
-    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/floorp-symbolic.svg"
 
   install -Dvm644 $srcdir/Floorp-ESR102/.github/floorp-debian.desktop \
     "$pkgdir/usr/share/applications/floorp.desktop"

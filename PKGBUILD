@@ -302,7 +302,7 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 pref("extensions.autoDisableScopes", 11);
 
 // UA override
-pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.61");
+// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.61");
 
 // Scale UI
 // pref("layout.css.devPixelsPerPx",    "1.2");

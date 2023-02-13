@@ -27,7 +27,7 @@ source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.z
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-08j.tar.xz
         5022efe33088.patch
         fix_csd_window_buttons.patch)
-sha256sums=('edbd301f5e7c4fc2225e3b920757953e6085e2a039731be98c95317e7bc9def7'
+sha256sums=('ef86335f37f90120d1c7197db1ccadb1a71ddc95fb47abc46fab6c57c3462480'
             'SKIP'
             'SKIP'
             'e52becbf1a14a03849aaafd9ef43910a97d91f4232f62166871c13e1c6e29a2a'

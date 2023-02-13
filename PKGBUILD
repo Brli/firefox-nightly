@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=10.9.0
+pkgver=10.10.0
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
@@ -21,7 +21,7 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
 options=(!emptydirs !makeflags !strip !lto !debug)
-source=(https://github.com/Floorp-Projects/Floorp/archive/refs/heads/ESR102.zip
+source=(https://github.com/Floorp-Projects/Floorp/archive/refs/heads/v10.10.0.zip
         git+https://github.com/Floorp-Projects/l10n-central.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-08j.tar.xz
@@ -126,10 +126,9 @@ ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman
 
 # Features
-ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --enable-proxy-bypass-protection
-ac_add_options --enable-alsa
-ac_add_options --enable-jack
+ac_add_options --disable-alsa
+ac_add_options --disable-jack
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
@@ -215,10 +214,6 @@ END
   if [[ -e $nssckbi ]]; then
     ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
   fi
-
-  # Install zh-TW locale
-  #local xpi_dest="$pkgdir/usr/lib/floorp/browser/extensions"
-  #install -Dvm644 "$srcdir/firefox-105.0a1.zh-TW.langpack.xpi" "$xpi_dest/langpack-zh-TW@firefox.mozilla.org.xpi"
 }
 
 # vim:set sw=2 et:

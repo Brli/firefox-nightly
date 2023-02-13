@@ -54,6 +54,8 @@ prepare() {
   patch -Np1 -i ../5022efe33088.patch
 
   msg 'Gentoo patch'
+  rm -rfv $srcdir/firefox-patches/0031-bmo-1769631-python-3.11-compatibility.patch
+  rm -rfv $srcdir/firefox-patches/0032-bmo-1769631-python-3.11-compatibility.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."

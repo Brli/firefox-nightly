@@ -48,7 +48,7 @@ _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 
 prepare() {
   mkdir mozbuild
-  cd Floorp-ESR102 || exit
+  cd "Floorp-${pkgver}" || exit
 
   # Revert use of system sqlite
   patch -Np1 -i ../5022efe33088.patch
@@ -145,7 +145,7 @@ END
 }
 
 build() {
-  cd Floorp-ESR102 || exit
+  cd "Floorp-${pkgver}" || exit
 
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
@@ -168,7 +168,7 @@ build() {
 }
 
 package() {
-  cd Floorp-ESR102 || exit
+  cd "Floorp-${pkgver}" || exit
   DESTDIR="$pkgdir" ./mach install
 
   local distini="$pkgdir/usr/lib/floorp/distribution/distribution.ini"
@@ -196,7 +196,7 @@ END
   install -Dvm644 browser/branding/$theme/content/about-logo.svg \
     "$pkgdir/usr/share/icons/hicolor/scalable/apps/floorp.svg"
 
-  install -Dvm644 $srcdir/Floorp-ESR102/.github/floorp-debian.desktop \
+  install -Dvm644 "$srcdir/Floorp-$pkgver/.github/floorp-debian.desktop" \
     "$pkgdir/usr/share/applications/floorp.desktop"
 
   # Install a wrapper to avoid confusion about binary path

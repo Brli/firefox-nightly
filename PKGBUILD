@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=111.0a1.20230202.193873a76970
+pkgver=112.0a1.20230214.f45ac8766b61
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,7 +24,7 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=36b67e826e2dfa1eedbc9567f9bb3be61c431a7e
+_moz_revision=f45ac8766b6167ecd4adc81490f8f9b927472200
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -85,7 +85,7 @@ prepare() {
   patch -Np1 -i ../5022efe33088.patch
 
   # Revert NSS requirement
-  sed 's,nss >= 3.88,nss >= 3.87,' -i build/moz.configure/nss.configure
+  # sed 's,nss >= 3.88,nss >= 3.87,' -i build/moz.configure/nss.configure
 
   msg 'Gentoo patch'
   # local gentoo_patch=($(ls $srcdir/firefox-patches/))

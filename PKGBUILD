@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=10.10.0
+pkgver=10.10.1
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
@@ -178,12 +178,10 @@ package() {
 [Global]
 id=archlinux
 version=1.0
-about=Floorp for Arch Linux
 
 [Preferences]
 app.distributor=archlinux
 app.distributor.channel=floorp
-app.partner.archlinux=archlinux
 END
 
   local i theme=official

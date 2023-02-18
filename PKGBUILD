@@ -201,7 +201,7 @@ package() {
   cd "Floorp-${pkgver}" || exit
   DESTDIR="$pkgdir" ./mach install
 
-  local pref="$pkgdir/usr/lib/firefox/browser/defaults/preferences"
+  local pref="$pkgdir/usr/lib/floorp/browser/defaults/preferences"
   install -Dvm644 /dev/stdin "$pref/vendor.js" <<END
 // Use system-provided dictionaries
 pref("spellchecker.dictionary_path", "/usr/share/hunspell");

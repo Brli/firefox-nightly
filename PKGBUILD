@@ -75,7 +75,7 @@ prepare() {
   echo -n "$_google_api_key" >google-api-key
   echo -n "$_mozilla_api_key" >mozilla-api-key
 
-  cat >.mozconfig <<END
+  cat >../mozconfig <<END
 ac_add_options --enable-application=browser
 ac_add_options --with-app-name=floorp
 ac_add_options --with-app-basename=Floorp
@@ -99,7 +99,6 @@ ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
 
 # Floorp environment variables
-ac_add_options MOZ_PGO=1
 export MOZ_INCLUDE_SOURCE_INFO=1
 export MOZ_APP_REMOTINGNAME=floorp
 export RUSTC_OPT_LEVEL=2
@@ -136,9 +135,6 @@ ac_add_options --disable-updater
 ac_add_options --disable-tests
 ac_add_options --disable-debug
 ac_add_options --disable-verify-mar
-
-# L10n
-ac_add_options --with-l10n-base=${srcdir}/l10n-central/l10n-central
 END
 
   # Remove patched rust file checksums
@@ -149,6 +145,7 @@ END
 build() {
   cd "Floorp-${pkgver}" || exit
 
+
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
   export MOZ_ENABLE_FULL_SYMBOLS=0
@@ -157,12 +154,43 @@ build() {
   # LTO needs more open files
   ulimit -n 4096
 
-  xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
-    ./mach build
-  ./mach package
+  # Do 3-tier PGO
+  msg "Building instrumented browser..."
+  cat >.mozconfig ../mozconfig - <<END
+ac_add_options --enable-profile-generate=cross
+END
+  ./mach build
 
+  msg "Profiling instrumented browser..."
+  ./mach package
+  LLVM_PROFDATA=llvm-profdata \
+    JARLOG_FILE="$PWD/jarlog" \
+    xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
+    ./mach python build/pgo/profileserver.py
+
+  stat -c "Profile data found (%s bytes)" merged.profdata
+  test -s merged.profdata
+
+  stat -c "Jar log found (%s bytes)" jarlog
+  test -s jarlog
+
+  msg "Removing instrumented browser..."
+  ./mach clobber
+
+  msg "Building optimized browser..."
+  cat >.mozconfig ../mozconfig - <<END
+ac_add_options --enable-lto=cross
+ac_add_options --enable-profile-use=cross
+ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
+ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
+# L10n
+ac_add_options --with-l10n-base=${srcdir}/l10n-central/l10n-central
+END
+  ./mach build
+  
   msg 'Building locales'
-  export MOZ_CHROME_MULTILOCALE="ja zh-TW"
+  ./mach package
+  export MOZ_CHROME_MULTILOCALE="ar cs da de el en-GB en-US es-ES es-MX fr hu id it ja ja-KA ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th vi zh-CN zh-TW"
   for AB_CD in $MOZ_CHROME_MULTILOCALE; do
     msg "Building locales $AB_CD"
     ./mach build chrome-$AB_CD
@@ -172,6 +200,64 @@ build() {
 package() {
   cd "Floorp-${pkgver}" || exit
   DESTDIR="$pkgdir" ./mach install
+
+  local pref="$pkgdir/usr/lib/firefox/browser/defaults/preferences"
+  install -Dvm644 /dev/stdin "$pref/vendor.js" <<END
+// Use system-provided dictionaries
+pref("spellchecker.dictionary_path", "/usr/share/hunspell");
+
+// Don't disable extensions in the application directory
+pref("extensions.autoDisableScopes", 11);
+END
+
+  install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END
+/* gentoo ebuild */
+pref("gfx.x11-egl.force-enabled", false);
+sticky_pref("gfx.font_rendering.graphite.enabled", true);
+pref("media.gmp-gmpopenh264.autoupdate", false);
+pref("media.gmp-widevinecdm.autoupdate", false);
+
+/* gentoo-default-prefs.js */
+pref("general.smoothScroll",               true);
+pref("general.autoScroll",                 false);
+pref("browser.urlbar.hideGoButton",        true);
+pref("accessibility.typeaheadfind",        true);
+pref("browser.shell.checkDefaultBrowser",  false);
+pref("browser.EULA.override",              true);
+pref("general.useragent.locale",           "chrome://global/locale/intl.properties");
+pref("intl.locale.requested",              "");
+/* Disable DoH by default */
+pref("network.trr.mode",                   5);
+/* Disable use of Mozilla Normandy service by default */
+pref("app.normandy.enabled",               false);
+END
+
+  install -Dvm644 /dev/stdin "$pref/media_decoding.js" <<END
+/* gentoo-hwaccel-prefs.js-r2 */
+/* Force hardware accelerated rendering due to USE=hwaccel */
+pref("gfx.webrender.all",                  true);
+pref("layers.acceleration.force-enabled",  true);
+sticky_pref("media.hardware-video-decoding.enabled", true);
+pref("webgl.force-enabled",                true);
+
+// hardware acceleration
+sticky_pref("media.ffmpeg.vaapi.enabled", true);
+sticky_pref("media.hardware-video-decoding.force-enabled", true);
+sticky_pref("media.navigator.mediadatadecoder_vpx_enabled", true);
+END
+
+  install -Dvm644 /dev/stdin "$pref/kde.js" <<END
+// KDE.js
+pref("browser.preferences.instantApply", false);
+pref("browser.backspace_action", 0);
+END
+
+  install -Dvm644 /dev/stdin "$pref/disable_typeahead.js" <<END
+sticky_pref("accessibility.typeaheadfind", false);
+sticky_pref("accessibility.typeaheadfind.autostart", false);
+sticky_pref("accessibility.typeaheadfind.manual", false);
+sticky_pref("accessibility.typeaheadfind.flashBar", 0);
+END
 
   local distini="$pkgdir/usr/lib/floorp/distribution/distribution.ini"
   install -Dvm644 /dev/stdin "$distini" <<END

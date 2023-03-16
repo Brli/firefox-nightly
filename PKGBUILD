@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=113.0a1.20230317.20511d3af52f
+pkgver=113.0a1.20230316.20511d3af52f
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -149,8 +149,7 @@ prepare() {
   done
 
   msg 'ubuntu patch'
-  local ubuntu_patch=('dont-checkout-locales.patch'
-                      'use-system-icupkg.patch')
+  local ubuntu_patch=('dont-checkout-locales.patch')
   for src in "${ubuntu_patch[@]}"; do
    msg "Applying patch $src..."
    patch -Np1 -i "${srcdir}/firefox-trunk/debian/patches/$src"

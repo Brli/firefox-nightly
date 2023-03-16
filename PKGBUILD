@@ -30,7 +30,7 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-109-patches-02j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-111-patches-01j.tar.xz
         5022efe33088.patch
         mozilla-kde_after_unity.patch
         unity-menubar.patch
@@ -43,7 +43,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'a34dac5743cf1ce4cd65c6395f77667e57e374237c11e10a9f186bbb9d9155e6'
+            'f6e44d9ed44de05a3b8a3eefd1a0032735b93958e11ff6c277b9e17be97e6ad6'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             '6fb63ac5e51f8eacdaaf5ffe0277a14038c05468aa36699e6e1bfb16c1064f31'
             'e416e946d3c8a9e3c35715d2606423d3dda12671ef04d8b669fb74884226c65a'
@@ -89,7 +89,8 @@ prepare() {
 
   msg 'Gentoo patch'
   # local gentoo_patch=($(ls $srcdir/firefox-patches/))
-  local gentoo_patch=('0003-bmo-847568-Support-system-harfbuzz.patch'
+  local gentoo_patch=('0002-Fortify-sources-properly.patch'
+                      '0003-bmo-847568-Support-system-harfbuzz.patch'
                       '0004-bmo-847568-Support-system-graphite2.patch'
                       '0005-bmo-1559213-Support-system-av1.patch'
                       '0006-bmo-1516803-Fix-building-sandbox.patch'
@@ -105,9 +106,8 @@ prepare() {
                       '0025-bmo-1559213-fix-system-av1-libs.patch'
                       '0026-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
                       '0027-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0028-rhbz-2115253-vaapi-fixes.patch'
                       '0029-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0032-fix-building-gcc-pgo.patch')
+                      '0031-fix-building-gcc-pgo.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."

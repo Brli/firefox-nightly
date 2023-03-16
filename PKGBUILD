@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=10.10.1
+pkgver=10.11.0
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
@@ -24,7 +24,7 @@ options=(!emptydirs !makeflags !strip !lto !debug)
 source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.zip
         git+https://github.com/Floorp-Projects/l10n-central.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-08j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-09j.tar.xz
         5022efe33088.patch
         fix_csd_window_buttons.patch)
 sha256sums=('48daab8ad0a65dafc76e641573948734fa949fc96c384cb451735509e73c13ba'
@@ -33,18 +33,6 @@ sha256sums=('48daab8ad0a65dafc76e641573948734fa949fc96c384cb451735509e73c13ba'
             'e52becbf1a14a03849aaafd9ef43910a97d91f4232f62166871c13e1c6e29a2a'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
-
-# Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
-# Note: These are for Arch Linux use ONLY. For your own distribution, please
-# get your own set of keys. Feel free to contact foutrelis@archlinux.org for
-# more information.
-_google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
-
-# Mozilla API keys (see https://location.services.mozilla.com/api)
-# Note: These are for Arch Linux use ONLY. For your own distribution, please
-# get your own set of keys. Feel free to contact heftig@archlinux.org for
-# more information.
-_mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 
 prepare() {
   mkdir mozbuild
@@ -71,9 +59,6 @@ prepare() {
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
-
-  echo -n "$_google_api_key" >google-api-key
-  echo -n "$_mozilla_api_key" >mozilla-api-key
 
   cat >../mozconfig <<END
 ac_add_options --enable-application=browser
@@ -107,9 +92,9 @@ unset MOZ_DATA_REPORTING
 unset MOZ_TELEMETRY_REPORTING
 
 # Keys
-ac_add_options --with-google-location-service-api-keyfile=${PWD@Q}/google-api-key
-ac_add_options --with-google-safebrowsing-api-keyfile=${PWD@Q}/google-api-key
-ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/mozilla-api-key
+ac_add_options --with-google-location-service-api-keyfile=${PWD@Q}/floorp/apis/api-google-location-service-key
+ac_add_options --with-google-safebrowsing-api-keyfile=${PWD@Q}/floorp/apis/api-google-safe-browsing-key
+ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/floorp/apis/api-mozilla-key
 
 # System libraries
 ac_add_options --with-system-nspr
@@ -190,7 +175,7 @@ END
   
   msg 'Building locales'
   ./mach package
-  export MOZ_CHROME_MULTILOCALE="ar cs da de el en-GB en-US es-ES es-MX fr hu id it ja ja-KA ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th vi zh-CN zh-TW"
+  export MOZ_CHROME_MULTILOCALE="en-US ja ja-KA zh-TW"
   for AB_CD in $MOZ_CHROME_MULTILOCALE; do
     msg "Building locales $AB_CD"
     ./mach build chrome-$AB_CD

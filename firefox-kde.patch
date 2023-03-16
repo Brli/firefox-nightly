@@ -3,7 +3,7 @@
 # Date 1559300151 -7200
 #      Fri May 31 12:55:51 2019 +0200
 # Node ID 54d41b0033b8d649d842a1f862c6fed8b9874dec
-# Parent  c9baf1c9eb9359b7968a52157e8892cdd20f2c6d
+# Parent  95d798f72d832c953086aa27675498fdf84177f0
 How to apply this patch:
 1. Import and apply it
 2. cp browser/base/content/browser.xul browser/base/content/browser-kde.xul
@@ -14,10 +14,10 @@ How to apply this patch:
 diff --git a/browser/components/preferences/main.js b/browser/components/preferences/main.js
 --- a/browser/components/preferences/main.js
 +++ b/browser/components/preferences/main.js
-@@ -301,6 +301,13 @@ var gMainPane = {
+@@ -302,6 +302,13 @@ var gMainPane = {
        }, backoffTimes[this._backoffIndex]);
      }
-
+ 
 +    var env = Components.classes["@mozilla.org/process/environment;1"]
 +      .getService(Components.interfaces.nsIEnvironment);
 +    var kde_session = 0;
@@ -27,8 +27,13 @@ diff --git a/browser/components/preferences/main.js b/browser/components/prefere
 +
      this.initBrowserContainers();
      this.buildContentProcessCountMenuList();
+ 
+@@ -1333,16 +1340,27 @@ var gMainPane = {
+       this._backoffIndex = 0;
 
-@@ -1294,6 +1301,17 @@ var gMainPane = {
+       let shellSvc = getShellService();
+       if (!shellSvc) {
+         return;
        }
        try {
          shellSvc.setDefaultBrowser(true, false);
@@ -46,6 +51,11 @@ diff --git a/browser/components/preferences/main.js b/browser/components/prefere
        } catch (ex) {
          console.error(ex);
          return;
+       }
+
+       let isDefault = shellSvc.isDefaultBrowser(false, true);
+       let setDefaultPane = document.getElementById("setDefaultPane");
+       setDefaultPane.classList.toggle("is-default", isDefault);
 diff --git a/browser/components/shell/moz.build b/browser/components/shell/moz.build
 --- a/browser/components/shell/moz.build
 +++ b/browser/components/shell/moz.build

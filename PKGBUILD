@@ -32,9 +32,7 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-111-patches-01j.tar.xz
         5022efe33088.patch
-        mozilla-kde_after_unity.patch
-        unity-menubar.patch
-        0003-bmo-847568-Support-system-harfbuzz.patch
+        mozilla-kde.patch
         firefox-kde.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg)
@@ -45,10 +43,8 @@ sha256sums=('SKIP'
             'SKIP'
             'f6e44d9ed44de05a3b8a3eefd1a0032735b93958e11ff6c277b9e17be97e6ad6'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
-            '6fb63ac5e51f8eacdaaf5ffe0277a14038c05468aa36699e6e1bfb16c1064f31'
-            'e416e946d3c8a9e3c35715d2606423d3dda12671ef04d8b669fb74884226c65a'
-            'c5fd719721ce1df420b5713c18c0fed0f52b583def129379d52f879e0f8d888f'
-            'cf1c372cdcdc42b79df73c411430e22b45202e31f75999001bd664e94e143913'
+            'f5bbb8ee8fe97c32cad7bf9ef931eeef03806e8f4a52ae322c404a841b100ca0'
+            '94f60402de57cbb176c36cf788752bd9ea474f70dd7c87ec0f02efcaa166e4d3'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
@@ -76,9 +72,7 @@ pkgver() {
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv -fv mozilla-kde_after_unity.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/"
-  mv -fv 0003-bmo-847568-Support-system-harfbuzz.patch -t "${srcdir}/firefox-patches/"
-  mv -fv firefox-kde.patch -t "${srcdir}/firefox-maintenance/firefox/"
+  mv -fv firefox-kde.patch mozilla-kde.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd mozilla-central
 
   # Revert use of system sqlite
@@ -138,7 +132,6 @@ prepare() {
                     # 'mozilla-bmo531915.patch'
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
-                    'firefox-kde.patch'
                     'firefox-branded-icons.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
@@ -147,8 +140,9 @@ prepare() {
 
   msg 'librewolf patch'
   local librewolf_patch=('faster-package-multi-locale.patch'
-                         'unity-menubar.patch'
-                         'mozilla-kde_after_unity.patch') # edited
+                         'unity_kde/mozilla-kde.patch'
+                         'unity_kde/firefox-kde.patch'
+                         'unity_kde/unity-menubar.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"

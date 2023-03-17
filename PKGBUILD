@@ -33,8 +33,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         5022efe33088.patch fix_csd_window_buttons.patch
         0001-Bug-1819374-Squashed-ffmpeg-6.0-update.patch
         0002-Bug-1820416-Use-correct-FFVPX-headers-from-ffmpeg-6..patch
-        mozilla-kde.patch firefox-kde.patch
-        firefox.desktop identity-icons-brand.svg)
+        firefox-kde.patch firefox.desktop identity-icons-brand.svg)
 sha256sums=('e1006c0872aa7eb30fb5a689413957f1e5fc8d2048b1637bf6f6fafdbd4ea55f'
             'SKIP'
             'SKIP'
@@ -46,7 +45,6 @@ sha256sums=('e1006c0872aa7eb30fb5a689413957f1e5fc8d2048b1637bf6f6fafdbd4ea55f'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             '802f9271a5f7c0ab581baae8c46fd5b29598025ee93bb2dac6b456f8e0ae6acc'
             'be9ba079a931d5e881ce38430d418cc834e8c6b157af6c79ea267998caece806'
-            '84e21dc4b02b3a6395e52add3664f468466caf25f0f17220056b6e2665b29b2c'
             '94f60402de57cbb176c36cf788752bd9ea474f70dd7c87ec0f02efcaa166e4d3'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
@@ -67,7 +65,7 @@ _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv mozilla-kde.patch firefox-kde.patch -t ${srcdir}/librewolf-patch/patches/unity_kde/
+  mv firefox-kde.patch -t ${srcdir}/librewolf-patch/patches/unity_kde/
   cd firefox-${pkgver%%b*}
 
   # https://bugzilla.mozilla.org/show_bug.cgi?id=1819374

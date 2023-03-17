@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=113.0a1.20230316.20511d3af52f
+pkgver=113.0a1.20230317.7a93650998b3
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,7 +24,7 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=20511d3af52f2a00a41ca02630a8c8c04e7e1fa7
+_moz_revision=7a93650998b38d6a5797322b868da6153407d268
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -43,7 +43,7 @@ sha256sums=('SKIP'
             'SKIP'
             'f6e44d9ed44de05a3b8a3eefd1a0032735b93958e11ff6c277b9e17be97e6ad6'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
-            'f5bbb8ee8fe97c32cad7bf9ef931eeef03806e8f4a52ae322c404a841b100ca0'
+            '84e21dc4b02b3a6395e52add3664f468466caf25f0f17220056b6e2665b29b2c'
             '94f60402de57cbb176c36cf788752bd9ea474f70dd7c87ec0f02efcaa166e4d3'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -201,7 +201,6 @@ ac_add_options --with-system-zlib
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-libevent
-ac_add_options --with-system-icu
 ac_add_options --with-system-sqlite
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-av1

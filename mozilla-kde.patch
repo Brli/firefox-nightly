@@ -1045,7 +1045,7 @@ new file mode 100644
 diff --git a/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp b/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp
 --- a/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp
 +++ b/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp
-@@ -5,16 +5,19 @@
+@@ -5,7 +5,7 @@
   * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
  #include "nsMIMEInfoUnix.h"
@@ -1054,12 +1054,8 @@ diff --git a/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp b/uriloader/exthandler
  #include "nsIGIOService.h"
  #include "nsNetCID.h"
  #include "nsIIOService.h"
- #ifdef MOZ_ENABLE_DBUS
- #  include "nsDBusHandlerApp.h"
+@@ -14,7 +14,7 @@
  #endif
-+#if defined(XP_UNIX) && !defined(XP_MACOSX)
-+#include "nsKDEUtils.h"
-+#endif
 
  nsresult nsMIMEInfoUnix::LoadUriInternal(nsIURI* aURI) {
 -  return nsGNOMERegistry::LoadURL(aURI);
@@ -1067,7 +1063,7 @@ diff --git a/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp b/uriloader/exthandler
  }
 
  NS_IMETHODIMP
-@@ -29,15 +32,15 @@ nsMIMEInfoUnix::GetHasDefaultHandler(bool* _retval) {
+@@ -29,15 +29,15 @@ nsMIMEInfoUnix::GetHasDefaultHandler(bool* _retval) {
    *_retval = false;
 
    if (mClass == eProtocolInfo) {
@@ -1086,11 +1082,11 @@ diff --git a/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp b/uriloader/exthandler
        }
      }
      if (mimeInfo) *_retval = true;
-@@ -59,6 +62,23 @@ nsresult nsMIMEInfoUnix::LaunchDefaultWithFile(nsIFile* aFile) {
+@@ -59,6 +59,24 @@ nsresult nsMIMEInfoUnix::LaunchDefaultWithFile(nsIFile* aFile) {
    nsAutoCString nativePath;
    aFile->GetNativePath(nativePath);
 
-+  if( nsKDEUtils::kdeSupport()) {
++  if(nsKDEUtils::kdeSupport()) {
 +    bool supports;
 +    if( NS_SUCCEEDED( GetHasDefaultHandler( &supports )) && supports ) {
 +      nsTArray<nsCString> command;
@@ -1101,10 +1097,11 @@ diff --git a/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp b/uriloader/exthandler
 +      if( nsKDEUtils::command( command ))
 +        return NS_OK;
 +    }
-+    if (!mDefaultApplication)
-+      return NS_ERROR_FILE_NOT_FOUND;
-+
-+    return LaunchWithIProcess(mDefaultApplication, nativePath);
++    nsCOMPtr<nsIFile> defaultApp = GetDefaultApplication();
++  if (!defaultApp) {
++    return NS_ERROR_FILE_NOT_FOUND;
++  }
++    return LaunchWithIProcess(defaultApp, aFile->NativePath());
 +  }
 +
    nsCOMPtr<nsIGIOService> giovfs = do_GetService(NS_GIOSERVICE_CONTRACTID);

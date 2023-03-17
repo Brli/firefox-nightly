@@ -3,17 +3,16 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=106.0.5
-pkgrel=2
+pkgver=111.0
+pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
 license=(MPL GPL LGPL)
 url="https://www.mozilla.org/firefox/"
 depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse kmozillahelper)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
-             autoconf2.13 rust clang llvm jack2 nodejs cbindgen nasm
-             python-setuptools python-zstandard lld dump_syms
-             wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
+             autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
+             lld dump_syms wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
              mercurial rsync)
 optdepends=('networkmanager: Location detection via available WiFi networks'
             'libnotify: Notification integration'
@@ -25,25 +24,27 @@ provides=(firefox)
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=66e3220110ba0dd99ba7d45684ac4731886a59a9
 source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"{,.asc}
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-02j.tar.xz
-        5022efe33088.patch fix_csd_window_buttons.patch 0001-libwebrtc-screen-cast-sync.patch
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01j.tar.xz
+        5022efe33088.patch fix_csd_window_buttons.patch
+        0001-Bug-1819374-Squashed-ffmpeg-6.0-update.patch
+        0002-Bug-1820416-Use-correct-FFVPX-headers-from-ffmpeg-6..patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('9471a7610d0adc350f14c363f1fcd2e15a85f22744f5850604af01aa844bc8a8'
+sha256sums=('e1006c0872aa7eb30fb5a689413957f1e5fc8d2048b1637bf6f6fafdbd4ea55f'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'd366d664460fccf7267e7e767cb0137a02b5a4c2ea2fa2b60117eaf00ee553d0'
+            'f6e44d9ed44de05a3b8a3eefd1a0032735b93958e11ff6c277b9e17be97e6ad6'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            '5c164f6dfdf2d97f3f317e417aaa2e6ae46a9b3a160c3162d5073fe39d203286'
+            '802f9271a5f7c0ab581baae8c46fd5b29598025ee93bb2dac6b456f8e0ae6acc'
+            'be9ba079a931d5e881ce38430d418cc834e8c6b157af6c79ea267998caece806'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -65,10 +66,12 @@ prepare() {
   mv zh-TW mozbuild/
   cd firefox-${pkgver%%b*}
 
-  # https://bugs.archlinux.org/task/76231
-  # https://bugzilla.mozilla.org/show_bug.cgi?id=1790496
-  # https://src.fedoraproject.org/rpms/firefox/blob/rawhide/f/libwebrtc-screen-cast-sync.patch
-  patch -Np1 -i ../0001-libwebrtc-screen-cast-sync.patch
+  # https://bugzilla.mozilla.org/show_bug.cgi?id=1819374
+  patch -Np1 -i ../0001-Bug-1819374-Squashed-ffmpeg-6.0-update.patch
+
+  # https://bugs.archlinux.org/task/77796
+  # https://bugzilla.mozilla.org/show_bug.cgi?id=1820416
+  patch -Np1 -i ../0002-Bug-1820416-Use-correct-FFVPX-headers-from-ffmpeg-6..patch
 
   # Revert use of system sqlite
   patch -Np1 -i ../5022efe33088.patch
@@ -84,7 +87,7 @@ prepare() {
   msg 'opensuse patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=('mozilla-nongnome-proxies.patch'
-                    'mozilla-kde.patch'
+                    # 'mozilla-kde.patch'
                     # 'mozilla-ntlm-full-path.patch'
                     # 'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
                     # 'mozilla-fix-aarch64-libopus.patch'
@@ -105,7 +108,7 @@ prepare() {
                     # 'mozilla-bmo531915.patch' # broken patch
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
-                    'firefox-kde.patch'
+                    # 'firefox-kde.patch'
                     'firefox-branded-icons.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
@@ -113,7 +116,10 @@ prepare() {
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=('faster-package-multi-locale.patch')
+  local librewolf_patch=('faster-package-multi-locale.patch'
+                         'unity_kde/mozilla-kde.patch'
+                         'unity_kde/firefox-kde.patch'
+                         'unity_kde/unity-menubar.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
@@ -146,8 +152,8 @@ ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-# ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-ac_add_options --without-wasm-sandboxed-libraries
+ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+# ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
 ac_add_options --enable-official-branding
@@ -305,8 +311,6 @@ pref("media.ffmpeg.vaapi.enabled", true);
 pref("media.ffvpx.enabled", false);
 pref("media.hardware-video-decoding.force-enabled", true);
 pref("media.navigator.mediadatadecoder_vpx_enabled", true);
-pref("media.rdd-ffvpx.enabled", false);
-pref("media.rdd-vpx.enabled", false);
 END
 
   install -Dvm644 /dev/stdin "$pref/kde.js" <<END

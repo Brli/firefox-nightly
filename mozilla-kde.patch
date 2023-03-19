@@ -1302,7 +1302,7 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
 +    NS_ADDREF_THIS();
 +    g_idle_add([](gpointer data) -> gboolean {
 +      nsFilePicker* queuedPicker = (nsFilePicker*) data;
-+      int16_t result;
++      nsIFilePicker::ResultCode result;
 +      queuedPicker->kdeFileDialog(&result);
 +      if (queuedPicker->mCallback) {
 +        queuedPicker->mCallback->Done(result);
@@ -1358,7 +1358,7 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
 +    return GDK_WINDOW_XID( gdk_window );
 +    }
 +
-+NS_IMETHODIMP nsFilePicker::kdeFileDialog(PRInt16 *aReturn)
++NS_IMETHODIMP nsFilePicker::kdeFileDialog(PRUint16 *aReturn)
 +    {
 +    NS_ENSURE_ARG_POINTER(aReturn);
 +
@@ -1585,7 +1585,7 @@ diff --git a/widget/gtk/nsFilePicker.h b/widget/gtk/nsFilePicker.h
  
 +  bool kdeRunning();
 +  bool getKdeRunning();
-+  NS_IMETHODIMP kdeFileDialog(PRInt16 *aReturn);
++  NS_IMETHODIMP kdeFileDialog(PRUint16 *aReturn);
 +  NS_IMETHODIMP kdeAppsDialog(PRInt16 *aReturn);
 +  nsCString kdeMakeFilter( int index );
 +

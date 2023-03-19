@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=113.0a1.20230317.7a93650998b3
+pkgver=113.0a1.20230319.25765d2e3959
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,7 +24,7 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=7a93650998b38d6a5797322b868da6153407d268
+_moz_revision=25765d2e3959b95ea7e208d2a0cf354f1edd53ac
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -33,7 +33,7 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-111-patches-01j.tar.xz
         5022efe33088.patch
         mozilla-kde.patch
-        firefox-kde.patch
+        0001-remove-mImageRegion-from-nsMenuObject.cpp.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
@@ -44,7 +44,7 @@ sha256sums=('SKIP'
             'f6e44d9ed44de05a3b8a3eefd1a0032735b93958e11ff6c277b9e17be97e6ad6'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             '84e21dc4b02b3a6395e52add3664f468466caf25f0f17220056b6e2665b29b2c'
-            '94f60402de57cbb176c36cf788752bd9ea474f70dd7c87ec0f02efcaa166e4d3'
+            '5a631210b8f3f60cc11178fc957d2dc9c685d77c077271b6cc9a10688e468f4f'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
@@ -72,7 +72,7 @@ pkgver() {
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv -fv firefox-kde.patch mozilla-kde.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
+  mv -fv mozilla-kde.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd mozilla-central
 
   # Revert use of system sqlite
@@ -154,6 +154,9 @@ prepare() {
    msg "Applying patch $src..."
    patch -Np1 -i "${srcdir}/firefox-trunk/debian/patches/$src"
   done
+
+  msg 'patch unity-menubar'
+  patch -Np1 -i "$srcdir/0001-remove-mImageRegion-from-nsMenuObject.cpp.patch"
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc

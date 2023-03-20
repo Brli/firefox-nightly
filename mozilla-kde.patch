@@ -1303,7 +1303,7 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
 +    g_idle_add([](gpointer data) -> gboolean {
 +      nsFilePicker* queuedPicker = (nsFilePicker*) data;
 +      nsIFilePicker::ResultCode result;
-+      queuedPicker->kdeFileDialog(&result);
++      queuedPicker->kdeFileDialog(&static_cast<PRUint16>(result));
 +      if (queuedPicker->mCallback) {
 +        queuedPicker->mCallback->Done(result);
 +        queuedPicker->mCallback = nullptr;

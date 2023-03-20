@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=113.0a1.20230319.25765d2e3959
+pkgver=113.0a1.20230320.caabe78a05ae
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,7 +24,7 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=25765d2e3959b95ea7e208d2a0cf354f1edd53ac
+_moz_revision=caabe78a05aef594369db335bb9d1098ec328c33
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git

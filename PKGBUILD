@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=113.0a1.20230320.caabe78a05ae
+pkgver=113.0a1.20230328.0a92f0b762b3
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,12 +24,11 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=caabe78a05aef594369db335bb9d1098ec328c33
+_moz_revision=0a92f0b762b398fa10005d4bdfb29c1571019d5f
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-111-patches-01j.tar.xz
         5022efe33088.patch
         mozilla-kde.patch
@@ -37,7 +36,6 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
-            'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -148,13 +146,6 @@ prepare() {
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
   done
 
-  msg 'ubuntu patch'
-  local ubuntu_patch=('dont-checkout-locales.patch')
-  for src in "${ubuntu_patch[@]}"; do
-   msg "Applying patch $src..."
-   patch -Np1 -i "${srcdir}/firefox-trunk/debian/patches/$src"
-  done
-
   msg 'patch unity-menubar'
   patch -Np1 -i "$srcdir/0001-remove-mImageRegion-from-nsMenuObject.cpp.patch"
 
@@ -176,8 +167,8 @@ ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-# ac_add_options --without-wasm-sandboxed-libraries
+# ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
 ac_add_options --enable-official-branding
@@ -198,11 +189,13 @@ ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/mozilla-api-key
 # System libraries
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
+ac_add_options --with-system-icu
 ac_add_options --with-system-jpeg
 ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
+ac_add_options --with-system-graphite2
 ac_add_options --with-system-libevent
 ac_add_options --with-system-sqlite
 ac_add_options --enable-system-ffi

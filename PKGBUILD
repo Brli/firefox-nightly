@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=111.0
+pkgver=111.0.1
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -33,8 +33,8 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         5022efe33088.patch fix_csd_window_buttons.patch
         0001-Bug-1819374-Squashed-ffmpeg-6.0-update.patch
         0002-Bug-1820416-Use-correct-FFVPX-headers-from-ffmpeg-6..patch
-        firefox-kde.patch firefox.desktop identity-icons-brand.svg)
-sha256sums=('e1006c0872aa7eb30fb5a689413957f1e5fc8d2048b1637bf6f6fafdbd4ea55f'
+        firefox.desktop identity-icons-brand.svg)
+sha256sums=('84a4f3aba62df6e0451cdd28f8f1e59840d77c4062311947b0e59325c2ebdce8'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -45,7 +45,6 @@ sha256sums=('e1006c0872aa7eb30fb5a689413957f1e5fc8d2048b1637bf6f6fafdbd4ea55f'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             '802f9271a5f7c0ab581baae8c46fd5b29598025ee93bb2dac6b456f8e0ae6acc'
             'be9ba079a931d5e881ce38430d418cc834e8c6b157af6c79ea267998caece806'
-            '94f60402de57cbb176c36cf788752bd9ea474f70dd7c87ec0f02efcaa166e4d3'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -65,7 +64,6 @@ _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv firefox-kde.patch -t ${srcdir}/librewolf-patch/patches/unity_kde/
   cd firefox-${pkgver%%b*}
 
   # https://bugzilla.mozilla.org/show_bug.cgi?id=1819374
@@ -149,13 +147,13 @@ mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 ac_add_options --prefix=/usr
 ac_add_options --enable-release
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize
+ac_add_options --enable-optimize='-O3'
 ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-# ac_add_options --without-wasm-sandboxed-libraries
+# ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
 ac_add_options --enable-official-branding
@@ -166,6 +164,7 @@ ac_add_options --allow-addon-sideload
 export MOZILLA_OFFICIAL=1
 export MOZ_APP_REMOTINGNAME=firefox
 export MOZ_REQUIRE_SIGNING=1
+export RUST_OPT_LEVEL=2
 unset MOZ_TELEMETRY_REPORTING
 
 # Keys
@@ -275,7 +274,7 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 pref("extensions.autoDisableScopes", 11);
 
 // UA override
-// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.35");
+// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62");
 END
 
   install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END

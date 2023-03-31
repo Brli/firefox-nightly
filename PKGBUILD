@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=113.0a1.20230328.0a92f0b762b3
+pkgver=113.0a1.20230330.ca68babc9887
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -12,8 +12,8 @@ url="https://www.mozilla.org/firefox/"
 depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
-             lld dump_syms wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
-             mercurial breezy python-dulwich rsync)
+             lld dump_syms mercurial rsync)
+            #  wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi)
 optdepends=('networkmanager: Location detection via available WiFi networks'
             'libnotify: Notification integration'
             'pulseaudio: Audio support'
@@ -24,10 +24,11 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=0a92f0b762b398fa10005d4bdfb29c1571019d5f
+_moz_revision=ca68babc98877646aaa01679c986cb98e73dbfbc
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
+        git+https://github.com/Brli/firefox-trunk.git#master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-111-patches-01j.tar.xz
         5022efe33088.patch
@@ -36,6 +37,7 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('SKIP'
+            'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -162,7 +164,7 @@ mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 
 ac_add_options --prefix=/usr
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize
+ac_add_options --enable-optimize='-O3'
 ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
@@ -176,10 +178,12 @@ ac_add_options --enable-update-channel=release
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
+export RUSTC_OPT_LEVEL=2
 export MOZILLA_OFFICIAL=1
 export MOZ_APP_REMOTINGNAME=firefox
 export MOZ_REQUIRE_SIGNING=1
 unset MOZ_TELEMETRY_REPORTING
+unset MOZ_DATA_REPORTING
 
 # Keys
 ac_add_options --with-google-location-service-api-keyfile=${PWD@Q}/google-api-key

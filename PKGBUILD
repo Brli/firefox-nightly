@@ -2,9 +2,9 @@
 # Contributor: Ionut Biru <ibiru@archlinux.org>
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
-pkgname=firefox
-_pkgver_stable=104.0
-pkgver=105.0b9
+pkgname=firefox-beta
+_pkgver_stable=111.0.1
+pkgver=112.0b9
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -21,8 +21,6 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'speech-dispatcher: Text-to-Speech'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
-#conflicts=(firefox-i18n-zh-tw)
-#replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
 source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"{,.asc}
         hg+https://hg.mozilla.org/l10n-central/zh-TW
@@ -32,7 +30,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-01j.tar.xz
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('16d20d6c65e9bf1408ecbb3cd010a952f533b4408bb8f77fff416a208ed1288f'
+sha256sums=('8a427178fcfff66749b193bb6cf1434ac87cc8544a5087f2dfd58a02ae2c3777'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -65,25 +63,25 @@ prepare() {
   patch -Np1 -i ../fix_csd_window_buttons.patch
 
   msg 'Gentoo patch'
-  local gentoo_patch=('0004-bmo-847568-Support-system-harfbuzz.patch'
-                      '0005-bmo-847568-Support-system-graphite2.patch'
-                      '0006-bmo-1559213-Support-system-av1.patch'
-                      '0008-bmo-1516803-Fix-building-sandbox.patch'
-                      '0018-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
-                      '0019-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
-                      '0021-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
-                      '0022-build-Disable-Werror.patch'
-                      '0023-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0024-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0025-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
-                      '0026-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
-                      '0027-bgo-816975-fix-build-on-x86.patch'
-                      '0028-bmo-1559213-fix-system-av1-libs.patch'
-                      '0029-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0030-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0031-bmo-1769631-python-3.11-compatibility.patch'
-                      '0033-rhbz-2115253-vaapi-fixes.patch'
-                      '0034-bgo-860033-firefox-wayland-no-dbus.patch')
+  local gentoo_patch=('0002-Fortify-sources-properly.patch'
+                      '0003-bmo-847568-Support-system-harfbuzz.patch'
+                      '0004-bmo-847568-Support-system-graphite2.patch'
+                      '0005-bmo-1559213-Support-system-av1.patch'
+                      '0006-bmo-1516803-Fix-building-sandbox.patch'
+                      '0016-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
+                      '0017-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
+                      '0018-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
+                      '0019-build-Disable-Werror.patch'
+                      '0020-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
+                      '0021-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
+                      '0022-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
+                      '0023-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
+                      '0024-bgo-816975-fix-build-on-x86.patch'
+                      '0025-bmo-1559213-fix-system-av1-libs.patch'
+                      '0026-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0027-bmo-1754469-memory_mozalloc_throw.patch'
+                      '0029-bgo-860033-firefox-wayland-no-dbus.patch'
+                      '0031-fix-building-gcc-pgo.patch')
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 < "$srcdir/firefox-patches/$src"
@@ -92,7 +90,7 @@ prepare() {
   msg 'opensuse patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=('mozilla-nongnome-proxies.patch'
-                    'mozilla-kde.patch' # do it in Librewolf patch
+                    # 'mozilla-kde.patch' # do it in Librewolf patch
                     'mozilla-ntlm-full-path.patch'
                     # 'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
                     # 'mozilla-fix-aarch64-libopus.patch'
@@ -100,9 +98,9 @@ prepare() {
                     # 'mozilla-pgo.patch'
                     'mozilla-reduce-rust-debuginfo.patch'
                     'mozilla-bmo1005535.patch'
-                    'mozilla-bmo1568145.patch'
-                    'mozilla-bmo1504834-part1.patch'
-                    'mozilla-bmo1504834-part3.patch'
+                    # 'mozilla-bmo1568145.patch'
+                    # 'mozilla-bmo1504834-part1.patch'
+                    # 'mozilla-bmo1504834-part3.patch'
                     'mozilla-bmo1512162.patch'
                     # 'mozilla-fix-top-level-asm.patch'
                     'mozilla-bmo849632.patch'
@@ -113,7 +111,7 @@ prepare() {
                     # 'mozilla-bmo531915.patch'
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
-                    'firefox-kde.patch'
+                    # 'firefox-kde.patch'
                     'firefox-branded-icons.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
@@ -121,9 +119,10 @@ prepare() {
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=('faster-package-multi-locale.patch')
-                         # 'unity-menubar.patch'
-                         # 'mozilla-kde_after_unity.patch')
+  local librewolf_patch=('faster-package-multi-locale.patch'
+                         'unity_kde/mozilla-kde.patch'
+                         'unity_kde/firefox-kde.patch'
+                         'unity_kde/unity-menubar.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
@@ -151,21 +150,21 @@ mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 ac_add_options --prefix=/usr
 ac_add_options --enable-release
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize
+ac_add_options --enable-optimize='-O3'
 ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
 # ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 ac_add_options --without-wasm-sandboxed-libraries
+export RUSTC_OPT_LEVEL=2
 
 # Branding
-ac_add_options --enable-official-branding
+ac_add_options --with-branding=browser/branding/aurora
 ac_add_options --enable-update-channel=release
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
-export MOZILLA_OFFICIAL=1
 export MOZ_APP_REMOTINGNAME=${pkgname//-/}
 export MOZ_REQUIRE_SIGNING=1
 unset MOZ_TELEMETRY_REPORTING
@@ -275,7 +274,7 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 pref("extensions.autoDisableScopes", 11);
 
 // UA override
-// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 Edg/103.0.1264.71");
+// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62");
 END
 
   install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END
@@ -342,7 +341,7 @@ app.distributor.channel=$pkgname
 app.partner.archlinux=archlinux
 END
 
-  local i theme=official
+  local i theme=aurora
   for i in 16 22 24 32 48 64 128 256; do
     install -Dvm644 browser/branding/$theme/default$i.png \
       "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/$pkgname.png"

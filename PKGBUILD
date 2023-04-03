@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=113.0a1.20230330.ca68babc9887
+pkgver=113.0a1.20230330.d585323884b3
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,7 +24,7 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=ca68babc98877646aaa01679c986cb98e73dbfbc
+_moz_revision=d585323884b3f19d3efb56575d5e4650b6e9b87a
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -72,7 +72,7 @@ pkgver() {
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv -fv mozilla-kde.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
+  # mv -fv mozilla-kde.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd mozilla-central
 
   # Revert use of system sqlite

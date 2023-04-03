@@ -13,12 +13,7 @@ Bug: https://bugzilla.mozilla.org/show_bug.cgi?id=140751
 diff --git a/modules/libpref/Preferences.cpp b/modules/libpref/Preferences.cpp
 --- a/modules/libpref/Preferences.cpp
 +++ b/modules/libpref/Preferences.cpp
-@@ -90,16 +90,17 @@
- #include "plstr.h"
- #include "prdtoa.h"
- #include "prlink.h"
- #include "xpcpublic.h"
- #include "js/RootingAPI.h"
+@@ -95,6 +95,7 @@
  #ifdef MOZ_BACKGROUNDTASKS
  #  include "mozilla/BackgroundTasks.h"
  #endif
@@ -26,17 +21,7 @@ diff --git a/modules/libpref/Preferences.cpp b/modules/libpref/Preferences.cpp
  
  #ifdef DEBUG
  #  include <map>
- #endif
- 
- #ifdef MOZ_MEMORY
- #  include "mozmemory.h"
- #endif
-@@ -4882,16 +4883,27 @@ nsresult Preferences::InitInitialObjects
-     "unix.js"
- #  if defined(_AIX)
-     ,
-     "aix.js"
- #  endif
+@@ -4913,6 +4914,17 @@ nsresult Preferences::InitInitialObjects(bool aIsStartup) {
  #endif
    };
  
@@ -54,20 +39,15 @@ diff --git a/modules/libpref/Preferences.cpp b/modules/libpref/Preferences.cpp
    rv = pref_LoadPrefsInDir(defaultPrefDir, specialFiles,
                             ArrayLength(specialFiles));
    if (NS_FAILED(rv)) {
-     NS_WARNING("Error parsing application default preferences.");
-   }
- 
- #if defined(MOZ_WIDGET_GTK)
-   // Under Flatpak/Snap package, load /etc/firefox/defaults/pref/*.js.
-@@ -4987,7 +4987,7 @@ nsresult Preferences::InitInitialObjects(bool aIsStartup) {
+@@ -4987,7 +4999,7 @@ nsresult Preferences::InitInitialObjects(bool aIsStartup) {
        }
-
+ 
        // Do we care if a file provided by this process fails to load?
 -      pref_LoadPrefsInDir(path, nullptr, 0);
 +      pref_LoadPrefsInDir(path, specialFiles, ArrayLength(specialFiles));
      }
    }
-
+ 
 diff --git a/modules/libpref/moz.build b/modules/libpref/moz.build
 --- a/modules/libpref/moz.build
 +++ b/modules/libpref/moz.build
@@ -739,31 +719,16 @@ new file mode 100644
 diff --git a/uriloader/exthandler/HandlerServiceParent.cpp b/uriloader/exthandler/HandlerServiceParent.cpp
 --- a/uriloader/exthandler/HandlerServiceParent.cpp
 +++ b/uriloader/exthandler/HandlerServiceParent.cpp
-@@ -7,17 +7,17 @@
- #include "mozilla/ipc/ProtocolUtils.h"
- #include "mozilla/Logging.h"
- #include "HandlerServiceParent.h"
- #include "nsIHandlerService.h"
- #include "nsIMIMEInfo.h"
- #include "ContentHandlerService.h"
- #include "nsStringEnumerator.h"
+@@ -18,7 +18,7 @@
+ #include "nsComponentManagerUtils.h"
+ #include "nsServiceManagerUtils.h"
  #ifdef MOZ_WIDGET_GTK
 -#  include "unix/nsGNOMERegistry.h"
 +#  include "unix/nsCommonRegistry.h"
  #endif
  
  using mozilla::dom::ContentHandlerService;
- using mozilla::dom::HandlerApp;
- using mozilla::dom::HandlerInfo;
- using mozilla::dom::RemoteHandlerApp;
- 
- namespace {
-@@ -300,17 +300,17 @@ mozilla::ipc::IPCResult HandlerServicePa
-     const nsACString& aProtocolScheme, bool* aHandlerExists) {
-   if (aProtocolScheme.Length() > MAX_SCHEME_LENGTH) {
-     *aHandlerExists = false;
-     return IPC_OK();
-   }
+@@ -311,7 +311,7 @@ mozilla::ipc::IPCResult HandlerServiceParent::RecvExistsForProtocolOS(
  #ifdef MOZ_WIDGET_GTK
    // Check the GNOME registry for a protocol handler
    *aHandlerExists =
@@ -772,11 +737,6 @@ diff --git a/uriloader/exthandler/HandlerServiceParent.cpp b/uriloader/exthandle
  #else
    *aHandlerExists = false;
  #endif
-   return IPC_OK();
- }
- 
- /*
-  * Check if a handler exists for the provided protocol. Check the datastore
 diff --git a/uriloader/exthandler/moz.build b/uriloader/exthandler/moz.build
 --- a/uriloader/exthandler/moz.build
 +++ b/uriloader/exthandler/moz.build
@@ -1047,7 +1007,7 @@ diff --git a/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp b/uriloader/exthandler
 +++ b/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp
 @@ -5,7 +5,7 @@
   * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
+ 
  #include "nsMIMEInfoUnix.h"
 -#include "nsGNOMERegistry.h"
 +#include "nsCommonRegistry.h"
@@ -1056,16 +1016,16 @@ diff --git a/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp b/uriloader/exthandler
  #include "nsIIOService.h"
 @@ -14,7 +14,7 @@
  #endif
-
+ 
  nsresult nsMIMEInfoUnix::LoadUriInternal(nsIURI* aURI) {
 -  return nsGNOMERegistry::LoadURL(aURI);
 +  return nsCommonRegistry::LoadURL(aURI);
  }
-
+ 
  NS_IMETHODIMP
 @@ -29,15 +29,15 @@ nsMIMEInfoUnix::GetHasDefaultHandler(bool* _retval) {
    *_retval = false;
-
+ 
    if (mClass == eProtocolInfo) {
 -    *_retval = nsGNOMERegistry::HandlerExists(mSchemeOrType.get());
 +    *_retval = nsCommonRegistry::HandlerExists(mSchemeOrType.get());
@@ -1082,11 +1042,11 @@ diff --git a/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp b/uriloader/exthandler
        }
      }
      if (mimeInfo) *_retval = true;
-@@ -59,6 +59,24 @@ nsresult nsMIMEInfoUnix::LaunchDefaultWithFile(nsIFile* aFile) {
+@@ -59,6 +59,23 @@ nsresult nsMIMEInfoUnix::LaunchDefaultWithFile(nsIFile* aFile) {
    nsAutoCString nativePath;
    aFile->GetNativePath(nativePath);
-
-+  if(nsKDEUtils::kdeSupport()) {
+ 
++  if( nsKDEUtils::kdeSupport()) {
 +    bool supports;
 +    if( NS_SUCCEEDED( GetHasDefaultHandler( &supports )) && supports ) {
 +      nsTArray<nsCString> command;
@@ -1097,11 +1057,10 @@ diff --git a/uriloader/exthandler/unix/nsMIMEInfoUnix.cpp b/uriloader/exthandler
 +      if( nsKDEUtils::command( command ))
 +        return NS_OK;
 +    }
-+    nsCOMPtr<nsIFile> defaultApp = GetDefaultApplication();
-+  if (!defaultApp) {
-+    return NS_ERROR_FILE_NOT_FOUND;
-+  }
-+    return LaunchWithIProcess(defaultApp, aFile->NativePath());
++    if (!mDefaultApplication)
++      return NS_ERROR_FILE_NOT_FOUND;
++
++    return LaunchWithIProcess(mDefaultApplication, nativePath);
 +  }
 +
    nsCOMPtr<nsIGIOService> giovfs = do_GetService(NS_GIOSERVICE_CONTRACTID);
@@ -1302,7 +1261,7 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
 +    NS_ADDREF_THIS();
 +    g_idle_add([](gpointer data) -> gboolean {
 +      nsFilePicker* queuedPicker = (nsFilePicker*) data;
-+      nsIFilePicker::ResultCode result;
++      int16_t result;
 +      queuedPicker->kdeFileDialog(&result);
 +      if (queuedPicker->mCallback) {
 +        queuedPicker->mCallback->Done(result);
@@ -1358,7 +1317,7 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
 +    return GDK_WINDOW_XID( gdk_window );
 +    }
 +
-+NS_IMETHODIMP nsFilePicker::kdeFileDialog(nsIFilePicker::ResultCode *aReturn)
++NS_IMETHODIMP nsFilePicker::kdeFileDialog(PRInt16 *aReturn)
 +    {
 +    NS_ENSURE_ARG_POINTER(aReturn);
 +
@@ -1532,7 +1491,7 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
 +    }
 +
 +
-+NS_IMETHODIMP nsFilePicker::kdeAppsDialog(nsIFilePicker::ResultCode *aReturn)
++NS_IMETHODIMP nsFilePicker::kdeAppsDialog(PRInt16 *aReturn)
 +    {
 +    NS_ENSURE_ARG_POINTER(aReturn);
 +
@@ -1585,8 +1544,8 @@ diff --git a/widget/gtk/nsFilePicker.h b/widget/gtk/nsFilePicker.h
  
 +  bool kdeRunning();
 +  bool getKdeRunning();
-+  NS_IMETHODIMP kdeFileDialog(nsIFilePicker::ResultCode *aReturn);
-+  NS_IMETHODIMP kdeAppsDialog(nsIFilePicker::ResultCode *aReturn);
++  NS_IMETHODIMP kdeFileDialog(PRInt16 *aReturn);
++  NS_IMETHODIMP kdeAppsDialog(PRInt16 *aReturn);
 +  nsCString kdeMakeFilter( int index );
 +
    void* GtkFileChooserNew(const gchar* title, GtkWindow* parent,

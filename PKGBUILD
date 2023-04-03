@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=113.0a1.20230330.d585323884b3
+pkgver=113.0a1.20230404.d585323884b3
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -43,7 +43,7 @@ sha256sums=('SKIP'
             'SKIP'
             'f6e44d9ed44de05a3b8a3eefd1a0032735b93958e11ff6c277b9e17be97e6ad6'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
-            'e3ae207bee8322c99e252f3c0936362c46caf325d9aa7ee8d84fd878ea3dc293'
+            '8fc1786e0973fd75a9881965960bac7b1b37b51ac5c816707d998e8a2a42e4d4'
             '5a631210b8f3f60cc11178fc957d2dc9c685d77c077271b6cc9a10688e468f4f'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
@@ -72,7 +72,7 @@ pkgver() {
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  # mv -fv mozilla-kde.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
+  mv -fv mozilla-kde.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd mozilla-central
 
   # Revert use of system sqlite
@@ -140,6 +140,9 @@ prepare() {
 
   msg 'librewolf patch'
   local librewolf_patch=('faster-package-multi-locale.patch'
+                         'unified-extensions-dont-show-recommendations.patch'
+                         'sed-patches/stop-undesired-requests.patch'
+                         'ui-patches/remove-snippets-from-home.patch'
                          'unity_kde/mozilla-kde.patch'
                          'unity_kde/firefox-kde.patch'
                          'unity_kde/unity-menubar.patch')

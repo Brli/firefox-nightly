@@ -28,7 +28,7 @@ _moz_revision=d585323884b3f19d3efb56575d5e4650b6e9b87a
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
-        git+https://github.com/Brli/firefox-trunk.git#master
+        git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-111-patches-01j.tar.xz
         5022efe33088.patch

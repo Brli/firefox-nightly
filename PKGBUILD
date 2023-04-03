@@ -28,7 +28,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-01j.tar.xz
-        fix_csd_window_buttons.patch
+        fix_csd_window_buttons.patch mozilla-kde.patch 0001-remove-mImageRegion-from-nsMenuObject.cpp.patch
         firefox.desktop identity-icons-brand.svg)
 sha256sums=('8a427178fcfff66749b193bb6cf1434ac87cc8544a5087f2dfd58a02ae2c3777'
             'SKIP'
@@ -36,8 +36,10 @@ sha256sums=('8a427178fcfff66749b193bb6cf1434ac87cc8544a5087f2dfd58a02ae2c3777'
             'SKIP'
             'SKIP'
             'SKIP'
-            'ac6e8607be14d0d6620b4c4003af74c26d5bbfc829d46ba5160b2e363882c4f6'
+            'f6e44d9ed44de05a3b8a3eefd1a0032735b93958e11ff6c277b9e17be97e6ad6'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
+            'e3ae207bee8322c99e252f3c0936362c46caf325d9aa7ee8d84fd878ea3dc293'
+            '5a631210b8f3f60cc11178fc957d2dc9c685d77c077271b6cc9a10688e468f4f'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -118,9 +120,11 @@ prepare() {
     patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/$src"
   done
 
+  msg 'mozilla-kde.patch'
+  patch -Np1 -i ../mozilla-kde.patch
+
   msg 'librewolf patch'
   local librewolf_patch=('faster-package-multi-locale.patch'
-                         'unity_kde/mozilla-kde.patch'
                          'unity_kde/firefox-kde.patch'
                          'unity_kde/unity-menubar.patch')
   for src in "${librewolf_patch[@]}"; do
@@ -135,6 +139,9 @@ prepare() {
    msg "Applying patch $src..."
    patch -Np1 -i "${srcdir}/firefox-trunk/debian/patches/$src"
   done
+
+  # patch for upstream member change
+  patch -Np1 -i "$srcdir/0001-remove-mImageRegion-from-nsMenuObject.cpp.patch"
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
@@ -355,7 +362,7 @@ END
   install -Dvm644 ../identity-icons-brand.svg \
     "$pkgdir/usr/share/icons/hicolor/symbolic/apps/$pkgname-symbolic.svg"
 
-  install -Dvm644 $srcdir/$pkgname.desktop \
+  install -Dvm644 $srcdir/firefox.desktop \
     "$pkgdir/usr/share/applications/$pkgname.desktop"
 
   # Install a wrapper to avoid confusion about binary path

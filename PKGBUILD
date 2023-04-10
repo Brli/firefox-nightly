@@ -88,23 +88,23 @@ prepare() {
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=('mozilla-nongnome-proxies.patch'
                     # 'mozilla-kde.patch'
-                    # 'mozilla-ntlm-full-path.patch'
-                    # 'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
-                    # 'mozilla-fix-aarch64-libopus.patch'
-                    # 'mozilla-s390-context.patch'
+                    'mozilla-ntlm-full-path.patch'
+                    'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
+                    'mozilla-fix-aarch64-libopus.patch'
+                    'mozilla-s390-context.patch'
                     # 'mozilla-pgo.patch' # previous patch detected
                     'mozilla-reduce-rust-debuginfo.patch'
                     'mozilla-bmo1005535.patch'
-                    # 'mozilla-bmo1568145.patch'
-                    # 'mozilla-bmo1504834-part1.patch'
-                    # 'mozilla-bmo1504834-part3.patch'
+                    'mozilla-bmo1568145.patch'
+                    'mozilla-bmo1504834-part1.patch'
+                    'mozilla-bmo1504834-part3.patch'
                     'mozilla-bmo1512162.patch'
                     # 'mozilla-fix-top-level-asm.patch' # broken patch
                     'mozilla-bmo849632.patch'
                     'mozilla-bmo998749.patch'
-                    # 'mozilla-s390x-skia-gradient.patch'
+                    'mozilla-s390x-skia-gradient.patch'
                     # 'mozilla-libavcodec58_91.patch' # We don't fallback-support ffmpeg
-                    # 'mozilla-silence-no-return-type.patch'
+                    'mozilla-silence-no-return-type.patch'
                     # 'mozilla-bmo531915.patch' # broken patch
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'

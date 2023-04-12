@@ -30,7 +30,7 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-111-patches-01j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-112-patches-01j.tar.xz
         5022efe33088.patch
         mozilla-kde.patch
         fix_csd_window_buttons.patch
@@ -42,7 +42,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'f6e44d9ed44de05a3b8a3eefd1a0032735b93958e11ff6c277b9e17be97e6ad6'
+            'abe50d8e1d5f00c4b50df6e193644e664500f193fb9857cdd1d15d12dfcd7918'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'a2979399cfc68f948c6a05cff17af09dbf36d17d7ec1900448219961cce8c46a'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'

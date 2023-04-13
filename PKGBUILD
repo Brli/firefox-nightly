@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=111.0.1
+pkgver=112.0
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -31,20 +31,16 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01j.tar.xz
         5022efe33088.patch fix_csd_window_buttons.patch
-        0001-Bug-1819374-Squashed-ffmpeg-6.0-update.patch
-        0002-Bug-1820416-Use-correct-FFVPX-headers-from-ffmpeg-6..patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('84a4f3aba62df6e0451cdd28f8f1e59840d77c4062311947b0e59325c2ebdce8'
+sha256sums=('eb19185f7bfa5c3b0c73edaa57160b44bf3bb2139db83539809607486b8075d9'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'f6e44d9ed44de05a3b8a3eefd1a0032735b93958e11ff6c277b9e17be97e6ad6'
+            'abe50d8e1d5f00c4b50df6e193644e664500f193fb9857cdd1d15d12dfcd7918'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            '802f9271a5f7c0ab581baae8c46fd5b29598025ee93bb2dac6b456f8e0ae6acc'
-            'be9ba079a931d5e881ce38430d418cc834e8c6b157af6c79ea267998caece806'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -65,13 +61,6 @@ prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
   cd firefox-${pkgver%%b*}
-
-  # https://bugzilla.mozilla.org/show_bug.cgi?id=1819374
-  patch -Np1 -i ../0001-Bug-1819374-Squashed-ffmpeg-6.0-update.patch
-
-  # https://bugs.archlinux.org/task/77796
-  # https://bugzilla.mozilla.org/show_bug.cgi?id=1820416
-  patch -Np1 -i ../0002-Bug-1820416-Use-correct-FFVPX-headers-from-ffmpeg-6..patch
 
   # Revert use of system sqlite
   patch -Np1 -i ../5022efe33088.patch
@@ -274,7 +263,7 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 pref("extensions.autoDisableScopes", 11);
 
 // UA override
-// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.62");
+// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.39");
 END
 
   install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END

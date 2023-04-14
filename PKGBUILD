@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=113.0a1.20230412.c35b4a881395
+pkgver=114.0a1.20230404.c35b4a881395
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -90,18 +90,19 @@ prepare() {
                       '0004-bmo-847568-Support-system-graphite2.patch'
                       '0005-bmo-1559213-Support-system-av1.patch'
                       '0006-bmo-1516803-Fix-building-sandbox.patch'
-                      '0016-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
-                      '0017-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
-                      '0018-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
-                      '0019-build-Disable-Werror.patch'
-                      '0020-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0021-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0024-bgo-816975-fix-build-on-x86.patch'
-                      '0025-bmo-1559213-fix-system-av1-libs.patch'
-                      '0026-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0027-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0029-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0031-fix-building-gcc-pgo.patch')
+                      '0015-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
+                      '0016-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
+                      '0017-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
+                      '0018-build-Disable-Werror.patch'
+                      '0019-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
+                      '0020-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
+                      '0023-bgo-816975-fix-build-on-x86.patch'
+                      '0024-bmo-1559213-fix-system-av1-libs.patch'
+                      '0025-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0026-bmo-1754469-memory_mozalloc_throw.patch'
+                      '0027-bgo-860033-firefox-wayland-no-dbus.patch'
+                      '0029-fix-building-gcc-pgo.patch'
+                      '0032-bmo-1826583-dont-crash-on-wayland-log-handler.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -222,7 +223,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '111.0' > config/milestone.txt
+  echo '112.0' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"
@@ -300,7 +301,7 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 pref("extensions.autoDisableScopes", 11);
 
 // UA override
-// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 Edg/109.0.1518.61");
+// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.46");
 
 // Scale UI
 // pref("layout.css.devPixelsPerPx",    "1.2");

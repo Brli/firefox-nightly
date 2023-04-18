@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=114.0a1.20230404.c35b4a881395
+pkgver=114.0a1.20230417.2f67c1f603a1
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,13 +24,13 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=c35b4a88139530b8c2f2e58e0fededacfe7a8571
+_moz_revision=2f67c1f603a144bd043846edbf1ac5365d967914
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-112-patches-01j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-112-patches-02j.tar.xz
         5022efe33088.patch
         mozilla-kde.patch
         fix_csd_window_buttons.patch
@@ -42,7 +42,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'abe50d8e1d5f00c4b50df6e193644e664500f193fb9857cdd1d15d12dfcd7918'
+            'bdb29c8769ea892e48ea4af85fbfb59b48364ce5c305c0f905854830aba93b91'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'a2979399cfc68f948c6a05cff17af09dbf36d17d7ec1900448219961cce8c46a'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
@@ -74,6 +74,7 @@ pkgver() {
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
+  sed 's,\.jsm,\.sys\.mjs,g' -i mozilla-kde.patch librewolf-patch/patches/sed-patches/stop-undesired-requests.patch
   mv -fv mozilla-kde.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd mozilla-central
 
@@ -101,8 +102,7 @@ prepare() {
                       '0025-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
                       '0026-bmo-1754469-memory_mozalloc_throw.patch'
                       '0027-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0029-fix-building-gcc-pgo.patch'
-                      '0032-bmo-1826583-dont-crash-on-wayland-log-handler.patch')
+                      '0029-fix-building-gcc-pgo.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -119,7 +119,7 @@ prepare() {
                     # 'mozilla-s390-context.patch'
                     # 'mozilla-pgo.patch'
                     'mozilla-reduce-rust-debuginfo.patch'
-                    'mozilla-bmo1005535.patch'
+                    # 'mozilla-bmo1005535.patch'
                     # 'mozilla-bmo1568145.patch'
                     # 'mozilla-bmo1504834-part1.patch'
                     # 'mozilla-bmo1504834-part3.patch'

@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=10.11.1
+pkgver=10.12.0
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
@@ -23,14 +23,14 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 options=(!emptydirs !makeflags !strip !lto !debug)
 source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.zip
         git+https://github.com/Floorp-Projects/l10n-central.git
-        librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-09j.tar.xz
+        librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=102.0.1-4
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-10j.tar.xz
         5022efe33088.patch
         fix_csd_window_buttons.patch)
-sha256sums=('48daab8ad0a65dafc76e641573948734fa949fc96c384cb451735509e73c13ba'
+sha256sums=('ecc0473cd4f168bdee166136f05da4e090bc3fc979aa569408bef21a4e5281e3'
             'SKIP'
             'SKIP'
-            'e52becbf1a14a03849aaafd9ef43910a97d91f4232f62166871c13e1c6e29a2a'
+            '15c0faede06247dda100cbc5403e639a38594cfc6bcde67ea80b2737b08d789c'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
 
@@ -51,7 +51,9 @@ prepare() {
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=('faster-package-multi-locale.patch')
+  local librewolf_patch=('faster-package-multi-locale.patch'
+                         'unity-menubar.patch'
+                         'mozilla-kde_after_unity.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"

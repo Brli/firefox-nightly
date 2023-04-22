@@ -35,8 +35,7 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         mozilla-kde.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg
-        0001-remove-mImageRegion-from-nsMenuObject.cpp.patch
-        back-out-setArrayFromAsyncEnabled.patch)
+        0001-remove-mImageRegion-from-nsMenuObject.cpp.patch)
 sha256sums=('SKIP'
             'SKIP'
             'SKIP'
@@ -48,8 +47,7 @@ sha256sums=('SKIP'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
-            '5a631210b8f3f60cc11178fc957d2dc9c685d77c077271b6cc9a10688e468f4f'
-            '0eae76cb5a861283a18d0e5699c7e43bfe05aab5ef995aa01d1a5e976ff7aed6')
+            '5a631210b8f3f60cc11178fc957d2dc9c685d77c077271b6cc9a10688e468f4f')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
@@ -154,9 +152,6 @@ prepare() {
 
   msg 'patch unity-menubar'
   patch -Np1 -i "$srcdir/0001-remove-mImageRegion-from-nsMenuObject.cpp.patch"
-
-  msg 'reverse broken patch'
-  patch -Rp1 -i "$srcdir/back-out-setArrayFromAsyncEnabled.patch"
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc

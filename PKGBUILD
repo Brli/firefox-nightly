@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=114.0a1.20230417.2f67c1f603a1
+pkgver=114.0a1.20230428.d27bbec7ddb3
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,30 +24,32 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=2f67c1f603a144bd043846edbf1ac5365d967914
+_moz_revision=d27bbec7ddb3782ef5c37fa62e7ca678eff55ee7
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-112-patches-02j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-112-patches-05j.tar.xz
         5022efe33088.patch
         mozilla-kde.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg
-        0001-remove-mImageRegion-from-nsMenuObject.cpp.patch)
+        0001-remove-mImageRegion-from-nsMenuObject.cpp.patch
+        0002-move-configuration-home-to-XDG_CONFIG_HOME.patch)
 sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'bdb29c8769ea892e48ea4af85fbfb59b48364ce5c305c0f905854830aba93b91'
+            'e38495e186082e772a03b6f9038308ad152fc2136396f1321d34f547134e1b4e'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'a2979399cfc68f948c6a05cff17af09dbf36d17d7ec1900448219961cce8c46a'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
-            '5a631210b8f3f60cc11178fc957d2dc9c685d77c077271b6cc9a10688e468f4f')
+            '5a631210b8f3f60cc11178fc957d2dc9c685d77c077271b6cc9a10688e468f4f'
+            'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
@@ -138,7 +140,7 @@ prepare() {
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=('faster-package-multi-locale.patch'
+  local librewolf_patch=(# 'faster-package-multi-locale.patch'
                          # 'unified-extensions-dont-show-recommendations.patch' previously applied
                          'sed-patches/stop-undesired-requests.patch'
                          'ui-patches/remove-snippets-from-home.patch'
@@ -212,13 +214,14 @@ ac_add_options --enable-system-pixman
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --enable-alsa
 ac_add_options --enable-jack
+ac_add_options --enable-jxl
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '112.0' > config/milestone.txt
+  echo '112.0.2' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"
@@ -226,6 +229,8 @@ END
   # Remove patched rust file checksums
   sed 's/\("files":{\)[^}]*/\1/' -i \
     third_party/rust/bindgen/.cargo-checksum.json
+
+  patch -Np1 -i "${srcdir}/0002-move-configuration-home-to-XDG_CONFIG_HOME.patch"
 }
 
 build() {

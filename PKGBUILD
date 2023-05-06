@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=114.0a1.20230428.d27bbec7ddb3
+pkgver=114.0a1.20230505.47e7726c1f22
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,13 +24,13 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=d27bbec7ddb3782ef5c37fa62e7ca678eff55ee7
+_moz_revision=47e7726c1f224485cda506946d0e295b7e783b9d
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-112-patches-05j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-112-patches-06.tar.xz
         5022efe33088.patch
         mozilla-kde.patch
         fix_csd_window_buttons.patch
@@ -42,7 +42,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'e38495e186082e772a03b6f9038308ad152fc2136396f1321d34f547134e1b4e'
+            '1722af836a792409a3f2af55479ed2f4d56a66b3522c2e6c78a0dc62434a43db'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'a2979399cfc68f948c6a05cff17af09dbf36d17d7ec1900448219961cce8c46a'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'

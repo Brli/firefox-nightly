@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=112.0.2
+pkgver=113.0
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -27,21 +27,21 @@ options=(!emptydirs !makeflags !strip !lto !debug)
 source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"{,.asc}
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
-        librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag="$pkgver"-1
+        librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-06.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01.tar.xz
         5022efe33088.patch fix_csd_window_buttons.patch
         0001-remove-mImageRegion-from-nsMenuObject.cpp.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         mozilla-kde.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('e6a4819a3b82b1ca6c45296e50e6c9ab653306eeb540e50ba8683e339565992e'
+sha256sums=('7a266044cb9d0c63079b3453507ea0c80a23389f4cbf6a4f6fd15146c6072627'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '1722af836a792409a3f2af55479ed2f4d56a66b3522c2e6c78a0dc62434a43db'
+            'a8a23830ca839966bb33f4dcaf94309fd9b60c7516cdbeaa48fd847ea4ad741c'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             '5a631210b8f3f60cc11178fc957d2dc9c685d77c077271b6cc9a10688e468f4f'
@@ -143,7 +143,7 @@ mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 ac_add_options --prefix=/usr
 ac_add_options --enable-release
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize='-O3'
+ac_add_options --enable-optimize
 ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
@@ -160,7 +160,6 @@ ac_add_options --allow-addon-sideload
 export MOZILLA_OFFICIAL=1
 export MOZ_APP_REMOTINGNAME=firefox
 export MOZ_REQUIRE_SIGNING=1
-export RUST_OPT_LEVEL=2
 unset MOZ_TELEMETRY_REPORTING
 
 # Keys

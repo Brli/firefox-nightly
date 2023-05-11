@@ -3,7 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=10.12.0
+pkgver=10.13.0
+_esrver=102
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
@@ -27,7 +28,7 @@ source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.z
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-10j.tar.xz
         5022efe33088.patch
         fix_csd_window_buttons.patch)
-sha256sums=('ecc0473cd4f168bdee166136f05da4e090bc3fc979aa569408bef21a4e5281e3'
+sha256sums=('7a7a09fa6fbbe3c454875b82858490138b1e363142cce48ff83a8d16d5764fed'
             'SKIP'
             'SKIP'
             '15c0faede06247dda100cbc5403e639a38594cfc6bcde67ea80b2737b08d789c'
@@ -70,7 +71,7 @@ mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 
 ac_add_options --prefix=/usr
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize="-O3"
+ac_add_options --enable-optimize
 ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
@@ -88,7 +89,6 @@ ac_add_options --allow-addon-sideload
 # Floorp environment variables
 export MOZ_INCLUDE_SOURCE_INFO=1
 export MOZ_APP_REMOTINGNAME=floorp
-export RUSTC_OPT_LEVEL=2
 unset MOZ_REQUIRE_SIGNING
 unset MOZ_DATA_REPORTING
 unset MOZ_TELEMETRY_REPORTING

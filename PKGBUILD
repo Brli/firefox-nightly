@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=113.0.1
+pkgver=113.0.2
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -35,7 +35,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         mozilla-kde.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('7a266044cb9d0c63079b3453507ea0c80a23389f4cbf6a4f6fd15146c6072627'
+sha256sums=('f132b702836311b6cc40873b69df3ce208d035dbc8ce390c390eebd63d27c7a3'
             'SKIP'
             'SKIP'
             'SKIP'

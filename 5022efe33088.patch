@@ -208,13 +208,15 @@ diff -r 8753b16d88a2 third_party/sqlite3/src/moz.build
  
  # Enabling sqlite math functions
 diff -r 8753b16d88a2 third_party/sqlite3/src/sqlite.symbols
---- a/third_party/sqlite3/src/sqlite.symbols	Sat Mar 05 00:24:48 2022 +0000
-+++ b/third_party/sqlite3/src/sqlite.symbols	Sun Mar 06 15:04:56 2022 +0200
-@@ -38,6 +38,7 @@
+--- a/third_party/sqlite3/src/sqlite.symbols
++++ b/third_party/sqlite3/src/sqlite.symbols
+@@ -39,9 +39,7 @@ sqlite3_column_text16
  sqlite3_column_type
  sqlite3_column_value
  sqlite3_commit_hook
-+sqlite3_compileoption_used
+-#ifdef DEBUG
+ sqlite3_compileoption_used
+-#endif
  sqlite3_complete
  sqlite3_complete16
  sqlite3_config

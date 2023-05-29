@@ -132,9 +132,9 @@ diff --git a/toolkit/components/downloads/moz.build b/toolkit/components/downloa
 +
  with Files("**"):
      BUG_COMPONENT = ("Toolkit", "Downloads API")
-diff --git a/toolkit/mozapps/downloads/HelperAppDlg.jsm b/toolkit/mozapps/downloads/HelperAppDlg.jsm
---- a/toolkit/mozapps/downloads/HelperAppDlg.jsm
-+++ b/toolkit/mozapps/downloads/HelperAppDlg.jsm
+diff --git a/toolkit/mozapps/downloads/HelperAppDlg.sys.mjs b/toolkit/mozapps/downloads/HelperAppDlg.sys.mjs
+--- a/toolkit/mozapps/downloads/HelperAppDlg.sys.mjs
++++ b/toolkit/mozapps/downloads/HelperAppDlg.sys.mjs
 @@ -1240,36 +1240,66 @@ nsUnknownContentTypeDialog.prototype = {
          params.handlerApp &&
          params.handlerApp.executable &&
@@ -1466,7 +1466,7 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
 +  if (file) {
 +    nsCOMPtr<nsIFile> dir;
 +    file->GetParent(getter_AddRefs(dir));
-+    nsCOMPtr<nsIFile> localDir(do_QueryInterface(dir));
++    nsCOMPtr<nsIFile> localDir(dir);
 +    if (localDir) {
 +      localDir.swap(mPrevDisplayDirectory);
 +    }

@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=115.0a1.20230525.9fa4a7ae1923
+pkgver=115.0a1.20230527.531a15ae09d4
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,7 +24,7 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=9fa4a7ae19238256fcd261c727ad2b08c6f1a4fd
+_moz_revision=531a15ae09d49e29c270830e9b873aa625a5a8c2
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -43,8 +43,8 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'a8a23830ca839966bb33f4dcaf94309fd9b60c7516cdbeaa48fd847ea4ad741c'
-            'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
-            'a2979399cfc68f948c6a05cff17af09dbf36d17d7ec1900448219961cce8c46a'
+            'f945e4ba8f6281bf97eaf69172f84328719a5c449878d5575e21165a316619d6'
+            'e5601692d127da39802e1116ed5a3312c8a44a0af289a395c0ae01f48fbc342b'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
@@ -74,7 +74,7 @@ pkgver() {
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  sed 's,\.jsm,\.sys\.mjs,g' -i mozilla-kde.patch librewolf-patch/patches/sed-patches/stop-undesired-requests.patch
+  sed 's,\.jsm,\.sys\.mjs,g' -i librewolf-patch/patches/sed-patches/stop-undesired-requests.patch
   mv -fv mozilla-kde.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd mozilla-central
 
@@ -82,12 +82,13 @@ prepare() {
   patch -Np1 -i ../5022efe33088.patch
 
   # Revert NSS requirement
-  # sed 's,nss >= 3.88,nss >= 3.87,' -i build/moz.configure/nss.configure
+  sed 's,nss >= 3.90,nss >= 3.89,' -i build/moz.configure/nss.configure
+  # Revert ICU requirement
+  sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
   msg 'Gentoo patch'
   # local gentoo_patch=($(ls $srcdir/firefox-patches/))
-  local gentoo_patch=('0002-Fortify-sources-properly.patch'
-                      '0003-bmo-847568-Support-system-harfbuzz.patch'
+  local gentoo_patch=('0003-bmo-847568-Support-system-harfbuzz.patch'
                       '0004-bmo-847568-Support-system-graphite2.patch'
                       '0005-bmo-1559213-Support-system-av1.patch'
                       '0006-bmo-1516803-Fix-building-sandbox.patch'
@@ -97,12 +98,12 @@ prepare() {
                       '0018-build-Disable-Werror.patch'
                       '0019-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
                       '0020-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0023-bgo-816975-fix-build-on-x86.patch'
-                      '0024-bmo-1559213-fix-system-av1-libs.patch'
-                      '0025-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0026-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0027-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0029-fix-building-gcc-pgo.patch')
+                      '0021-bgo-816975-fix-build-on-x86.patch'
+                      '0022-bmo-1559213-fix-system-av1-libs.patch'
+                      '0023-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0024-bmo-1754469-memory_mozalloc_throw.patch'
+                      '0025-bgo-860033-firefox-wayland-no-dbus.patch'
+                      '0027-fix-building-gcc-pgo.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -145,15 +146,11 @@ prepare() {
                          'sed-patches/stop-undesired-requests.patch'
                          'ui-patches/remove-snippets-from-home.patch'
                          'unity_kde/mozilla-kde.patch'
-                         'unity_kde/firefox-kde.patch'
-                         'unity_kde/unity-menubar.patch')
+                         'unity_kde/firefox-kde.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
   done
-
-  msg 'patch unity-menubar'
-  patch -Np1 -i "$srcdir/0001-remove-mImageRegion-from-nsMenuObject.cpp.patch"
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc

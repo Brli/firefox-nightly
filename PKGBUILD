@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=113.0.2
+pkgver=114.0.1
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -35,18 +35,18 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         mozilla-kde.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('f132b702836311b6cc40873b69df3ce208d035dbc8ce390c390eebd63d27c7a3'
+sha256sums=('7e4ebc13e8c94af06f703af2119cf1641d4186174a3d59b7812f9d28f61b7d18'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'a8a23830ca839966bb33f4dcaf94309fd9b60c7516cdbeaa48fd847ea4ad741c'
+            '469b81387ddd27c650c7f3aba028ca1e4c340873f6fdbfd1679d28eda57864b5'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             '5a631210b8f3f60cc11178fc957d2dc9c685d77c077271b6cc9a10688e468f4f'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
-            'a2979399cfc68f948c6a05cff17af09dbf36d17d7ec1900448219961cce8c46a'
+            'a3d2996a91470481e1ab98dd4592d974b5f2caaeca87a113cbad853ad09dd8ea'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -66,6 +66,7 @@ _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
+  rm -v firefox-patches/0027-bmo-1775202-ppc64-webrtc-missing-conditions-109.patch
   mv -fv mozilla-kde.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd firefox-${pkgver%%b*}
 
@@ -85,20 +86,20 @@ prepare() {
   local suse_patch=('mozilla-nongnome-proxies.patch'
                     # 'mozilla-kde.patch'
                     'mozilla-ntlm-full-path.patch'
-                    'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
+                    'mozilla-aarch64-startup-crash.patch'
                     'mozilla-fix-aarch64-libopus.patch'
-                    'mozilla-s390-context.patch'
+                    # 'mozilla-s390-context.patch'
                     # 'mozilla-pgo.patch' # previous patch detected
                     'mozilla-reduce-rust-debuginfo.patch'
                     # 'mozilla-bmo1005535.patch'
                     # 'mozilla-bmo1568145.patch'
-                    'mozilla-bmo1504834-part1.patch'
-                    'mozilla-bmo1504834-part3.patch'
+                    # 'mozilla-bmo1504834-part1.patch'
+                    # 'mozilla-bmo1504834-part3.patch'
                     'mozilla-bmo1512162.patch'
                     # 'mozilla-fix-top-level-asm.patch' # broken patch
                     'mozilla-bmo849632.patch'
                     'mozilla-bmo998749.patch'
-                    'mozilla-s390x-skia-gradient.patch'
+                    # 'mozilla-s390x-skia-gradient.patch'
                     # 'mozilla-libavcodec58_91.patch' # We don't fallback-support ffmpeg
                     # 'mozilla-silence-no-return-type.patch'
                     # 'mozilla-bmo531915.patch' # broken patch
@@ -112,8 +113,7 @@ prepare() {
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=('faster-package-multi-locale.patch'
-                         'unity_kde/mozilla-kde.patch'
+  local librewolf_patch=('unity_kde/mozilla-kde.patch'
                          'unity_kde/firefox-kde.patch'
                          'unity_kde/unity-menubar.patch')
   for src in "${librewolf_patch[@]}"; do

@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=115.0a1.20230527.531a15ae09d4
+pkgver=116.0a1.20230606.3a8e0dd854b5
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,31 +24,29 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=531a15ae09d49e29c270830e9b873aa625a5a8c2
+_moz_revision=3a8e0dd854b5d9349d96a17de81427442d412db9
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-113-patches-01.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-114-patches-01.tar.xz
         5022efe33088.patch
         mozilla-kde.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg
-        0001-remove-mImageRegion-from-nsMenuObject.cpp.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch)
 sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'a8a23830ca839966bb33f4dcaf94309fd9b60c7516cdbeaa48fd847ea4ad741c'
+            '469b81387ddd27c650c7f3aba028ca1e4c340873f6fdbfd1679d28eda57864b5'
             'f945e4ba8f6281bf97eaf69172f84328719a5c449878d5575e21165a316619d6'
             'e5601692d127da39802e1116ed5a3312c8a44a0af289a395c0ae01f48fbc342b'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
-            '5a631210b8f3f60cc11178fc957d2dc9c685d77c077271b6cc9a10688e468f4f'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
@@ -82,7 +80,7 @@ prepare() {
   patch -Np1 -i ../5022efe33088.patch
 
   # Revert NSS requirement
-  sed 's,nss >= 3.90,nss >= 3.89,' -i build/moz.configure/nss.configure
+  # sed 's,nss >= 3.90,nss >= 3.89,' -i build/moz.configure/nss.configure
   # Revert ICU requirement
   sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
@@ -92,18 +90,18 @@ prepare() {
                       '0004-bmo-847568-Support-system-graphite2.patch'
                       '0005-bmo-1559213-Support-system-av1.patch'
                       '0006-bmo-1516803-Fix-building-sandbox.patch'
-                      '0015-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
-                      '0016-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
-                      '0017-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
-                      '0018-build-Disable-Werror.patch'
-                      '0019-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0020-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0021-bgo-816975-fix-build-on-x86.patch'
-                      '0022-bmo-1559213-fix-system-av1-libs.patch'
-                      '0023-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0024-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0025-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0027-fix-building-gcc-pgo.patch')
+                      '0014-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
+                      '0015-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
+                      '0016-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
+                      '0017-build-Disable-Werror.patch'
+                      '0018-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
+                      '0019-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
+                      '0020-bgo-816975-fix-build-on-x86.patch'
+                      '0021-bmo-1559213-fix-system-av1-libs.patch'
+                      '0022-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0023-bmo-1754469-memory_mozalloc_throw.patch'
+                      '0024-bgo-860033-firefox-wayland-no-dbus.patch'
+                      '0026-fix-building-gcc-pgo.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -218,7 +216,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '113.0.2' > config/milestone.txt
+  echo '114.0' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"

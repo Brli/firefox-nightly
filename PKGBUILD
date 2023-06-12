@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=116.0a1.20230606.3a8e0dd854b5
+pkgver=116.0a1.20230613.176bd422292e
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -13,7 +13,7 @@ depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
              lld dump_syms mercurial rsync)
-            #  wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi)
+             # wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi)
 optdepends=('networkmanager: Location detection via available WiFi networks'
             'libnotify: Notification integration'
             'pulseaudio: Audio support'
@@ -24,7 +24,7 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=3a8e0dd854b5d9349d96a17de81427442d412db9
+_moz_revision=176bd422292eca8f35fdb09e12e34e731c4d42db
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -43,9 +43,9 @@ sha256sums=('SKIP'
             'SKIP'
             '469b81387ddd27c650c7f3aba028ca1e4c340873f6fdbfd1679d28eda57864b5'
             'f945e4ba8f6281bf97eaf69172f84328719a5c449878d5575e21165a316619d6'
-            'e5601692d127da39802e1116ed5a3312c8a44a0af289a395c0ae01f48fbc342b'
+            '30f55ca6fb95d0257d00073ca95ead90392c644dff7da728657448baa5ca75fe'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
+            'db9954669b580daf253e66321c1389aab49fcf09abe887daeb4475e5ef93a7ce'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -139,9 +139,7 @@ prepare() {
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=(# 'faster-package-multi-locale.patch'
-                         # 'unified-extensions-dont-show-recommendations.patch' previously applied
-                         'sed-patches/stop-undesired-requests.patch'
+  local librewolf_patch=('sed-patches/stop-undesired-requests.patch'
                          'ui-patches/remove-snippets-from-home.patch'
                          'unity_kde/mozilla-kde.patch'
                          'unity_kde/firefox-kde.patch')
@@ -216,7 +214,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '114.0' > config/milestone.txt
+  echo '114.0.1' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"
@@ -235,6 +233,12 @@ build() {
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
   export MOZ_ENABLE_FULL_SYMBOLS=0
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
+  export CC=clang
+  export CXX=clang++
+  export CC_LD=lld
+  export CXX_LD=lld
+  export AR=llvm-ar
+  export NM=llvm-nm
 
   # LTO needs more open files
   ulimit -n 4096
@@ -304,10 +308,10 @@ END
 
   install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END
 /* gentoo ebuild */
-pref("gfx.x11-egl.force-enabled", false);
+pref("gfx.x11-egl.force-enabled", true);
 sticky_pref("gfx.font_rendering.graphite.enabled", true);
-pref("media.gmp-gmpopenh264.autoupdate", false);
-pref("media.gmp-widevinecdm.autoupdate", false);
+pref("media.gmp-gmpopenh264.autoupdate", true);
+pref("media.gmp-widevinecdm.autoupdate", true);
 
 /* gentoo-default-prefs.js */
 pref("general.smoothScroll",               true);

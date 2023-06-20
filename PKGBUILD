@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=10.13.0
+pkgver=10.14.0
 _esrver=102
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
@@ -25,15 +25,17 @@ options=(!emptydirs !makeflags !strip !lto !debug)
 source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.zip
         git+https://github.com/Floorp-Projects/l10n-central.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=102.0.1-4
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-10j.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-11.tar.xz
         5022efe33088.patch
-        fix_csd_window_buttons.patch)
-sha256sums=('7a7a09fa6fbbe3c454875b82858490138b1e363142cce48ff83a8d16d5764fed'
+        fix_csd_window_buttons.patch
+        Fix-unstable-name-collisions-warning-by-using-fully-qualified-path.patch)
+sha256sums=('4f5e657cc0f407d84ee343c4acfe015a30df9b912c1dfbe4f852b4d3adf1cd11'
             'SKIP'
             'SKIP'
-            '15c0faede06247dda100cbc5403e639a38594cfc6bcde67ea80b2737b08d789c'
+            'f8419c5a51b676d7fb2ac10ae2d389c132459634d16d8f8c24d5231990429881'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
-            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
+            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
+            '00d8960fcd143b4ca11af515ba55dc5c3a47ec8ee024286187af2cac76ecd583')
 
 prepare() {
   mkdir mozbuild
@@ -42,9 +44,11 @@ prepare() {
   # Revert use of system sqlite
   patch -Np1 -i ../5022efe33088.patch
 
+  # Fix mp4parse rust cargo
+  patch -Np0 -i ../Fix-unstable-name-collisions-warning-by-using-fully-qualified-path.patch
+
   msg 'Gentoo patch'
-  rm -rfv $srcdir/firefox-patches/0031-bmo-1769631-python-3.11-compatibility.patch
-  rm -rfv $srcdir/firefox-patches/0032-bmo-1769631-python-3.11-compatibility.patch
+  rm -rfv $srcdir/firefox-patches/0036-bmo-1832770-pipewire-screencasting-webrtc-fix.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -126,12 +130,11 @@ END
 
   # Remove patched rust file checksums
   sed 's/\("files":{\)[^}]*/\1/' -i \
-    third_party/rust/bindgen/.cargo-checksum.json
+    third_party/rust/{bindgen,mp4parse}/.cargo-checksum.json
 }
 
 build() {
   cd "Floorp-${pkgver}" || exit
-
 
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"

@@ -3,8 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-beta
-_pkgver_stable=111.0.1
-pkgver=112.0b9
+_pkgver_stable=114.0.2
+pkgver=115.0b9
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -27,21 +27,23 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-01j.tar.xz
-        fix_csd_window_buttons.patch mozilla-kde.patch 0001-remove-mImageRegion-from-nsMenuObject.cpp.patch
-        firefox.desktop identity-icons-brand.svg)
-sha256sums=('8a427178fcfff66749b193bb6cf1434ac87cc8544a5087f2dfd58a02ae2c3777'
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-02.tar.xz
+        fix_csd_window_buttons.patch mozilla-kde.patch unity-menubar.patch
+        firefox.desktop identity-icons-brand.svg
+        0002-move-configuration-home-to-XDG_CONFIG_HOME.patch)
+sha256sums=('833feae6c1b1900b4ce53d3ebcf9eae957e486d1323e7b811391846c0a3c9ac9'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'f6e44d9ed44de05a3b8a3eefd1a0032735b93958e11ff6c277b9e17be97e6ad6'
+            '22ff8d1a5a923e7f4b4aab6cb8f5365bd169b96e60e430fab4be100c1f7b11e9'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            'e3ae207bee8322c99e252f3c0936362c46caf325d9aa7ee8d84fd878ea3dc293'
-            '5a631210b8f3f60cc11178fc957d2dc9c685d77c077271b6cc9a10688e468f4f'
-            'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
-            'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
+            '30f55ca6fb95d0257d00073ca95ead90392c644dff7da728657448baa5ca75fe'
+            '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
+            'db9954669b580daf253e66321c1389aab49fcf09abe887daeb4475e5ef93a7ce'
+            'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
+            'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
@@ -59,31 +61,34 @@ _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
+  mv -fv mozilla-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd firefox-${pkgver%%b*}
 
   #fix csd window buttons patch
   patch -Np1 -i ../fix_csd_window_buttons.patch
 
+  # Revert NSS requirement
+  # sed 's,nss >= 3.90,nss >= 3.89,' -i build/moz.configure/nss.configure
+  # Revert ICU requirement
+  # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
+
   msg 'Gentoo patch'
-  local gentoo_patch=('0002-Fortify-sources-properly.patch'
-                      '0003-bmo-847568-Support-system-harfbuzz.patch'
+  local gentoo_patch=('0003-bmo-847568-Support-system-harfbuzz.patch'
                       '0004-bmo-847568-Support-system-graphite2.patch'
                       '0005-bmo-1559213-Support-system-av1.patch'
                       '0006-bmo-1516803-Fix-building-sandbox.patch'
-                      '0016-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
-                      '0017-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
-                      '0018-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
-                      '0019-build-Disable-Werror.patch'
-                      '0020-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0021-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0022-bmo-1670333-OpenH264-Fix-decoding-if-it-starts-on-no.patch'
-                      '0023-bmo-1663844-OpenH264-Allow-using-OpenH264-GMP-decode.patch'
-                      '0024-bgo-816975-fix-build-on-x86.patch'
-                      '0025-bmo-1559213-fix-system-av1-libs.patch'
-                      '0026-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0027-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0029-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0031-fix-building-gcc-pgo.patch')
+                      '0014-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
+                      '0015-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
+                      '0016-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
+                      '0017-build-Disable-Werror.patch'
+                      '0018-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
+                      '0019-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
+                      '0020-bgo-816975-fix-build-on-x86.patch'
+                      '0021-bmo-1559213-fix-system-av1-libs.patch'
+                      '0022-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0023-bmo-1754469-memory_mozalloc_throw.patch'
+                      '0024-bgo-860033-firefox-wayland-no-dbus.patch'
+                      '0026-fix-building-gcc-pgo.patch')
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 < "$srcdir/firefox-patches/$src"
@@ -92,14 +97,14 @@ prepare() {
   msg 'opensuse patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=('mozilla-nongnome-proxies.patch'
-                    # 'mozilla-kde.patch' # do it in Librewolf patch
+                    # 'mozilla-kde.patch'
                     'mozilla-ntlm-full-path.patch'
-                    # 'mozilla-aarch64-startup-crash.patch' # we don't care about ARM
+                    # 'mozilla-aarch64-startup-crash.patch'
                     # 'mozilla-fix-aarch64-libopus.patch'
                     # 'mozilla-s390-context.patch'
                     # 'mozilla-pgo.patch'
                     'mozilla-reduce-rust-debuginfo.patch'
-                    'mozilla-bmo1005535.patch'
+                    # 'mozilla-bmo1005535.patch'
                     # 'mozilla-bmo1568145.patch'
                     # 'mozilla-bmo1504834-part1.patch'
                     # 'mozilla-bmo1504834-part3.patch'
@@ -108,23 +113,21 @@ prepare() {
                     'mozilla-bmo849632.patch'
                     'mozilla-bmo998749.patch'
                     # 'mozilla-s390x-skia-gradient.patch'
-                    # 'mozilla-libavcodec58_91.patch' # We don't fallback-support ffmpeg
+                    # 'mozilla-libavcodec58_91.patch'
                     # 'mozilla-silence-no-return-type.patch'
                     # 'mozilla-bmo531915.patch'
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
-                    # 'firefox-kde.patch'
                     'firefox-branded-icons.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/$src"
   done
 
-  msg 'mozilla-kde.patch'
-  patch -Np1 -i ../mozilla-kde.patch
-
   msg 'librewolf patch'
-  local librewolf_patch=('faster-package-multi-locale.patch'
+  local librewolf_patch=('sed-patches/stop-undesired-requests.patch'
+                         'ui-patches/remove-snippets-from-home.patch'
+                         'unity_kde/mozilla-kde.patch'
                          'unity_kde/firefox-kde.patch'
                          'unity_kde/unity-menubar.patch')
   for src in "${librewolf_patch[@]}"; do
@@ -139,9 +142,6 @@ prepare() {
    msg "Applying patch $src..."
    patch -Np1 -i "${srcdir}/firefox-trunk/debian/patches/$src"
   done
-
-  # patch for upstream member change
-  patch -Np1 -i "$srcdir/0001-remove-mImageRegion-from-nsMenuObject.cpp.patch"
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
@@ -162,8 +162,8 @@ ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-# ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-ac_add_options --without-wasm-sandboxed-libraries
+ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+# ac_add_options --without-wasm-sandboxed-libraries
 export RUSTC_OPT_LEVEL=2
 
 # Branding
@@ -189,7 +189,6 @@ ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
-ac_add_options --with-system-graphite2
 ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
 ac_add_options --enable-system-ffi
@@ -211,6 +210,12 @@ END
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,$pkgname,g" -i "${srcdir}/firefox.desktop"
+
+  # Remove patched rust file checksums
+  sed 's/\("files":{\)[^}]*/\1/' -i \
+    third_party/rust/bindgen/.cargo-checksum.json
+
+  patch -Np1 -i "${srcdir}/0002-move-configuration-home-to-XDG_CONFIG_HOME.patch"
 }
 
 build() {
@@ -316,11 +321,9 @@ pref("webgl.force-enabled",                true);
 
 // hardware acceleration
 pref("media.ffmpeg.vaapi.enabled", true);
-pref("media.ffvpx.enabled", false);
+pref("media.ffvpx.enabled", true);
 pref("media.hardware-video-decoding.force-enabled", true);
 pref("media.navigator.mediadatadecoder_vpx_enabled", true);
-pref("media.rdd-ffvpx.enabled", false);
-pref("media.rdd-vpx.enabled", false);
 END
 
   install -Dvm644 /dev/stdin "$pref/kde.js" <<END

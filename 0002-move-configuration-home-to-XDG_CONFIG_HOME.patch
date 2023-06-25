@@ -1,0 +1,148 @@
+From aa095ac89a6b0526676b3eb59f5214f995d06053 Mon Sep 17 00:00:00 2001
+From: Brli <brli@chakralinux.org>
+Date: Fri, 28 Apr 2023 21:12:20 +0800
+Subject: [PATCH] move configuration home to $XDG_CONFIG_HOME
+
+---
+ toolkit/moz.configure                  |  4 ++--
+ toolkit/xre/nsXREDirProvider.cpp       | 32 ++++++++++++++++++--------
+ xpcom/io/nsAppFileLocationProvider.cpp | 13 +++++++++++
+ 3 files changed, 37 insertions(+), 12 deletions(-)
+
+diff --git a/toolkit/moz.configure b/toolkit/moz.configure
+index 47c1008..3203967 100644
+--- a/toolkit/moz.configure
++++ b/toolkit/moz.configure
+@@ -3161,7 +3161,7 @@ with only_when(compile_environment):
+     def default_user_appdir(target):
+         if target.kernel in ("WINNT", "Darwin"):
+             return "Mozilla"
+-        return ".mozilla"
++        return ".config/mozilla"
+ 
+     option(
+         "--with-user-appdir",
+@@ -3174,7 +3174,7 @@ with only_when(compile_environment):
+     def user_appdir(appdir):
+         if not appdir:
+             die("--without-user-appdir is not a valid option.")
+-        if "/" in appdir[0]:
++        if False:
+             die("--with-user-appdir must be a single relative path.")
+         return '"{}"'.format(appdir[0])
+ 
+diff --git a/toolkit/xre/nsXREDirProvider.cpp b/toolkit/xre/nsXREDirProvider.cpp
+index ea1e5a8..57b9328 100644
+--- a/toolkit/xre/nsXREDirProvider.cpp
++++ b/toolkit/xre/nsXREDirProvider.cpp
+@@ -367,11 +367,6 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
+   } else if (!strcmp(aProperty, XRE_USER_NATIVE_MANIFESTS)) {
+     rv = GetUserDataDirectoryHome(getter_AddRefs(file), false);
+     NS_ENSURE_SUCCESS(rv, rv);
+-#  if defined(XP_MACOSX)
+-    rv = file->AppendNative("Mozilla"_ns);
+-#  else   // defined(XP_MACOSX)
+-    rv = file->AppendNative(".mozilla"_ns);
+-#  endif  // defined(XP_MACOSX)
+   }
+ #endif  // defined(XP_UNIX) || defined(XP_MACOSX)
+   else if (!strcmp(aProperty, XRE_UPDATE_ROOT_DIR)) {
+@@ -1246,14 +1241,15 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
+   NS_ENSURE_SUCCESS(rv, rv);
+
+   rv = NS_NewLocalFile(path, true, getter_AddRefs(localDir));
++  NS_ENSURE_SUCCESS(rv, rv);
+ #elif defined(XP_UNIX)
+   const char* homeDir = getenv("HOME");
+   if (!homeDir || !*homeDir) return NS_ERROR_FAILURE;
+
+ #  ifdef ANDROID /* We want (ProfD == ProfLD) on Android. */
+-  aLocal = false;
+-#  endif
+-
++  rv = NS_NewNativeLocalFile(nsDependentCString(homeDir), true,
++                             getter_AddRefs(localDir));
++#  else
+   if (aLocal) {
+     // If $XDG_CACHE_HOME is defined use it, otherwise use $HOME/.cache.
+     const char* cacheHome = getenv("XDG_CACHE_HOME");
+@@ -1268,7 +1264,19 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
+   } else {
+     rv = NS_NewNativeLocalFile(nsDependentCString(homeDir), true,
+                                getter_AddRefs(localDir));
++    NS_ENSURE_SUCCESS(rv, rv);
++    rv = NS_NewNativeLocalFile(nsDependentCString(homeDir), true,
++                               getter_AddRefs(localDir));
++    NS_ENSURE_SUCCESS(rv, rv);
++    rv = localDir->AppendRelativeNativePath(nsDependentCString(".config"));
++    NS_ENSURE_SUCCESS(rv, rv);
++    rv = localDir->AppendRelativeNativePath(nsDependentCString("mozilla"));
++    NS_ENSURE_SUCCESS(rv, rv);
++
++    rv = EnsureDirectoryExists(localDir);
++    NS_ENSURE_SUCCESS(rv, rv);
+   }
++#   endif // ANDROID
+ #else
+ #  error "Don't know how to get product dir on your platform"
+ #endif
+@@ -1367,9 +1375,11 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+ 
+ #elif defined(XP_UNIX)
+ 
++#   if !defined(MOZ_WIDGET_GTK)
+   static const char* const sXR = ".mozilla";
+   rv = aFile->AppendNative(nsDependentCString(sXR));
+   NS_ENSURE_SUCCESS(rv, rv);
++#   endif
+ 
+   static const char* const sExtensions = "extensions";
+   rv = aFile->AppendNative(nsDependentCString(sExtensions));
+@@ -1457,8 +1467,10 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
+       folder.Append(vendor);
+       ToLowerCase(folder);
+
+-      rv = aFile->AppendNative(folder);
+-      NS_ENSURE_SUCCESS(rv, rv);
++      if (aLocal) {
++        rv = aFile->AppendNative(folder);
++        NS_ENSURE_SUCCESS(rv, rv);
++      }
+
+       folder.Truncate();
+     }
+diff --git a/xpcom/io/nsAppFileLocationProvider.cpp b/xpcom/io/nsAppFileLocationProvider.cpp
+index aedaad1..ca3e45f 100644
+--- a/xpcom/io/nsAppFileLocationProvider.cpp
++++ b/xpcom/io/nsAppFileLocationProvider.cpp
+@@ -212,14 +212,27 @@ nsresult nsAppFileLocationProvider::GetProductDirectory(nsIFile** aLocalFile,
+   if (NS_FAILED(rv)) {
+     return rv;
+   }
++#if defined(MOZ_WIDGET_GTK)
++  // exclude android/iOS from this check
++  rv = localDir->AppendRelativeNativePath(nsDependentCString(".config"));
++  if (NS_FAILED(rv)) {
++    return rv;
++  }
++  rv = localDir->AppendRelativeNativePath(nsDependentCString("mozilla"));
++  if (NS_FAILED(rv)) {
++    return rv;
++  }
++#endif
+ #else
+ #  error dont_know_how_to_get_product_dir_on_your_platform
+ #endif
+ 
++#if !defined(MOZ_WIDGET_GTK)
+   rv = localDir->AppendRelativeNativePath(DEFAULT_PRODUCT_DIR);
+   if (NS_FAILED(rv)) {
+     return rv;
+   }
++#endif
+   rv = localDir->Exists(&exists);
+ 
+   if (NS_SUCCEEDED(rv) && !exists) {
+-- 
+2.40.1
+

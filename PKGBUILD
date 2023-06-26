@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=116.0a1.20230613.176bd422292e
+pkgver=116.0a1.20230626.a529a3830f68
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -12,8 +12,8 @@ url="https://www.mozilla.org/firefox/"
 depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
-             lld dump_syms mercurial rsync)
-             # wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi)
+             lld dump_syms mercurial rsync
+             wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi)
 optdepends=('networkmanager: Location detection via available WiFi networks'
             'libnotify: Notification integration'
             'pulseaudio: Audio support'
@@ -24,15 +24,14 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=176bd422292eca8f35fdb09e12e34e731c4d42db
+_moz_revision=a529a3830f684519fc2c2ffb6fbe1b1e77930e71
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-114-patches-01.tar.xz
-        5022efe33088.patch
-        mozilla-kde.patch
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-114-patches-02.tar.xz
+        mozilla-kde.patch unity-menubar.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch)
@@ -41,9 +40,9 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '469b81387ddd27c650c7f3aba028ca1e4c340873f6fdbfd1679d28eda57864b5'
-            'f945e4ba8f6281bf97eaf69172f84328719a5c449878d5575e21165a316619d6'
-            '30f55ca6fb95d0257d00073ca95ead90392c644dff7da728657448baa5ca75fe'
+            '22ff8d1a5a923e7f4b4aab6cb8f5365bd169b96e60e430fab4be100c1f7b11e9'
+            '60fedd0457474e39371179692188c4ec49212fdf10ecce010f3a885aeb7e023b'
+            '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'db9954669b580daf253e66321c1389aab49fcf09abe887daeb4475e5ef93a7ce'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
@@ -73,11 +72,8 @@ prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
   sed 's,\.jsm,\.sys\.mjs,g' -i librewolf-patch/patches/sed-patches/stop-undesired-requests.patch
-  mv -fv mozilla-kde.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
+  mv -fv mozilla-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd mozilla-central
-
-  # Revert use of system sqlite
-  patch -Np1 -i ../5022efe33088.patch
 
   # Revert NSS requirement
   # sed 's,nss >= 3.90,nss >= 3.89,' -i build/moz.configure/nss.configure
@@ -97,7 +93,6 @@ prepare() {
                       '0018-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
                       '0019-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
                       '0020-bgo-816975-fix-build-on-x86.patch'
-                      '0021-bmo-1559213-fix-system-av1-libs.patch'
                       '0022-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
                       '0023-bmo-1754469-memory_mozalloc_throw.patch'
                       '0024-bgo-860033-firefox-wayland-no-dbus.patch'
@@ -142,7 +137,8 @@ prepare() {
   local librewolf_patch=('sed-patches/stop-undesired-requests.patch'
                          'ui-patches/remove-snippets-from-home.patch'
                          'unity_kde/mozilla-kde.patch'
-                         'unity_kde/firefox-kde.patch')
+                         'unity_kde/firefox-kde.patch'
+                         'unity_kde/unity-menubar.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
@@ -166,8 +162,8 @@ ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-# ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-ac_add_options --without-wasm-sandboxed-libraries
+ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+# ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
 ac_add_options --enable-official-branding
@@ -196,11 +192,8 @@ ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
-ac_add_options --with-system-graphite2
 ac_add_options --with-system-libevent
-ac_add_options --with-system-sqlite
 ac_add_options --enable-system-ffi
-ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman
 
 # Features
@@ -214,7 +207,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '114.0.1' > config/milestone.txt
+  echo '114.0.2' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"
@@ -300,7 +293,7 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 pref("extensions.autoDisableScopes", 11);
 
 // UA override
-// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.46");
+// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.58");
 
 // Scale UI
 // pref("layout.css.devPixelsPerPx",    "1.2");

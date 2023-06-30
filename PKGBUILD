@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=114.0.1
+pkgver=114.0.2
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -28,25 +28,22 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-02.tar.xz
         5022efe33088.patch fix_csd_window_buttons.patch
-        0001-remove-mImageRegion-from-nsMenuObject.cpp.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
-        mozilla-kde.patch
+        mozilla-kde.patch unity-menubar.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('7e4ebc13e8c94af06f703af2119cf1641d4186174a3d59b7812f9d28f61b7d18'
+sha256sums=('aa602032f0b7065b743ba7fabf96714398aba538bcc017a4b0fff556dc69f8fe'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'SKIP'
-            '469b81387ddd27c650c7f3aba028ca1e4c340873f6fdbfd1679d28eda57864b5'
+            '22ff8d1a5a923e7f4b4aab6cb8f5365bd169b96e60e430fab4be100c1f7b11e9'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            '5a631210b8f3f60cc11178fc957d2dc9c685d77c077271b6cc9a10688e468f4f'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
             'a3d2996a91470481e1ab98dd4592d974b5f2caaeca87a113cbad853ad09dd8ea'
+            '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -66,8 +63,7 @@ _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  rm -v firefox-patches/0027-bmo-1775202-ppc64-webrtc-missing-conditions-109.patch
-  mv -fv mozilla-kde.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
+  mv -fv mozilla-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd firefox-${pkgver%%b*}
 
   # Revert use of system sqlite
@@ -119,14 +115,6 @@ prepare() {
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
-  done
-
-  msg 'ubuntu patch'
-  local ubuntu_patch=('dont-checkout-locales.patch'
-                      'use-system-icupkg.patch')
-  for src in "${ubuntu_patch[@]}"; do
-   msg "Applying patch $src..."
-   patch -Np1 -i "${srcdir}/firefox-trunk/debian/patches/$src"
   done
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
@@ -200,7 +188,6 @@ END
   sed 's/\("files":{\)[^}]*/\1/' -i \
     third_party/rust/bindgen/.cargo-checksum.json
 
-  patch -Np1 -i ../0001-remove-mImageRegion-from-nsMenuObject.cpp.patch
   patch -Np1 -i ../0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
 }
 

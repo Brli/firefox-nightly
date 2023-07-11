@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=114.0.2
+pkgver=115.0.1
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -28,21 +28,20 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-02.tar.xz
-        5022efe33088.patch fix_csd_window_buttons.patch
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-04.tar.xz
+        fix_csd_window_buttons.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         mozilla-kde.patch unity-menubar.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('aa602032f0b7065b743ba7fabf96714398aba538bcc017a4b0fff556dc69f8fe'
+sha256sums=('cde9c7e6e4d9d3a0a247ce672009d4dd484d389b533e0181f6428dd104a8a228'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '22ff8d1a5a923e7f4b4aab6cb8f5365bd169b96e60e430fab4be100c1f7b11e9'
-            'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
+            '0240c74d83bab19c64aba2c89ad8388cffdb3010cb6a22e72c1249be14ce6c85'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
-            'a3d2996a91470481e1ab98dd4592d974b5f2caaeca87a113cbad853ad09dd8ea'
+            '60fedd0457474e39371179692188c4ec49212fdf10ecce010f3a885aeb7e023b'
             '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
@@ -65,9 +64,6 @@ prepare() {
   mv zh-TW mozbuild/
   mv -fv mozilla-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd firefox-${pkgver%%b*}
-
-  # Revert use of system sqlite
-  patch -Np1 -i ../5022efe33088.patch
 
   msg 'Gentoo patch'
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
@@ -166,7 +162,6 @@ ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-graphite2
 ac_add_options --with-system-icu
-ac_add_options --with-system-sqlite
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman

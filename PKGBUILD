@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=116.0a1.20230626.a529a3830f68
+pkgver=117.0a1.20230713.14923aaa4de7
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,13 +24,13 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=a529a3830f684519fc2c2ffb6fbe1b1e77930e71
+_moz_revision=14923aaa4de7a8bf3468cafd1339c8a521adbf96
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-114-patches-02.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-115-patches-04.tar.xz
         mozilla-kde.patch unity-menubar.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg
@@ -40,7 +40,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '22ff8d1a5a923e7f4b4aab6cb8f5365bd169b96e60e430fab4be100c1f7b11e9'
+            '0240c74d83bab19c64aba2c89ad8388cffdb3010cb6a22e72c1249be14ce6c85'
             '60fedd0457474e39371179692188c4ec49212fdf10ecce010f3a885aeb7e023b'
             '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
@@ -78,25 +78,25 @@ prepare() {
   # Revert NSS requirement
   # sed 's,nss >= 3.90,nss >= 3.89,' -i build/moz.configure/nss.configure
   # Revert ICU requirement
-  sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
+  # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
   msg 'Gentoo patch'
   # local gentoo_patch=($(ls $srcdir/firefox-patches/))
   local gentoo_patch=('0003-bmo-847568-Support-system-harfbuzz.patch'
                       '0004-bmo-847568-Support-system-graphite2.patch'
                       '0005-bmo-1559213-Support-system-av1.patch'
-                      '0006-bmo-1516803-Fix-building-sandbox.patch'
-                      '0014-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
-                      '0015-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
-                      '0016-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
-                      '0017-build-Disable-Werror.patch'
-                      '0018-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0019-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0020-bgo-816975-fix-build-on-x86.patch'
-                      '0022-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0023-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0024-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0026-fix-building-gcc-pgo.patch')
+                      '0013-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
+                      '0015-build-Disable-Werror.patch'
+                      '0016-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
+                      '0017-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
+                      '0018-bgo-816975-fix-build-on-x86.patch'
+                      '0020-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0021-bmo-1754469-memory_mozalloc_throw.patch'
+                      '0022-bgo-860033-firefox-wayland-no-dbus.patch'
+                      '0024-fix-building-gcc-pgo.patch'
+                      '0027-bmo-1516803-gcc-lto-sandbox.patch'
+                      '0028-enable-vaapi-on-all-amd-cards.patch'
+                      '0031-bgo-907963-rustflags-single-string.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -207,7 +207,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '114.0.2' > config/milestone.txt
+  echo '115.0.2' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"

@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=10.14.0
+pkgver=10.15.0
 _esrver=102
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
@@ -27,15 +27,13 @@ source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.z
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=102.0.1-4
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-11.tar.xz
         5022efe33088.patch
-        fix_csd_window_buttons.patch
-        Fix-unstable-name-collisions-warning-by-using-fully-qualified-path.patch)
-sha256sums=('4f5e657cc0f407d84ee343c4acfe015a30df9b912c1dfbe4f852b4d3adf1cd11'
+        fix_csd_window_buttons.patch)
+sha256sums=('f3c7add642bc001e6bcf08f2b797939314cccb8173e1f9628738f108d96176a6'
             'SKIP'
             'SKIP'
             'f8419c5a51b676d7fb2ac10ae2d389c132459634d16d8f8c24d5231990429881'
             'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
-            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            '00d8960fcd143b4ca11af515ba55dc5c3a47ec8ee024286187af2cac76ecd583')
+            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
 
 prepare() {
   mkdir mozbuild
@@ -43,9 +41,6 @@ prepare() {
 
   # Revert use of system sqlite
   patch -Np1 -i ../5022efe33088.patch
-
-  # Fix mp4parse rust cargo
-  patch -Np0 -i ../Fix-unstable-name-collisions-warning-by-using-fully-qualified-path.patch
 
   msg 'Gentoo patch'
   rm -rfv $srcdir/firefox-patches/0036-bmo-1832770-pipewire-screencasting-webrtc-fix.patch

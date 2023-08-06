@@ -3,8 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=10.15.0
-_esrver=102
+pkgver=11.1.0
+_esrver=115
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
@@ -24,26 +24,24 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 options=(!emptydirs !makeflags !strip !lto !debug)
 source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.zip
         git+https://github.com/Floorp-Projects/l10n-central.git
-        librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=102.0.1-4
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-102esr-patches-11.tar.xz
-        5022efe33088.patch
+        librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=${_esrver}.0.2-2
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-04.tar.xz
+        mozilla-kde.patch unity-menubar.patch
         fix_csd_window_buttons.patch)
-sha256sums=('f3c7add642bc001e6bcf08f2b797939314cccb8173e1f9628738f108d96176a6'
+sha256sums=('8c23e24eff79b50277fb2a8e708382301c72c30271b537cdb5f1091ee1957b8a'
             'SKIP'
             'SKIP'
-            'f8419c5a51b676d7fb2ac10ae2d389c132459634d16d8f8c24d5231990429881'
-            'e46f395d3bddb9125f1f975a6fd484c89e16626a30d92004b6fa900f1dccebb4'
+            '3f47eb3671c4a23b9513b0d61ee2faa635f8f33073043ccdbdcedadf89458f9e'
+            '60fedd0457474e39371179692188c4ec49212fdf10ecce010f3a885aeb7e023b'
+            '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
 
 prepare() {
   mkdir mozbuild
+  mv -fv mozilla-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd "Floorp-${pkgver}" || exit
 
-  # Revert use of system sqlite
-  patch -Np1 -i ../5022efe33088.patch
-
   msg 'Gentoo patch'
-  rm -rfv $srcdir/firefox-patches/0036-bmo-1832770-pipewire-screencasting-webrtc-fix.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -51,9 +49,9 @@ prepare() {
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=('faster-package-multi-locale.patch'
-                         'unity-menubar.patch'
-                         'mozilla-kde_after_unity.patch')
+  local librewolf_patch=(unity_kde/mozilla-kde.patch
+                         unity_kde/firefox-kde.patch
+                         unity_kde/unity-menubar.patch)
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
@@ -70,7 +68,7 @@ mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 
 ac_add_options --prefix=/usr
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize
+ac_add_options --enable-optimize='-O3'
 ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
@@ -107,7 +105,6 @@ ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
-ac_add_options --with-system-sqlite
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman
@@ -120,7 +117,6 @@ ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
 ac_add_options --disable-debug
-ac_add_options --disable-verify-mar
 END
 
   # Remove patched rust file checksums

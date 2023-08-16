@@ -5,7 +5,7 @@
 pkgname=floorp
 pkgver=11.1.0
 _esrver=115
-pkgrel=1
+pkgrel=2
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -23,12 +23,12 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'xdg-desktop-portal: Screensharing with Wayland')
 options=(!emptydirs !makeflags !strip !lto !debug)
 source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.zip
-        git+https://github.com/Floorp-Projects/l10n-central.git
+        git+https://github.com/Floorp-Projects/l10n-central.git#branch=11.0.0
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=${_esrver}.0.2-2
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-04.tar.xz
         mozilla-kde.patch unity-menubar.patch
         fix_csd_window_buttons.patch)
-sha256sums=('8c23e24eff79b50277fb2a8e708382301c72c30271b537cdb5f1091ee1957b8a'
+sha256sums=('99c3b07cad5a7150f27d2cadcd1a4c5395212b76c764782c9b8e7cdff9a0c606'
             'SKIP'
             'SKIP'
             '3f47eb3671c4a23b9513b0d61ee2faa635f8f33073043ccdbdcedadf89458f9e'
@@ -171,7 +171,7 @@ END
   
   msg 'Building locales'
   ./mach package
-  export MOZ_CHROME_MULTILOCALE="en-US ja ja-KA zh-TW"
+  export MOZ_CHROME_MULTILOCALE="en-US ja zh-TW"
   for AB_CD in $MOZ_CHROME_MULTILOCALE; do
     msg "Building locales $AB_CD"
     ./mach build chrome-$AB_CD

@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=118.0a1.20230802.8e6d6287c0af
+pkgver=118.0a1.20230815.0f010e753b74
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,7 +24,7 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=8e6d6287c0afe95af31cabdf4957db4560cb0a3a
+_moz_revision=0f010e753b74a51ee002d8d5d857c18f71ba2599
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -41,7 +41,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             '0240c74d83bab19c64aba2c89ad8388cffdb3010cb6a22e72c1249be14ce6c85'
-            '60fedd0457474e39371179692188c4ec49212fdf10ecce010f3a885aeb7e023b'
+            'd86e915b959296aafa870512820cb0894f769b830e6ff5e693656b00c7745cc2'
             '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             '56ae26446429de7f9f95e5baccd2d0c399588d098fd473609cd157329127331a'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
@@ -208,7 +208,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '116.0' > config/milestone.txt
+  echo '116.0.2' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"

@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=118.0a1.20230815.0f010e753b74
+pkgver=119.0a1.20230830.c4e74daae186
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,7 +24,7 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=0f010e753b74a51ee002d8d5d857c18f71ba2599
+_moz_revision=c4e74daae18650ad8979e2718448476df759092a
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -77,7 +77,7 @@ prepare() {
   cd mozilla-central
 
   # Revert NSS requirement
-  # sed 's,nss >= 3.90,nss >= 3.89,' -i build/moz.configure/nss.configure
+  sed 's,nss >= 3.93,nss >= 3.92,' -i build/moz.configure/nss.configure
   # Revert ICU requirement
   # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
@@ -208,7 +208,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '116.0.2' > config/milestone.txt
+  echo '117.0' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"

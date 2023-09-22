@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=119.0a1.20230915.f4b0e304eceb
+pkgver=119.0a1.20230923.677cbf2e64cd
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,7 +24,7 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=f4b0e304ecebf431616ce014dd198c1d361b37c1
+_moz_revision=677cbf2e64cdcd3a93e644f781be2bdc2529ba1a
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -41,7 +41,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'cde9a59a052f20d26eef49ab2e3e9858a4692820ffd3faf15ef4a72132237cf5'
-            'd86e915b959296aafa870512820cb0894f769b830e6ff5e693656b00c7745cc2'
+            '9f03cdf3b2e71beec1cbb426028fb9c99f9e448d174b561cc255b3de2bd0e437'
             '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             '56ae26446429de7f9f95e5baccd2d0c399588d098fd473609cd157329127331a'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
@@ -77,7 +77,7 @@ prepare() {
   cd mozilla-central
 
   # Revert NSS requirement
-  # sed 's,nss >= 3.93,nss >= 3.92,' -i build/moz.configure/nss.configure
+  sed 's,nss >= 3.94,nss >= 3.93,' -i build/moz.configure/nss.configure
   # Revert ICU requirement
   # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 

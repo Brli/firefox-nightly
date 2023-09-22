@@ -1096,13 +1096,10 @@ diff --git a/widget/gtk/moz.build b/widget/gtk/moz.build
      "/widget/headless",
      "/widget/x11",
 diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
+index d15c44d..7b1ca42 100644
 --- a/widget/gtk/nsFilePicker.cpp
 +++ b/widget/gtk/nsFilePicker.cpp
-@@ -1,15 +1,16 @@
- /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
- /* This Source Code Form is subject to the terms of the Mozilla Public
-  * License, v. 2.0. If a copy of the MPL was not distributed with this
-  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+@@ -5,6 +5,7 @@
  
  #include <dlfcn.h>
  #include <gtk/gtk.h>
@@ -1110,17 +1107,7 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
  #include <sys/types.h>
  #include <sys/stat.h>
  #include <unistd.h>
- 
- #include "mozilla/Types.h"
- #include "nsGtkUtils.h"
- #include "nsIFileURL.h"
- #include "nsIGIOService.h"
-@@ -23,16 +24,18 @@
- #include "nsArrayEnumerator.h"
- #include "nsEnumeratorUtils.h"
- #include "nsNetUtil.h"
- #include "nsReadableUtils.h"
- #include "MozContainer.h"
+@@ -30,6 +31,8 @@
  #include "WidgetUtilsGtk.h"
  
  #include "nsFilePicker.h"
@@ -1129,17 +1116,7 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
  
  #undef LOG
  #ifdef MOZ_LOGGING
- #  include "mozilla/Logging.h"
- #  include "nsTArray.h"
- #  include "Units.h"
- extern mozilla::LazyLogModule gWidgetLog;
- #  define LOG(args) MOZ_LOG(gWidgetLog, mozilla::LogLevel::Debug, args)
-@@ -237,17 +240,19 @@ nsFilePicker::AppendFilters(int32_t aFil
-   mAllowURLs = !!(aFilterMask & filterAllowURLs);
-   return nsBaseFilePicker::AppendFilters(aFilterMask);
- }
- 
- NS_IMETHODIMP
+@@ -310,7 +313,9 @@ NS_IMETHODIMP
  nsFilePicker::AppendFilter(const nsAString& aTitle, const nsAString& aFilter) {
    if (aFilter.EqualsLiteral("..apps")) {
      // No platform specific thing we can do here, really....
@@ -1150,17 +1127,7 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
    }
  
    nsAutoCString filter, name;
-   CopyUTF16toUTF8(aFilter, filter);
-   CopyUTF16toUTF8(aTitle, name);
- 
-   mFilters.AppendElement(filter);
-   mFilterNames.AppendElement(name);
-@@ -347,16 +352,39 @@ nsresult nsFilePicker::Show(nsIFilePicke
-   return NS_OK;
- }
- 
- NS_IMETHODIMP
- nsFilePicker::Open(nsIFilePickerShownCallback* aCallback) {
+@@ -420,6 +425,29 @@ nsFilePicker::Open(nsIFilePickerShownCallback* aCallback) {
    // Can't show two dialogs concurrently with the same filepicker
    if (mRunning) return NS_ERROR_NOT_AVAILABLE;
  
@@ -1190,17 +1157,7 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
    NS_ConvertUTF16toUTF8 title(mTitle);
  
    GtkWindow* parent_widget =
-       GTK_WINDOW(mParentWidget->GetNativeData(NS_NATIVE_SHELLWIDGET));
- 
-   GtkFileChooserAction action = GetGtkFileChooserAction(mMode);
- 
-   const gchar* accept_button;
-@@ -628,16 +656,244 @@ void nsFilePicker::Done(void* file_choos
-     mCallback->Done(result);
-     mCallback = nullptr;
-   } else {
-     mResult = result;
-   }
+@@ -701,6 +729,233 @@ void nsFilePicker::Done(void* file_chooser, gint response) {
    NS_RELEASE_THIS();
  }
  
@@ -1271,26 +1228,26 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
 +            }
 +        }
 +
-+  nsAutoCString directory;
-+  if (mDisplayDirectory) {
-+    mDisplayDirectory->GetNativePath(directory);
-+  } else if (mPrevDisplayDirectory) {
-+    mPrevDisplayDirectory->GetNativePath(directory);
-+  }
++    nsAutoCString directory;
++    if (mDisplayDirectory) {
++      mDisplayDirectory->GetNativePath(directory);
++    } else if (mPrevDisplayDirectory) {
++      mPrevDisplayDirectory->GetNativePath(directory);
++    }
 +
 +    nsAutoCString startdir;
-+  if (!directory.IsEmpty()) {
-+    startdir = directory;
-+  }
-+  if (mMode == nsIFilePicker::modeSave) {
-+    if( !startdir.IsEmpty())
-+      {
-+      startdir += "/";
-+      startdir += ToNewUTF8String(mDefault);
++    if (!directory.IsEmpty()) {
++      startdir = directory;
++    }
++    if (mMode == nsIFilePicker::modeSave) {
++      if( !startdir.IsEmpty())
++          {
++          startdir += "/";
++          startdir += ToNewUTF8String(mDefault);
++          }
++        else
++          startdir = ToNewUTF8String(mDefault);
 +      }
-+    else
-+      startdir = ToNewUTF8String(mDefault);
-+  }
 +
 +    nsAutoCString filters;
 +    PRInt32 count = mFilters.Length();
@@ -1369,37 +1326,36 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
 +                  rv = net_GetURLSpecFromActualFile(localfile, mFileURL);
 +                }
 +            }
-+  // Remember last used directory.
-+  nsCOMPtr<nsIFile> file;
-+  GetFile(getter_AddRefs(file));
-+  if (file) {
-+    nsCOMPtr<nsIFile> dir;
-+    file->GetParent(getter_AddRefs(dir));
-+    nsCOMPtr<nsIFile> localDir(dir);
-+    if (localDir) {
-+      localDir.swap(mPrevDisplayDirectory);
-+    }
-+  }
-+        if (mMode == nsIFilePicker::modeSave)
++      // Remember last used directory.
++      nsCOMPtr<nsIFile> file;
++      GetFile(getter_AddRefs(file));
++      if (file) {
++        nsCOMPtr<nsIFile> dir;
++        file->GetParent(getter_AddRefs(dir));
++        nsCOMPtr<nsIFile> localDir(dir);
++        if (localDir) {
++          localDir.swap(mPrevDisplayDirectory);
++        }
++      }
++      if (mMode == nsIFilePicker::modeSave)
++          {
++          nsCOMPtr<nsIFile> file;
++          GetFile(getter_AddRefs(file));
++          if (file)
++              {
++              bool exists = false;
++              file->Exists(&exists);
++              if (exists) // TODO do overwrite check in the helper app
++                  *aReturn = nsIFilePicker::returnReplace;
++              }
++          }
++        }
++        else
 +            {
-+            nsCOMPtr<nsIFile> file;
-+            GetFile(getter_AddRefs(file));
-+            if (file)
-+                {
-+                bool exists = false;
-+                file->Exists(&exists);
-+                if (exists) // TODO do overwrite check in the helper app
-+                    *aReturn = nsIFilePicker::returnReplace;
-+                }
++            *aReturn = nsIFilePicker::returnCancel;
 +            }
++        return NS_OK;
 +        }
-+    else
-+        {
-+        *aReturn = nsIFilePicker::returnCancel;
-+        }
-+    return NS_OK;
-+    }
-+
 +
 +NS_IMETHODIMP nsFilePicker::kdeAppsDialog(nsIFilePicker::ResultCode *aReturn)
 +    {
@@ -1435,11 +1391,6 @@ diff --git a/widget/gtk/nsFilePicker.cpp b/widget/gtk/nsFilePicker.cpp
  // All below functions available as of GTK 3.20+
  void* nsFilePicker::GtkFileChooserNew(const gchar* title, GtkWindow* parent,
                                        GtkFileChooserAction action,
-                                       const gchar* accept_label) {
-   static auto sGtkFileChooserNativeNewPtr =
-       (void* (*)(const gchar*, GtkWindow*, GtkFileChooserAction, const gchar*,
-                  const gchar*))dlsym(RTLD_DEFAULT,
-                                      "gtk_file_chooser_native_new");
 diff --git a/widget/gtk/nsFilePicker.h b/widget/gtk/nsFilePicker.h
 --- a/widget/gtk/nsFilePicker.h
 +++ b/widget/gtk/nsFilePicker.h

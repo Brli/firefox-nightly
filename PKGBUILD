@@ -3,9 +3,9 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=11.1.0
+pkgver=11.4.0
 _esrver=115
-pkgrel=2
+pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -24,14 +24,16 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 options=(!emptydirs !makeflags !strip !lto !debug)
 source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.zip
         git+https://github.com/Floorp-Projects/l10n-central.git#branch=11.0.0
+        git+https://github.com/Floorp-Projects/Floorp-Strings.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=${_esrver}.0.2-2
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-04.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-06.tar.xz
         mozilla-kde.patch unity-menubar.patch
         fix_csd_window_buttons.patch)
-sha256sums=('99c3b07cad5a7150f27d2cadcd1a4c5395212b76c764782c9b8e7cdff9a0c606'
+sha256sums=('dbb0c2e31c84f4beb7e20410c6fcfa536de9801c3ec0eedced0f847b2e4dcc72'
             'SKIP'
             'SKIP'
-            '3f47eb3671c4a23b9513b0d61ee2faa635f8f33073043ccdbdcedadf89458f9e'
+            'SKIP'
+            '28503151dae9aded887030ca85d528d4ae29f3077a880a17a3121fdaa3d89ddb'
             '60fedd0457474e39371179692188c4ec49212fdf10ecce010f3a885aeb7e023b'
             '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
@@ -39,6 +41,7 @@ sha256sums=('99c3b07cad5a7150f27d2cadcd1a4c5395212b76c764782c9b8e7cdff9a0c606'
 prepare() {
   mkdir mozbuild
   mv -fv mozilla-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
+  cp -rvf Floorp-Strings/floorp.ftl "${srcdir}/Floorp-${pkgver}/floorp/browser/locales/en-US/floorp.ftl"
   cd "Floorp-${pkgver}" || exit
 
   msg 'Gentoo patch'

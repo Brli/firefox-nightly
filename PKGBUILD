@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=11.4.0
+pkgver=11.4.1
 _esrver=115
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
@@ -25,11 +25,13 @@ options=(!emptydirs !makeflags !strip !lto !debug)
 source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.zip
         git+https://github.com/Floorp-Projects/l10n-central.git#branch=11.0.0
         git+https://github.com/Floorp-Projects/Floorp-Strings.git
+        git+https://github.com/Floorp-Projects/Floorp-core.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=${_esrver}.0.2-2
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-06.tar.xz
         mozilla-kde.patch unity-menubar.patch
         fix_csd_window_buttons.patch)
-sha256sums=('dbb0c2e31c84f4beb7e20410c6fcfa536de9801c3ec0eedced0f847b2e4dcc72'
+sha256sums=('3f5f1bcf34055848c5f44bdf5942f396f598de06506cac42b3137e2973325b8a'
+            'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -40,9 +42,12 @@ sha256sums=('dbb0c2e31c84f4beb7e20410c6fcfa536de9801c3ec0eedced0f847b2e4dcc72'
 
 prepare() {
   mkdir mozbuild
-  mv -fv mozilla-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
-  cp -rvf Floorp-Strings/floorp.ftl "${srcdir}/Floorp-${pkgver}/floorp/browser/locales/en-US/floorp.ftl"
+  mv -f mozilla-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd "Floorp-${pkgver}" || exit
+
+  msg 'Tickle Git Submodule'
+  cp -r "$srcdir/Floorp-core/"* floorp/
+  cp -r "$srcdir/Floorp-Strings/"* "floorp/browser/locales/en-US/"
 
   msg 'Gentoo patch'
   local gentoo_patch=($(ls $srcdir/firefox-patches/))

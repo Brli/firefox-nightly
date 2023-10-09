@@ -5,7 +5,7 @@
 pkgname=floorp
 pkgver=11.4.1
 _esrver=115
-pkgrel=1
+pkgrel=2
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)

@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=119.0a1.20230923.677cbf2e64cd
+pkgver=120.0a1.20231003.e17d7235b683
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,14 +24,14 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=677cbf2e64cdcd3a93e644f781be2bdc2529ba1a
+_moz_revision=e17d7235b6833e36a524263990347804df15c7fb
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-117-patches-04.tar.xz
-        mozilla-kde.patch unity-menubar.patch stop-undesired-requests.patch
+        mozilla-kde.patch firefox-kde.patch unity-menubar.patch stop-undesired-requests.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch)
@@ -42,6 +42,7 @@ sha256sums=('SKIP'
             'SKIP'
             'cde9a59a052f20d26eef49ab2e3e9858a4692820ffd3faf15ef4a72132237cf5'
             '9f03cdf3b2e71beec1cbb426028fb9c99f9e448d174b561cc255b3de2bd0e437'
+            'ca175ca8f59809e81b7765a18e1ba3cf324e32c8a8c9e6c10a9ac5b29933da78'
             '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             '56ae26446429de7f9f95e5baccd2d0c399588d098fd473609cd157329127331a'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
@@ -72,12 +73,12 @@ pkgver() {
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv -fv mozilla-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
-  mv -fv stop-undesired-requests.patch -t "${srcdir}/librewolf-patch/patches/sed-patches/"
+  mv -f mozilla-kde.patch firefox-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
+  mv -f stop-undesired-requests.patch -t "${srcdir}/librewolf-patch/patches/sed-patches/"
   cd mozilla-central
 
   # Revert NSS requirement
-  sed 's,nss >= 3.94,nss >= 3.93,' -i build/moz.configure/nss.configure
+  # sed 's,nss >= 3.94,nss >= 3.93,' -i build/moz.configure/nss.configure
   # Revert ICU requirement
   # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
@@ -208,7 +209,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '117.0.1' > config/milestone.txt
+  echo '118.0.1' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"

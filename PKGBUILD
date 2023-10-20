@@ -29,6 +29,7 @@ source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.z
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=${_esrver}.0.2-2
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-06.tar.xz
         mozilla-kde.patch unity-menubar.patch
+        0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         fix_csd_window_buttons.patch)
 sha256sums=('3f5f1bcf34055848c5f44bdf5942f396f598de06506cac42b3137e2973325b8a'
             'SKIP'
@@ -38,12 +39,16 @@ sha256sums=('3f5f1bcf34055848c5f44bdf5942f396f598de06506cac42b3137e2973325b8a'
             '28503151dae9aded887030ca85d528d4ae29f3077a880a17a3121fdaa3d89ddb'
             '60fedd0457474e39371179692188c4ec49212fdf10ecce010f3a885aeb7e023b'
             '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
+            'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
 
 prepare() {
   mkdir mozbuild
   mv -f mozilla-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd "Floorp-${pkgver}" || exit
+
+  # patch for xdg home
+  patch -Np1 -i "$srcdir/0002-move-configuration-home-to-XDG_CONFIG_HOME.patch"
 
   msg 'Tickle Git Submodule'
   cp -r "$srcdir/Floorp-core/"* floorp/

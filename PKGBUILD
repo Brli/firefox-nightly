@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=120.0a1.20231009.70c980c054e9
+pkgver=120.0a1.20231020.dc0d913ecc24
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,13 +24,13 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=70c980c054e9a0693d3bee343b1235d47894163d
+_moz_revision=dc0d913ecc2486cafc7a005d2fe6705f2c7da222
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
-        git+https://github.com/openSUSE/firefox-maintenance.git
+        hg+http://www.rosenauer.org/hg/mozilla#branch=firefox118
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-117-patches-04.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-118-patches-04.tar.xz
         mozilla-kde.patch firefox-kde.patch unity-menubar.patch stop-undesired-requests.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg
@@ -40,8 +40,8 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'cde9a59a052f20d26eef49ab2e3e9858a4692820ffd3faf15ef4a72132237cf5'
-            '9f03cdf3b2e71beec1cbb426028fb9c99f9e448d174b561cc255b3de2bd0e437'
+            '45088e9909442efcb68eee47e1cebf4a94b6080ab53030abc6cb09eba6d7264d'
+            'a36b0cdd6c217884587cad1c56340f0ae4b0c423bcbe06090b7fe8aad3f302b2'
             'ca175ca8f59809e81b7765a18e1ba3cf324e32c8a8c9e6c10a9ac5b29933da78'
             '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             '56ae26446429de7f9f95e5baccd2d0c399588d098fd473609cd157329127331a'
@@ -94,11 +94,12 @@ prepare() {
                       '0017-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
                       '0018-bmo-1754469-memory_mozalloc_throw.patch'
                       '0019-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0022-bmo-1516803-gcc-lto-sandbox.patch'
-                      '0023-enable-vaapi-on-all-amd-cards.patch'
-                      '0024-bgo-907963-rustflags-single-string.patch'
-                      '0025-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch'
-                      '0032-gcc-lto-patch-from-opensuse.patch')
+                      '0021-bmo-1516803-gcc-lto-sandbox.patch'
+                      '0022-enable-vaapi-on-all-amd-cards.patch'
+                      '0023-bgo-907963-rustflags-single-string.patch'
+                      '0024-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch'
+                      '0025-gcc-lto-patch-from-opensuse.patch'
+                      '0026-bgo-914738-nodbus-fix2.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -129,10 +130,11 @@ prepare() {
                     # 'mozilla-bmo531915.patch'
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
-                    'firefox-branded-icons.patch')
+                    'firefox-branded-icons.patch'
+                    'mozilla-rust-disable-future-incompat.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/$src"
+    patch -Np1 -i "${srcdir}/mozilla/MozillaFirefox/$src"
   done
 
   msg 'librewolf patch'

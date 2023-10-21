@@ -1549,14 +1549,10 @@ diff --git a/xpcom/components/ManifestParser.cpp b/xpcom/components/ManifestPars
          stABI == eBad || stProcess == eBad) {
        continue;
 diff --git a/xpcom/components/moz.build b/xpcom/components/moz.build
+index 4a58f46..7fb012a 100644
 --- a/xpcom/components/moz.build
 +++ b/xpcom/components/moz.build
-@@ -66,16 +66,17 @@ LOCAL_INCLUDES += [
-     "!..",
-     "../base",
-     "../build",
-     "../ds",
-     "/chrome",
+@@ -71,6 +71,7 @@ LOCAL_INCLUDES += [
      "/js/xpconnect/loader",
      "/layout/build",
      "/modules/libjar",
@@ -1564,11 +1560,6 @@ diff --git a/xpcom/components/moz.build b/xpcom/components/moz.build
  ]
  
  if CONFIG["MOZ_WIDGET_TOOLKIT"] == "gtk":
-     CXXFLAGS += CONFIG["MOZ_GTK3_CFLAGS"]
-     if CONFIG["MOZ_ENABLE_DBUS"]:
-         CXXFLAGS += CONFIG["MOZ_DBUS_GLIB_CFLAGS"]
- 
- include("/ipc/chromium/chromium-config.mozbuild")
 diff --git a/xpcom/io/nsLocalFileUnix.cpp b/xpcom/io/nsLocalFileUnix.cpp
 --- a/xpcom/io/nsLocalFileUnix.cpp
 +++ b/xpcom/io/nsLocalFileUnix.cpp

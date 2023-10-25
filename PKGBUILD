@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=120.0a1.20231020.dc0d913ecc24
+pkgver=121.0a1.20231025.03d61eb955a9
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,13 +24,13 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=dc0d913ecc2486cafc7a005d2fe6705f2c7da222
+_moz_revision=03d61eb955a9ac6e3374ca4c5504edc41cd1aa4a
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         hg+http://www.rosenauer.org/hg/mozilla#branch=firefox118
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-118-patches-04.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-119-patches-01.tar.xz
         mozilla-kde.patch firefox-kde.patch unity-menubar.patch stop-undesired-requests.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg
@@ -40,7 +40,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '45088e9909442efcb68eee47e1cebf4a94b6080ab53030abc6cb09eba6d7264d'
+            'd373cfd3d71ccba15134a1a816cb0a07fd8aa1e0a76a64ffefa7623999b722c5'
             'a36b0cdd6c217884587cad1c56340f0ae4b0c423bcbe06090b7fe8aad3f302b2'
             'ca175ca8f59809e81b7765a18e1ba3cf324e32c8a8c9e6c10a9ac5b29933da78'
             '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
@@ -211,7 +211,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '118.0.2' > config/milestone.txt
+  echo '119.0.1' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"

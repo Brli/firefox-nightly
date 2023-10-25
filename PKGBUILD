@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=115.0.1
+pkgver=119.0
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -26,22 +26,21 @@ replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
 source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"{,.asc}
         hg+https://hg.mozilla.org/l10n-central/zh-TW
-        git+https://github.com/openSUSE/firefox-maintenance.git
+        hg+http://www.rosenauer.org/hg/mozilla#branch=firefox118
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-04.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01.tar.xz
         fix_csd_window_buttons.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
-        mozilla-kde.patch unity-menubar.patch
+        unity-menubar.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('cde9c7e6e4d9d3a0a247ce672009d4dd484d389b533e0181f6428dd104a8a228'
+sha256sums=('f63e44194548f246e1396508800739a24c0517e65e920002a6f67ee099be39dd'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '0240c74d83bab19c64aba2c89ad8388cffdb3010cb6a22e72c1249be14ce6c85'
+            'd373cfd3d71ccba15134a1a816cb0a07fd8aa1e0a76a64ffefa7623999b722c5'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
-            '60fedd0457474e39371179692188c4ec49212fdf10ecce010f3a885aeb7e023b'
             '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
@@ -62,7 +61,7 @@ _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv -fv mozilla-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
+  mv -fv unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd firefox-${pkgver%%b*}
 
   msg 'Gentoo patch'
@@ -97,16 +96,16 @@ prepare() {
                     # 'mozilla-bmo531915.patch' # broken patch
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
-                    # 'firefox-kde.patch'
-                    'firefox-branded-icons.patch')
+                    'firefox-branded-icons.patch'
+                    'mozilla-rust-disable-future-incompat.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/$src"
+    patch -Np1 -i "${srcdir}/mozilla/MozillaFirefox/$src"
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=('unity_kde/mozilla-kde.patch'
-                         'unity_kde/firefox-kde.patch'
+  local librewolf_patch=('sed-patches/stop-undesired-requests.patch'
+                         'ui-patches/remove-snippets-from-home.patch'
                          'unity_kde/unity-menubar.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."

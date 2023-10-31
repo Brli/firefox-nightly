@@ -75,7 +75,7 @@ prepare() {
   msg 'opensuse patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=('mozilla-nongnome-proxies.patch'
-                    # 'mozilla-kde.patch'
+                    'mozilla-kde.patch'
                     'mozilla-ntlm-full-path.patch'
                     'mozilla-aarch64-startup-crash.patch'
                     'mozilla-fix-aarch64-libopus.patch'
@@ -97,6 +97,7 @@ prepare() {
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
                     'firefox-branded-icons.patch'
+                    'firefox-kde.patch'
                     'mozilla-rust-disable-future-incompat.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."

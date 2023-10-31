@@ -3,8 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-beta
-_pkgver_stable=114.0.2
-pkgver=115.0b9
+_pkgver_stable=119.0
+pkgver=120.0b2
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -27,7 +27,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         git+https://github.com/Brli/firefox-trunk.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-02.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-01.tar.xz
         fix_csd_window_buttons.patch mozilla-kde.patch unity-menubar.patch
         firefox.desktop identity-icons-brand.svg
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch)
@@ -76,19 +76,19 @@ prepare() {
   local gentoo_patch=('0003-bmo-847568-Support-system-harfbuzz.patch'
                       '0004-bmo-847568-Support-system-graphite2.patch'
                       '0005-bmo-1559213-Support-system-av1.patch'
-                      '0006-bmo-1516803-Fix-building-sandbox.patch'
-                      '0014-bmo-1516081-Disable-watchdog-during-PGO-builds.patch'
-                      '0015-bmo-1516803-force-one-LTO-partition-for-sandbox-when.patch'
-                      '0016-libaom-Use-NEON_FLAGS-instead-of-VPX_ASFLAGS-for-lib.patch'
-                      '0017-build-Disable-Werror.patch'
-                      '0018-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0019-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0020-bgo-816975-fix-build-on-x86.patch'
-                      '0021-bmo-1559213-fix-system-av1-libs.patch'
-                      '0022-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0023-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0024-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0026-fix-building-gcc-pgo.patch')
+                      '0012-build-Disable-Werror.patch'
+                      '0013-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
+                      '0014-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
+                      '0015-bgo-816975-fix-build-on-x86.patch'
+                      '0017-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0018-bmo-1754469-memory_mozalloc_throw.patch'
+                      '0019-bgo-860033-firefox-wayland-no-dbus.patch'
+                      '0021-bmo-1516803-gcc-lto-sandbox.patch'
+                      '0022-enable-vaapi-on-all-amd-cards.patch'
+                      '0023-bgo-907963-rustflags-single-string.patch'
+                      '0024-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch'
+                      '0025-gcc-lto-patch-from-opensuse.patch'
+                      '0026-bgo-914738-nodbus-fix2.patch')
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 < "$srcdir/firefox-patches/$src"

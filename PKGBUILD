@@ -3,9 +3,9 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=11.4.1
+pkgver=11.5.1
 _esrver=115
-pkgrel=2
+pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -23,20 +23,18 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'xdg-desktop-portal: Screensharing with Wayland')
 options=(!emptydirs !makeflags !strip !lto !debug)
 source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.zip
-        git+https://github.com/Floorp-Projects/l10n-central.git#branch=11.0.0
-        git+https://github.com/Floorp-Projects/Floorp-Strings.git
+        git+https://github.com/Floorp-Projects/Unified-l10n-central.git
         git+https://github.com/Floorp-Projects/Floorp-core.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=${_esrver}.0.2-2
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-06.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-07.tar.xz
         mozilla-kde.patch unity-menubar.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         fix_csd_window_buttons.patch)
-sha256sums=('3f5f1bcf34055848c5f44bdf5942f396f598de06506cac42b3137e2973325b8a'
+sha256sums=('45a1908428330c50a02be7091012e793fbb79cbd320fc6960492667046c275b0'
             'SKIP'
             'SKIP'
             'SKIP'
-            'SKIP'
-            '28503151dae9aded887030ca85d528d4ae29f3077a880a17a3121fdaa3d89ddb'
+            '0bb8fa0718ae65296a3d77fde1c1f3c6c7b7af899afa6a14d79b9335f5da32b8'
             '60fedd0457474e39371179692188c4ec49212fdf10ecce010f3a885aeb7e023b'
             '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
@@ -52,7 +50,7 @@ prepare() {
 
   msg 'Tickle Git Submodule'
   cp -r "$srcdir/Floorp-core/"* floorp/
-  cp -r "$srcdir/Floorp-Strings/"* "floorp/browser/locales/en-US/"
+  cp -r "$srcdir/Unified-l10n-central/"* "floorp/browser/locales/l10n-central/"
 
   msg 'Gentoo patch'
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
@@ -134,7 +132,7 @@ END
 
   # Remove patched rust file checksums
   sed 's/\("files":{\)[^}]*/\1/' -i \
-    third_party/rust/{bindgen,mp4parse}/.cargo-checksum.json
+    third_party/rust/*/.cargo-checksum.json
 }
 
 build() {
@@ -178,7 +176,7 @@ ac_add_options --enable-profile-use=cross
 ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
 ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 # L10n
-ac_add_options --with-l10n-base=${srcdir}/l10n-central/l10n-central
+ac_add_options --with-l10n-base=${srcdir}/Unified-l10n-central
 END
   ./mach build
   

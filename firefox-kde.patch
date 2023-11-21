@@ -1,18 +1,33 @@
-# HG changeset patch
-# User msirringhaus@suse.de
-# Date 1559300151 -7200
-#      Fri May 31 12:55:51 2019 +0200
-# Node ID 54d41b0033b8d649d842a1f862c6fed8b9874dec
-# Parent  340817025937e2c69bb1643930d7dfdf63656a7b
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Martin Sirringhaus <msirringhaus@suse.de>
+Date: Tue, 8 Aug 2023 16:18:24 +0300
+Subject: [PATCH] Add KDE integration to Firefox
+
+Bug: https://bugzilla.mozilla.org/show_bug.cgi?id=140751
+Bug: https://bugzilla.suse.com/show_bug.cgi?id=170055
+
 How to apply this patch:
+
 1. Import and apply it
 2. cp browser/base/content/browser.xul browser/base/content/browser-kde.xul
 3. Find editBookmarkPanelDoneButton
 4. Replace #ifndef with #ifdef in the line above (this hanges the button order from Gnome-style to KDE-style)
 5. hg qrefresh
+---
+ browser/components/preferences/main.js        |  18 +++
+ browser/components/shell/moz.build            |   2 +
+ .../components/shell/nsKDEShellService.cpp    | 109 ++++++++++++++++++
+ browser/components/shell/nsKDEShellService.h  |  32 +++++
+ .../components/shell/nsUnixShellService.cpp   |  22 ++++
+ browser/components/shell/nsUnixShellService.h |  15 +++
+ 6 files changed, 198 insertions(+)
+ create mode 100644 browser/components/shell/nsKDEShellService.cpp
+ create mode 100644 browser/components/shell/nsKDEShellService.h
+ create mode 100644 browser/components/shell/nsUnixShellService.cpp
+ create mode 100644 browser/components/shell/nsUnixShellService.h
 
 diff --git a/browser/components/preferences/main.js b/browser/components/preferences/main.js
-index 90847e7..038f24b 100644
+index 609b9a9d06178b42b0ba8509500a1b72d8bd3b88..05df0fc6ce279ab6161a3f93450e7296c95a371f 100644
 --- a/browser/components/preferences/main.js
 +++ b/browser/components/preferences/main.js
 @@ -294,6 +294,13 @@ var gMainPane = {
@@ -29,7 +44,7 @@ index 90847e7..038f24b 100644
      this.initBrowserContainers();
      this.buildContentProcessCountMenuList();
  
-@@ -1724,6 +1731,17 @@ var gMainPane = {
+@@ -1750,6 +1750,17 @@ var gMainPane = {
        }
        try {
          shellSvc.setDefaultBrowser(false);
@@ -47,9 +62,22 @@ index 90847e7..038f24b 100644
        } catch (ex) {
          console.error(ex);
          return;
+diff --git a/browser/components/shell/moz.build b/browser/components/shell/moz.build
+index eb88cb287dc3f04022b74b978666118bbd5fa6b2..95277533781a7224d108e3c45731a6d9a89ba1a0 100644
+--- a/browser/components/shell/moz.build
++++ b/browser/components/shell/moz.build
+@@ -36,6 +36,8 @@ elif CONFIG["MOZ_WIDGET_TOOLKIT"] == "gtk":
  
+     SOURCES += [
+         "nsGNOMEShellService.cpp",
++        "nsKDEShellService.cpp",
++        "nsUnixShellService.cpp",
+     ]
+     if CONFIG["MOZ_ENABLE_DBUS"]:
+         SOURCES += [
 diff --git a/browser/components/shell/nsKDEShellService.cpp b/browser/components/shell/nsKDEShellService.cpp
 new file mode 100644
+index 0000000000000000000000000000000000000000..152a3aca87ea73477bc75c4e93c01e5a52dda102
 --- /dev/null
 +++ b/browser/components/shell/nsKDEShellService.cpp
 @@ -0,0 +1,109 @@
@@ -164,6 +192,7 @@ new file mode 100644
 +
 diff --git a/browser/components/shell/nsKDEShellService.h b/browser/components/shell/nsKDEShellService.h
 new file mode 100644
+index 0000000000000000000000000000000000000000..8b0bb19164352453cfa453dd87c19263160b9ad8
 --- /dev/null
 +++ b/browser/components/shell/nsKDEShellService.h
 @@ -0,0 +1,32 @@
@@ -184,7 +213,7 @@ new file mode 100644
 +                                public nsToolkitShellService
 +{
 +public:
-+  nsKDEShellService() : mCheckedThisSession(false) { }
++  nsKDEShellService() : mAppIsInPath(false) {}
 +
 +  NS_DECL_ISUPPORTS
 +  NS_DECL_NSISHELLSERVICE
@@ -195,12 +224,13 @@ new file mode 100644
 +private:
 +  ~nsKDEShellService() {}
 +
-+  bool mCheckedThisSession;
++  bool mAppIsInPath;
 +};
 +
 +#endif // nskdeshellservice_h____
 diff --git a/browser/components/shell/nsUnixShellService.cpp b/browser/components/shell/nsUnixShellService.cpp
 new file mode 100644
+index 0000000000000000000000000000000000000000..abf266ebdc52e136f495911da3454e69c770c6db
 --- /dev/null
 +++ b/browser/components/shell/nsUnixShellService.cpp
 @@ -0,0 +1,22 @@
@@ -228,6 +258,7 @@ new file mode 100644
 +}
 diff --git a/browser/components/shell/nsUnixShellService.h b/browser/components/shell/nsUnixShellService.h
 new file mode 100644
+index 0000000000000000000000000000000000000000..26b5dbac47dd9a8ec1fcb6c93575cca750692735
 --- /dev/null
 +++ b/browser/components/shell/nsUnixShellService.h
 @@ -0,0 +1,15 @@

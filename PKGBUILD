@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=122.0a1.20231121.27366586a33a
+pkgver=122.0a1.20231127.18ab5a589890
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,14 +24,14 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=27366586a33a4d0f53cd466bbca28d1edfacf09c
+_moz_revision=18ab5a589890dad5eb59502016c71451cadf2ee5
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
-        hg+http://www.rosenauer.org/hg/mozilla#branch=firefox118
+        hg+http://www.rosenauer.org/hg/mozilla#revision=19915e86b721
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-119-patches-01.tar.xz
-        mozilla-kde.patch firefox-kde.patch unity-menubar.patch stop-undesired-requests.patch
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-120-patches-01.tar.xz
+        mozilla-kde.patch firefox-kde.patch stop-undesired-requests.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch)
@@ -40,10 +40,9 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'd373cfd3d71ccba15134a1a816cb0a07fd8aa1e0a76a64ffefa7623999b722c5'
+            'fc004136854a51f3a3d795fa13ac9c108a40988ec09f0ee1498b6f4a2bc09a71'
             'fb59151ae0bee183251d560dc3b04a47bde1b9aab9ee2d9fa251a15337d1eb11'
-            'f1cce1fa25f9a2c6e141acac818bfc9eb5c9e0a723dc9431755e31a7027d0d39'
-            '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
+            '94b90fa2836ef7fa17edd6382f377fcb7b34e6af94ce52523957366839b0b5af'
             '56ae26446429de7f9f95e5baccd2d0c399588d098fd473609cd157329127331a'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'db9954669b580daf253e66321c1389aab49fcf09abe887daeb4475e5ef93a7ce'
@@ -73,7 +72,7 @@ pkgver() {
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv -fv mozilla-kde.patch firefox-kde.patch -t "${srcdir}/mozilla/MozillaFirefox/"
+  mv -fv mozilla-kde.patch firefox-kde.patch -t "${srcdir}/mozilla/"
   mv -fv stop-undesired-requests.patch -t "${srcdir}/librewolf-patch/patches/sed-patches/"
   cd mozilla-central
 
@@ -98,8 +97,7 @@ prepare() {
                       '0022-enable-vaapi-on-all-amd-cards.patch'
                       '0023-bgo-907963-rustflags-single-string.patch'
                       '0024-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch'
-                      '0025-gcc-lto-patch-from-opensuse.patch'
-                      '0026-bgo-914738-nodbus-fix2.patch')
+                      '0025-gcc-lto-patch-from-opensuse.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -131,11 +129,11 @@ prepare() {
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
                     'firefox-branded-icons.patch'
-                    # 'firefox-kde.patch'
+                    'firefox-kde.patch'
                     'mozilla-rust-disable-future-incompat.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/mozilla/MozillaFirefox/$src"
+    patch -Np1 -i "${srcdir}/mozilla/$src"
   done
 
   msg 'librewolf patch'
@@ -298,7 +296,7 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 pref("extensions.autoDisableScopes", 11);
 
 // UA override
-// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.58");
+// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36");
 
 // Scale UI
 // pref("layout.css.devPixelsPerPx",    "1.2");

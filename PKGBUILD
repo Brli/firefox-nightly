@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=119.0
+pkgver=120.0
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -31,17 +31,17 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01.tar.xz
         fix_csd_window_buttons.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
-        unity-menubar.patch
+        firefox-kde.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('f63e44194548f246e1396508800739a24c0517e65e920002a6f67ee099be39dd'
+sha256sums=('e710058701074eda53ca9f5fd52c57254858a027984f735bdcd58d6906f6b574'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'd373cfd3d71ccba15134a1a816cb0a07fd8aa1e0a76a64ffefa7623999b722c5'
+            'fc004136854a51f3a3d795fa13ac9c108a40988ec09f0ee1498b6f4a2bc09a71'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
-            '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
+            '94b90fa2836ef7fa17edd6382f377fcb7b34e6af94ce52523957366839b0b5af'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -61,10 +61,11 @@ _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv -fv unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
-  cd firefox-${pkgver%%b*}
+  mv -fv firefox-kde.patch -t "${srcdir}/mozilla/"
+  cd firefox-${pkgver}
 
   msg 'Gentoo patch'
+  rm "$srcdir/firefox-patches/0028-bmo-1862601-system-icu-74.patch"
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -101,13 +102,12 @@ prepare() {
                     'mozilla-rust-disable-future-incompat.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/mozilla/MozillaFirefox/$src"
+    patch -Np1 -i "${srcdir}/mozilla/${src}"
   done
 
   msg 'librewolf patch'
   local librewolf_patch=('sed-patches/stop-undesired-requests.patch'
-                         'ui-patches/remove-snippets-from-home.patch'
-                         'unity_kde/unity-menubar.patch')
+                         'ui-patches/remove-snippets-from-home.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
@@ -181,7 +181,7 @@ END
 
   # remove checksum for files patched
   sed 's/\("files":{\)[^}]*/\1/' -i \
-    third_party/rust/bindgen/.cargo-checksum.json
+    third_party/rust/*/.cargo-checksum.json
 
   patch -Np1 -i ../0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
 }
@@ -254,7 +254,7 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 pref("extensions.autoDisableScopes", 11);
 
 // UA override
-// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.39");
+// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36");
 END
 
   install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END

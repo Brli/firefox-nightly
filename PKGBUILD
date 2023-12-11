@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=120.0
+pkgver=120.0.1
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -26,14 +26,14 @@ replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
 source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"{,.asc}
         hg+https://hg.mozilla.org/l10n-central/zh-TW
-        hg+http://www.rosenauer.org/hg/mozilla#branch=firefox118
+        hg+http://www.rosenauer.org/hg/mozilla#branch=firefox119
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01.tar.xz
         fix_csd_window_buttons.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         firefox-kde.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('e710058701074eda53ca9f5fd52c57254858a027984f735bdcd58d6906f6b574'
+sha256sums=('76e7bb2a144880158444d8e9014f4d080d219bd150c3db405b27e4c7e3959ae2'
             'SKIP'
             'SKIP'
             'SKIP'

@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=11.5.1
+pkgver=11.6.1
 _esrver=115
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
@@ -30,7 +30,7 @@ source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.z
         mozilla-kde.patch unity-menubar.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         fix_csd_window_buttons.patch)
-sha256sums=('45a1908428330c50a02be7091012e793fbb79cbd320fc6960492667046c275b0'
+sha256sums=('11636bb52ce83b4ceb0e1e2e1f26b578febc3613745ba971778beaa9758017af'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -60,7 +60,9 @@ prepare() {
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=(unity_kde/mozilla-kde.patch
+  local librewolf_patch=(sed-patches/stop-undesired-requests.patch
+                         ui-patches/remove-snippets-from-home.patch
+                         unity_kde/mozilla-kde.patch
                          unity_kde/firefox-kde.patch
                          unity_kde/unity-menubar.patch)
   for src in "${librewolf_patch[@]}"; do

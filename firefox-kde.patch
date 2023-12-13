@@ -29,12 +29,7 @@ How to apply this patch:
 diff --git a/browser/components/preferences/main.js b/browser/components/preferences/main.js
 --- a/browser/components/preferences/main.js
 +++ b/browser/components/preferences/main.js
-@@ -291,16 +291,23 @@ var gMainPane = {
-         }, backoffTimes[this._backoffIndex + 1 < backoffTimes.length ? this._backoffIndex++ : backoffTimes.length - 1]);
-       };
- 
-       window.setTimeout(() => {
-         window.requestIdleCallback(pollForDefaultBrowser);
+@@ -297,6 +297,13 @@ var gMainPane = {
        }, backoffTimes[this._backoffIndex]);
      }
  
@@ -48,20 +43,10 @@ diff --git a/browser/components/preferences/main.js b/browser/components/prefere
      this.initBrowserContainers();
      this.buildContentProcessCountMenuList();
  
-     this.updateDefaultPerformanceSettingsPref();
+@@ -1758,6 +1765,17 @@ var gMainPane = {
  
-     let defaultPerformancePref = Preferences.get(
-       "browser.preferences.defaultPerformanceSettings.enabled"
-     );
-@@ -1744,16 +1751,27 @@ var gMainPane = {
-       this._backoffIndex = 0;
- 
-       let shellSvc = getShellService();
-       if (!shellSvc) {
-         return;
-       }
        try {
-         shellSvc.setDefaultBrowser(false);
+         await shellSvc.setDefaultBrowser(false);
 +        if (kde_session == 1) {
 +          var shellObj = Components.classes["@mozilla.org/file/local;1"]
 +            .createInstance(Components.interfaces.nsILocalFile);
@@ -76,11 +61,6 @@ diff --git a/browser/components/preferences/main.js b/browser/components/prefere
        } catch (ex) {
          console.error(ex);
          return;
-       }
- 
-       let isDefault = shellSvc.isDefaultBrowser(false, true);
-       let setDefaultPane = document.getElementById("setDefaultPane");
-       setDefaultPane.classList.toggle("is-default", isDefault);
 diff --git a/browser/components/shell/moz.build b/browser/components/shell/moz.build
 --- a/browser/components/shell/moz.build
 +++ b/browser/components/shell/moz.build

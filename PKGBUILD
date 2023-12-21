@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=11.6.1
+pkgver=11.7.1
 _esrver=115
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
@@ -25,17 +25,19 @@ options=(!emptydirs !makeflags !strip !lto !debug)
 source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.zip
         git+https://github.com/Floorp-Projects/Unified-l10n-central.git
         git+https://github.com/Floorp-Projects/Floorp-core.git
+        hg+https://www.rosenauer.org/hg/mozilla#branch=firefox${_esrver}
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=${_esrver}.0.2-2
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-07.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-08.tar.xz
         mozilla-kde.patch unity-menubar.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         fix_csd_window_buttons.patch)
-sha256sums=('11636bb52ce83b4ceb0e1e2e1f26b578febc3613745ba971778beaa9758017af'
+sha256sums=('e7bcbed95cc93c4aec63d49ed861b9b1b18c81809033de38f26922ef9e4f0dee'
             'SKIP'
             'SKIP'
             'SKIP'
-            '0bb8fa0718ae65296a3d77fde1c1f3c6c7b7af899afa6a14d79b9335f5da32b8'
-            '60fedd0457474e39371179692188c4ec49212fdf10ecce010f3a885aeb7e023b'
+            'SKIP'
+            'db6e1e87a1b5f857be93a5a44303c5e4e36f94bf05036c8f99730457448f99db'
+            'fb59151ae0bee183251d560dc3b04a47bde1b9aab9ee2d9fa251a15337d1eb11'
             '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
@@ -58,6 +60,39 @@ prepare() {
     msg "Applying patch $src..."
     patch -Np1 < "$srcdir/firefox-patches/$src"
   done
+
+  msg 'Opensuse Patch'
+  # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
+  local suse_patch=('mozilla-nongnome-proxies.patch'
+                    # 'mozilla-kde.patch'
+                    'mozilla-ntlm-full-path.patch'
+                    'mozilla-aarch64-startup-crash.patch'
+                    'mozilla-fix-aarch64-libopus.patch'
+                    # 'mozilla-s390-context.patch'
+                    # 'mozilla-pgo.patch' # previous patch detected
+                    'mozilla-reduce-rust-debuginfo.patch'
+                    # 'mozilla-bmo1005535.patch'
+                    # 'mozilla-bmo1568145.patch'
+                    # 'mozilla-bmo1504834-part1.patch'
+                    # 'mozilla-bmo1504834-part3.patch'
+                    'mozilla-bmo1512162.patch'
+                    # 'mozilla-fix-top-level-asm.patch' # broken patch
+                    'mozilla-bmo849632.patch'
+                    'mozilla-bmo998749.patch'
+                    # 'mozilla-s390x-skia-gradient.patch'
+                    # 'mozilla-libavcodec58_91.patch' # We don't fallback-support ffmpeg
+                    # 'mozilla-silence-no-return-type.patch'
+                    # 'mozilla-bmo531915.patch' # broken patch
+                    'one_swizzle_to_rule_them_all.patch'
+                    'svg-rendering.patch'
+                    # 'firefox-branded-icons.patch'
+                    # 'firefox-kde.patch'
+                    'mozilla-rust-disable-future-incompat.patch')
+  for src in "${suse_patch[@]}"; do
+    msg "Applying patch $src..."
+    patch -Np1 -i "${srcdir}/mozilla/${src}"
+  done
+
 
   msg 'librewolf patch'
   local librewolf_patch=(sed-patches/stop-undesired-requests.patch

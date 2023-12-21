@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=120.0.1
+pkgver=121.0
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -31,17 +31,18 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01.tar.xz
         fix_csd_window_buttons.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
-        firefox-kde.patch
+        firefox-kde.patch mozilla-kde.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('76e7bb2a144880158444d8e9014f4d080d219bd150c3db405b27e4c7e3959ae2'
+sha256sums=('edc7a5159d23ff2a23e22bf5abe22231658cee2902b93b5889ee73958aa06aa4'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'fc004136854a51f3a3d795fa13ac9c108a40988ec09f0ee1498b6f4a2bc09a71'
+            '8ac19785a4717f6363644009bb110fa26e758d40b3fd902680a7793bb4783f8d'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
             '94b90fa2836ef7fa17edd6382f377fcb7b34e6af94ce52523957366839b0b5af'
+            'fb59151ae0bee183251d560dc3b04a47bde1b9aab9ee2d9fa251a15337d1eb11'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -61,11 +62,10 @@ _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv -fv firefox-kde.patch -t "${srcdir}/mozilla/"
+  mv -f mozilla-kde.patch firefox-kde.patch -t "${srcdir}/mozilla/"
   cd firefox-${pkgver}
 
   msg 'Gentoo patch'
-  rm "$srcdir/firefox-patches/0028-bmo-1862601-system-icu-74.patch"
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -181,7 +181,7 @@ END
 
   # remove checksum for files patched
   sed 's/\("files":{\)[^}]*/\1/' -i \
-    third_party/rust/*/.cargo-checksum.json
+    third_party/rust/proc-macro2/.cargo-checksum.json
 
   patch -Np1 -i ../0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
 }

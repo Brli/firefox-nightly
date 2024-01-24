@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=11.7.1
+pkgver=11.8.2
 _esrver=115
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
@@ -31,7 +31,7 @@ source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.z
         mozilla-kde.patch unity-menubar.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         fix_csd_window_buttons.patch)
-sha256sums=('e7bcbed95cc93c4aec63d49ed861b9b1b18c81809033de38f26922ef9e4f0dee'
+sha256sums=('a2a06646527a0361eebb192139c99d793a091a019912248f2a04848058150d2b'
             'SKIP'
             'SKIP'
             'SKIP'

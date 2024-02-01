@@ -3,8 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=121.0.1
-pkgrel=1
+pkgver=122.0
+pkgrel=3
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -26,23 +26,23 @@ replaces=(firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
 source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"{,.asc}
         hg+https://hg.mozilla.org/l10n-central/zh-TW
-        hg+http://www.rosenauer.org/hg/mozilla#branch=firefox119
+        hg+http://www.rosenauer.org/hg/mozilla#branch=firefox120
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-03.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01.tar.xz
         fix_csd_window_buttons.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         firefox-kde.patch mozilla-kde.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('b3a4216e01eaeb9a7c6ef4659d8dcd956fbd90a78a8279ee3a598881e63e49ce'
+sha256sums=('b84815a90e147965e4c0b50599c85b1022ab0fce42105e5ef45c630dcca5dec3'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '13ee999f4f57727549bd1132b01e58b223a9d8adf96d4abebef166804753abf7'
+            '6c694d6096ef3d191d7c16b677c076a8957e3f028bac99cc32d651f12fce6c25'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
-            '94b90fa2836ef7fa17edd6382f377fcb7b34e6af94ce52523957366839b0b5af'
-            'fb59151ae0bee183251d560dc3b04a47bde1b9aab9ee2d9fa251a15337d1eb11'
+            '909256c126a649c5c214281b10462474452c46c912ea2ecae830ea489b94a4db'
+            '09d7f85f03bd6f88d9302decca478489acbf6d69f72a4691650bb8fd619b9421'
             'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
@@ -66,6 +66,7 @@ prepare() {
   cd firefox-${pkgver}
 
   msg 'Gentoo patch'
+  rm $srcdir/firefox-patches/0020-bgo-908297-ppc64-webrtc.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -97,17 +98,17 @@ prepare() {
                     # 'mozilla-bmo531915.patch' # broken patch
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
-                    'firefox-branded-icons.patch'
-                    'firefox-kde.patch'
-                    'mozilla-rust-disable-future-incompat.patch')
+                    # 'firefox-branded-icons.patch'
+                    'firefox-kde.patch')
+                    # 'mozilla-rust-disable-future-incompat.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/mozilla/${src}"
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=('sed-patches/stop-undesired-requests.patch'
-                         'ui-patches/remove-snippets-from-home.patch')
+  local librewolf_patch=('sed-patches/stop-undesired-requests.patch')
+                         # 'ui-patches/remove-snippets-from-home.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"

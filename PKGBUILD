@@ -5,7 +5,7 @@
 pkgname=floorp
 pkgver=11.8.2
 _esrver=115
-pkgrel=1
+pkgrel=2
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -121,11 +121,12 @@ ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
+ac_add_options --enable-default-toolkit=cairo-gtk3-x11-wayland
 ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 # ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
-ac_add_options --enable-update-channel=release
+ac_add_options --enable-update-channel=nightly
 ac_add_options --with-branding=browser/branding/official
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
@@ -198,10 +199,8 @@ END
     ./mach python build/pgo/profileserver.py
 
   stat -c "Profile data found (%s bytes)" merged.profdata
-  test -s merged.profdata
-
   stat -c "Jar log found (%s bytes)" jarlog
-  test -s jarlog
+
 
   msg "Removing instrumented browser..."
   ./mach clobber

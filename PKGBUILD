@@ -3,15 +3,15 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=11.8.2
+pkgver=11.9.0
 _esrver=115
-pkgrel=2
+pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
 url="https://floorp.ablaze.one/"
 depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
-makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
+makedepends=(unzip zip diffutils yasm mesa imake inetutils xwayland-run weston
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
              lld dump_syms wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
              mercurial breezy python-dulwich rsync)
@@ -24,14 +24,14 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 options=(!emptydirs !makeflags !strip !lto !debug)
 source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.zip
         git+https://github.com/Floorp-Projects/Unified-l10n-central.git
-        git+https://github.com/Floorp-Projects/Floorp-core.git
+        git+https://github.com/Floorp-Projects/Floorp-core.git#commit=cefaa9a
         hg+https://www.rosenauer.org/hg/mozilla#branch=firefox${_esrver}
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=${_esrver}.0.2-2
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-08.tar.xz
         mozilla-kde.patch unity-menubar.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         fix_csd_window_buttons.patch)
-sha256sums=('a2a06646527a0361eebb192139c99d793a091a019912248f2a04848058150d2b'
+sha256sums=('176782b67c8c0e23d7a0ba55600f86625392bd91ca6154ab12e0c778f91e2266'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -121,7 +121,7 @@ ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-ac_add_options --enable-default-toolkit=cairo-gtk3-x11-wayland
+ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 # ac_add_options --without-wasm-sandboxed-libraries
 
@@ -159,13 +159,29 @@ ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman
 
 # Features
+ac_add_options --enable-av1
+ac_add_options --enable-eme=widevine
+ac_add_options --enable-jxl
+ac_add_options --enable-pulseaudio
+ac_add_options --enable-raw
+ac_add_options --enable-sandbox
+ac_add_options --enable-webrtc
+ac_add_options --disable-default-browser-agent
+ac_add_options --disable-parental-controls
 ac_add_options --enable-proxy-bypass-protection
 ac_add_options --disable-alsa
 ac_add_options --disable-jack
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
+
+# Debugging
 ac_add_options --disable-debug
+ac_add_options --disable-debug-symbols
+ac_add_options --disable-debug-js-modules
+ac_add_options --enable-strip
+ac_add_options --enable-install-strip
+export STRIP_FLAGS="--strip-debug --strip-unneeded"
 END
 
   # Remove patched rust file checksums
@@ -179,7 +195,11 @@ build() {
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
   export MOZ_ENABLE_FULL_SYMBOLS=0
+  export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
+  export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-$srcdir/xdg}"
+  export LIBGL_ALWAYS_SOFTWARE=true
+  install -dm700 "${XDG_RUNTIME_DIR:?}"
 
   # LTO needs more open files
   ulimit -n 4096
@@ -195,8 +215,8 @@ END
   ./mach package
   LLVM_PROFDATA=llvm-profdata \
     JARLOG_FILE="$PWD/jarlog" \
-    xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
-    ./mach python build/pgo/profileserver.py
+    wlheadless-run -c weston --width=1920 --height=1080 \
+    -- ./mach python build/pgo/profileserver.py
 
   stat -c "Profile data found (%s bytes)" merged.profdata
   stat -c "Jar log found (%s bytes)" jarlog

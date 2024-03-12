@@ -3,8 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=123.0
-pkgrel=2
+pkgver=123.0.1
+pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -28,17 +28,17 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         hg+http://www.rosenauer.org/hg/mozilla#branch=firefox120
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-02.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-04.tar.xz
         fix_csd_window_buttons.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         firefox-kde.patch mozilla-kde.patch bm1875573-update-aom.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('9e885abdaddb14cd4f313c1575282fec6af5901f445e9744fe24e2ea837d4cb7'
+sha256sums=('d5dcb955b65e0f164a90cac0760724486e36e896221b98f244801dfd045d741c'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '0b4cb5f090d888dfc7ab25f1f0be055e36a9a3b4770e11d159f0637c3faef904'
+            '0ff161ba9768d32dfd6829b842c600266333f1a88d3de02cb580d207f6b25044'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
             '909256c126a649c5c214281b10462474452c46c912ea2ecae830ea489b94a4db'
@@ -70,7 +70,6 @@ prepare() {
 
   msg 'Gentoo patch'
   rm -v $srcdir/firefox-patches/0005-bmo-1559213-Support-system-av1.patch
-  rm -v $srcdir/firefox-patches/0016-bmo-1559213-fix-system-av1-libs.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -168,11 +167,11 @@ ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-graphite2
 ac_add_options --with-system-icu
 ac_add_options --enable-system-ffi
-#ac_add_options --enable-system-av1
+# ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman
 
 # Features
-#ac_add_options --enable-av1
+ac_add_options --enable-av1
 ac_add_options --enable-sandbox
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --enable-audio-backends='alsa,pulseaudio,jack'

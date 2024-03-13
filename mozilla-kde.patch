@@ -1006,7 +1006,7 @@ index 22d0f46b9563734c7afb4292417124f3cd171a12..b2a68711eb344d5ac41a7133751b2c19
  #include <sys/types.h>
  #include <sys/stat.h>
  #include <unistd.h>
-@@ -28,6 +29,8 @@
+@@ -30,6 +31,8 @@
  #include "WidgetUtilsGtk.h"
  
  #include "nsFilePicker.h"
@@ -1015,7 +1015,7 @@ index 22d0f46b9563734c7afb4292417124f3cd171a12..b2a68711eb344d5ac41a7133751b2c19
  
  #undef LOG
  #ifdef MOZ_LOGGING
-@@ -242,7 +245,8 @@ NS_IMETHODIMP
+@@ -307,7 +310,8 @@ NS_IMETHODIMP
  nsFilePicker::AppendFilter(const nsAString& aTitle, const nsAString& aFilter) {
    if (aFilter.EqualsLiteral("..apps")) {
      // No platform specific thing we can do here, really....
@@ -1025,14 +1025,14 @@ index 22d0f46b9563734c7afb4292417124f3cd171a12..b2a68711eb344d5ac41a7133751b2c19
    }
  
    nsAutoCString filter, name;
-@@ -352,6 +356,31 @@ nsFilePicker::Open(nsIFilePickerShownCallback* aCallback) {
-   // Can't show two dialogs concurrently with the same filepicker
-   if (mRunning) return NS_ERROR_NOT_AVAILABLE;
+@@ -447,6 +451,31 @@ nsFilePicker::Open(nsIFilePickerShownCallback* aCallback) {
+   }
+ #endif
  
 +  // KDE file picker is not handled via callback
 +  if (nsKDEUtils::kdeSupport()) {
 +    mCallback = aCallback;
-+    mRunning = true;
++    mFileChooser = file_chooser;
 +    NS_ADDREF_THIS();
 +    g_idle_add(
 +        [](gpointer data) -> gboolean {
@@ -1045,7 +1045,7 @@ index 22d0f46b9563734c7afb4292417124f3cd171a12..b2a68711eb344d5ac41a7133751b2c19
 +          } else {
 +            queuedPicker->mResult = result;
 +          }
-+          queuedPicker->mRunning = false;
++          queuedPicker->mFileChooser = nullptr;
 +          NS_RELEASE(queuedPicker);
 +          return G_SOURCE_REMOVE;
 +        },
@@ -1054,10 +1054,10 @@ index 22d0f46b9563734c7afb4292417124f3cd171a12..b2a68711eb344d5ac41a7133751b2c19
 +    return NS_OK;
 +  }
 +
-   NS_ConvertUTF16toUTF8 title(mTitle);
- 
-   GtkWindow* parent_widget =
-@@ -633,6 +662,205 @@ void nsFilePicker::Done(void* file_chooser, gint response) {
+   if (action == GTK_FILE_CHOOSER_ACTION_OPEN ||
+       action == GTK_FILE_CHOOSER_ACTION_SAVE) {
+     GtkWidget* img_preview = gtk_image_new();
+@@ -712,6 +741,205 @@ void nsFilePicker::Done(void* file_chooser, gint response) {
    NS_RELEASE_THIS();
  }
  

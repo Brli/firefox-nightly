@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=122.0a1.20231213.7b5df397384d
+pkgver=125.0a1.20240312.5dbe89396d7f
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -24,14 +24,15 @@ provides=(firefox=${pkgver:0:5})
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=7b5df397384d4072391ad09f475b923763d5331a
+_moz_revision=5dbe89396d7f52d57c4a21457fcf95d4e1ae24c3
+_gentoo_patch=123-patches-07
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         hg+http://www.rosenauer.org/hg/mozilla#branch=firefox119
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-120-patches-01.tar.xz
-        mozilla-kde.patch firefox-kde.patch stop-undesired-requests.patch
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
+        mozilla-kde.patch firefox-kde.patch
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch)
@@ -40,10 +41,9 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'fc004136854a51f3a3d795fa13ac9c108a40988ec09f0ee1498b6f4a2bc09a71'
-            'fb59151ae0bee183251d560dc3b04a47bde1b9aab9ee2d9fa251a15337d1eb11'
+            'ba1caa7c36f6edb0e3f8c965967e53e908853582197e48600abd1b28298baea6'
+            '645028f3f7ee4524a4a4fc71c0f95fe481525c9faccbb3100926f6046928c82f'
             '0732034ea0d97b3cd5ec7b84bc541d762d603971b955bba4f403ddb5bdb4a178'
-            '56ae26446429de7f9f95e5baccd2d0c399588d098fd473609cd157329127331a'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'db9954669b580daf253e66321c1389aab49fcf09abe887daeb4475e5ef93a7ce'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
@@ -73,7 +73,6 @@ prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
   mv -fv mozilla-kde.patch firefox-kde.patch -t "${srcdir}/mozilla/"
-  mv -fv stop-undesired-requests.patch -t "${srcdir}/librewolf-patch/patches/sed-patches/"
   cd mozilla-central
 
   # Revert NSS requirement
@@ -83,21 +82,23 @@ prepare() {
 
   msg 'Gentoo patch'
   # local gentoo_patch=($(ls $srcdir/firefox-patches/))
-  local gentoo_patch=(# '0003-bmo-847568-Support-system-harfbuzz.patch'
+  local gentoo_patch=('0003-bmo-847568-Support-system-harfbuzz.patch'
                       # '0004-bmo-847568-Support-system-graphite2.patch'
-                      # '0005-bmo-1559213-Support-system-av1.patch'
-                      '0012-build-Disable-Werror.patch'
-                      '0013-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0014-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0015-bgo-816975-fix-build-on-x86.patch'
-                      '0017-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0018-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0019-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0021-bmo-1516803-gcc-lto-sandbox.patch'
-                      '0022-enable-vaapi-on-all-amd-cards.patch'
-                      '0023-bgo-907963-rustflags-single-string.patch'
-                      '0024-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch'
-                      '0025-gcc-lto-patch-from-opensuse.patch')
+                      '0011-build-Disable-Werror.patch'
+                      '0012-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
+                      # '0013-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
+                      '0014-bgo-816975-fix-build-on-x86.patch'
+                      '0015-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
+                      '0016-bmo-1754469-memory_mozalloc_throw.patch'
+                      '0017-bgo-860033-firefox-wayland-no-dbus.patch'
+                      '0018-bmo-1516803-gcc-lto-sandbox.patch'
+                      '0019-enable-vaapi-on-all-amd-cards.patch'
+                      '0020-bgo-907963-rustflags-single-string.patch'
+                      '0021-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch'
+                      '0022-gcc-lto-patch-from-fedora.patch'
+                      '0023-bmo-1862601-system-icu-74.patch'
+                      '0024-bgo-748849-RUST_TARGET_override.patch'
+                      '0027-bmo-1559213-Support-system-av1.patch')
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -136,17 +137,6 @@ prepare() {
     patch -Np1 -i "${srcdir}/mozilla/$src"
   done
 
-  msg 'librewolf patch'
-  local librewolf_patch=('sed-patches/stop-undesired-requests.patch')
-                         # 'ui-patches/remove-snippets-from-home.patch')
-                         # 'unity_kde/mozilla-kde.patch'
-                         # 'unity_kde/firefox-kde.patch'
-                         # 'unity_kde/unity-menubar.patch')
-  for src in "${librewolf_patch[@]}"; do
-    msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
-  done
-
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
 
@@ -159,6 +149,7 @@ ac_add_options --with-app-name=firefox
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 
 ac_add_options --prefix=/usr
+ac_add_options --enable-release
 ac_add_options --enable-hardening
 ac_add_options --enable-optimize='-O3'
 ac_add_options --enable-rust-simd
@@ -189,21 +180,25 @@ ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/mozilla-api-key
 # System libraries
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
-ac_add_options --without-system-icu
 ac_add_options --with-system-jpeg
 ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
-ac_add_options --with-system-libvpx
-# ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-libevent
+ac_add_options --with-system-libvpx
+ac_add_options --with-system-harfbuzz
+# ac_add_options --with-system-graphite2
+ac_add_options --with-system-icu
+# ac_add_options --with-system-av1
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-pixman
 
 # Features
+ac_add_options --enable-av1
+ac_add_options --enable-sandbox
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
-ac_add_options --enable-alsa
-ac_add_options --enable-jack
+ac_add_options --enable-audio-backends='alsa,pulseaudio,jack'
 ac_add_options --enable-jxl
+ac_add_options --disable-necko-wifi
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests

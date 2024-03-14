@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=11.9.0
+pkgver=11.10.5
 _esrver=115
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
@@ -11,7 +11,7 @@ arch=(x86_64)
 license=(MPL GPL LGPL)
 url="https://floorp.ablaze.one/"
 depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
-makedepends=(unzip zip diffutils yasm mesa imake inetutils xwayland-run weston
+makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
              lld dump_syms wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
              mercurial breezy python-dulwich rsync)
@@ -24,19 +24,19 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
 options=(!emptydirs !makeflags !strip !lto !debug)
 source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.zip
         git+https://github.com/Floorp-Projects/Unified-l10n-central.git
-        git+https://github.com/Floorp-Projects/Floorp-core.git#commit=cefaa9a
+        git+https://github.com/Floorp-Projects/Floorp-core.git#commit=d6a770f
         hg+https://www.rosenauer.org/hg/mozilla#branch=firefox${_esrver}
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=${_esrver}.0.2-2
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-08.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-09.tar.xz
         mozilla-kde.patch unity-menubar.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         fix_csd_window_buttons.patch)
-sha256sums=('176782b67c8c0e23d7a0ba55600f86625392bd91ca6154ab12e0c778f91e2266'
+sha256sums=('3a8417bce81fe51c457484e5c34cac5f41a7aef4c96cbf5f0bacc568a48838a1'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'db6e1e87a1b5f857be93a5a44303c5e4e36f94bf05036c8f99730457448f99db'
+            '482b71df487ea18e9b0719da97f5cd1f7c83cf2bc5180cbda3548cdb3437c3da'
             'fb59151ae0bee183251d560dc3b04a47bde1b9aab9ee2d9fa251a15337d1eb11'
             '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
@@ -169,9 +169,9 @@ ac_add_options --enable-webrtc
 ac_add_options --disable-default-browser-agent
 ac_add_options --disable-parental-controls
 ac_add_options --enable-proxy-bypass-protection
-ac_add_options --disable-alsa
-ac_add_options --disable-jack
-ac_add_options --disable-crashreporter
+ac_add_options --enable-alsa
+ac_add_options --enable-jack
+ac_add_options --enable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
 
@@ -208,6 +208,7 @@ build() {
   msg "Building instrumented browser..."
   cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
+export MOZ_ENABLE_FULL_SYMBOLS=1
 END
   ./mach build
 
@@ -215,8 +216,8 @@ END
   ./mach package
   LLVM_PROFDATA=llvm-profdata \
     JARLOG_FILE="$PWD/jarlog" \
-    wlheadless-run -c weston --width=1920 --height=1080 \
-    -- ./mach python build/pgo/profileserver.py
+    xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
+    ./mach python build/pgo/profileserver.py
 
   stat -c "Profile data found (%s bytes)" merged.profdata
   stat -c "Jar log found (%s bytes)" jarlog

@@ -4,12 +4,12 @@
 
 pkgname=firefox-brli
 pkgver=123.0.1
-pkgrel=1
+pkgrel=3
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
 license=(MPL GPL LGPL)
 url="https://www.mozilla.org/firefox/"
-depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse kmozillahelper)
+depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
              lld dump_syms wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
@@ -28,7 +28,7 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         hg+http://www.rosenauer.org/hg/mozilla#branch=firefox120
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-04.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-07.tar.xz
         fix_csd_window_buttons.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         firefox-kde.patch mozilla-kde.patch bm1875573-update-aom.patch
@@ -38,7 +38,7 @@ sha256sums=('d5dcb955b65e0f164a90cac0760724486e36e896221b98f244801dfd045d741c'
             'SKIP'
             'SKIP'
             'SKIP'
-            '0ff161ba9768d32dfd6829b842c600266333f1a88d3de02cb580d207f6b25044'
+            'ba1caa7c36f6edb0e3f8c965967e53e908853582197e48600abd1b28298baea6'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
             '909256c126a649c5c214281b10462474452c46c912ea2ecae830ea489b94a4db'
@@ -69,7 +69,6 @@ prepare() {
   patch -Np1 -i "${srcdir}/bm1875573-update-aom.patch"
 
   msg 'Gentoo patch'
-  rm -v $srcdir/firefox-patches/0005-bmo-1559213-Support-system-av1.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -166,8 +165,8 @@ ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-graphite2
 ac_add_options --with-system-icu
+ac_add_options --with-system-av1
 ac_add_options --enable-system-ffi
-# ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman
 
 # Features
@@ -196,8 +195,9 @@ build() {
 
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
-  export MOZ_ENABLE_FULL_SYMBOLS=0
+  export MOZ_ENABLE_FULL_SYMBOLS=1
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
+  LDFLAGS+=' -Wl,--undefined-version'
 
   # LTO needs more open files
   ulimit -n 4096
@@ -302,6 +302,13 @@ END
   install -Dvm644 /dev/stdin "$pref/kde.js" <<END
 pref("browser.preferences.instantApply", false);
 pref("browser.backspace_action", 0);
+
+// Enable XDG Desktop Portal by defualt
+pref("widget.use-xdg-desktop-portal.file-picker", 1);
+pref("widget.use-xdg-desktop-portal.location", 1);
+pref("widget.use-xdg-desktop-portal.mime-handler", 1);
+pref("widget.use-xdg-desktop-portal.open-uri", 1);
+pref("widget.use-xdg-desktop-portal.settings", 1);
 END
 
   install -Dvm644 /dev/stdin "$pref/disable_typeahead.js" <<END

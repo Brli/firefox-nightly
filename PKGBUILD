@@ -3,8 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-beta
-_pkgver_stable=119.0
-pkgver=120.0b2
+_pkgver_stable=124.0.1
+pkgver=125.0b3
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -21,26 +21,24 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'speech-dispatcher: Text-to-Speech'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
-options=(!emptydirs !makeflags !strip !lto !debug)
+options=(!emptydirs !makeflags !strip !lto)
 source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"{,.asc}
         hg+https://hg.mozilla.org/l10n-central/zh-TW
-        git+https://github.com/openSUSE/firefox-maintenance.git
-        librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
+        hg+https://www.rosenauer.org/hg/mozilla#branch=firefox123
+        librewolf-patch::git+https://codeberg.org/librewolf/source.git
         git+https://github.com/Brli/firefox-trunk.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_pkgver_stable%%.*}-patches-01.tar.xz
-        fix_csd_window_buttons.patch mozilla-kde.patch unity-menubar.patch
+        fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch)
-sha256sums=('833feae6c1b1900b4ce53d3ebcf9eae957e486d1323e7b811391846c0a3c9ac9'
+sha256sums=('5875baadc8217095f82bcd74e2f323c57e43e0e996606dfc74ef8e152e3acdf8'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '22ff8d1a5a923e7f4b4aab6cb8f5365bd169b96e60e430fab4be100c1f7b11e9'
+            '62afe2c2581979edb71422afb1653f1602313e809f843ecb0d3400ce1f41be68'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            '30f55ca6fb95d0257d00073ca95ead90392c644dff7da728657448baa5ca75fe'
-            '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             'db9954669b580daf253e66321c1389aab49fcf09abe887daeb4475e5ef93a7ce'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3')
@@ -61,7 +59,6 @@ _mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv -fv mozilla-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd firefox-${pkgver%%b*}
 
   #fix csd window buttons patch
@@ -73,22 +70,8 @@ prepare() {
   # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
   msg 'Gentoo patch'
-  local gentoo_patch=('0003-bmo-847568-Support-system-harfbuzz.patch'
-                      '0004-bmo-847568-Support-system-graphite2.patch'
-                      '0005-bmo-1559213-Support-system-av1.patch'
-                      '0012-build-Disable-Werror.patch'
-                      '0013-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      '0014-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0015-bgo-816975-fix-build-on-x86.patch'
-                      '0017-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0018-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0019-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0021-bmo-1516803-gcc-lto-sandbox.patch'
-                      '0022-enable-vaapi-on-all-amd-cards.patch'
-                      '0023-bgo-907963-rustflags-single-string.patch'
-                      '0024-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch'
-                      '0025-gcc-lto-patch-from-opensuse.patch'
-                      '0026-bgo-914738-nodbus-fix2.patch')
+  rm -rf $srcdir/firefox-patches/{0012*,0024*,0025*,0028*}
+  local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 < "$srcdir/firefox-patches/$src"
@@ -121,15 +104,15 @@ prepare() {
                     'firefox-branded-icons.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/$src"
+    patch -Np1 -i "${srcdir}/mozilla/$src"
   done
 
   msg 'librewolf patch'
   local librewolf_patch=('sed-patches/stop-undesired-requests.patch'
-                         'ui-patches/remove-snippets-from-home.patch'
-                         'unity_kde/mozilla-kde.patch'
-                         'unity_kde/firefox-kde.patch'
-                         'unity_kde/unity-menubar.patch')
+                         'ui-patches/hide-default-browser.patch'
+                         'ui-patches/handlers.patch'
+                         'ui-patches/remove-branding-urlbar.patch'
+                         'ui-patches/remove-cfrprefs.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
@@ -191,8 +174,8 @@ ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
+ac_add_options --with-system-av1
 ac_add_options --enable-system-ffi
-ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman
 
 # Features
@@ -213,7 +196,7 @@ END
 
   # Remove patched rust file checksums
   sed 's/\("files":{\)[^}]*/\1/' -i \
-    third_party/rust/bindgen/.cargo-checksum.json
+    third_party/rust/*/.cargo-checksum.json
 
   patch -Np1 -i "${srcdir}/0002-move-configuration-home-to-XDG_CONFIG_HOME.patch"
 }
@@ -225,6 +208,7 @@ build() {
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
   export MOZ_ENABLE_FULL_SYMBOLS=0
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
+  LDFLAGS+=' -Wl,--undefined-version'
 
   # LTO needs more open files
   ulimit -n 4096
@@ -329,6 +313,13 @@ END
   install -Dvm644 /dev/stdin "$pref/kde.js" <<END
 pref("browser.preferences.instantApply", false);
 pref("browser.backspace_action", 0);
+
+// Enable XDG Desktop Portal by defualt
+pref("widget.use-xdg-desktop-portal.file-picker", 1);
+pref("widget.use-xdg-desktop-portal.location", 1);
+pref("widget.use-xdg-desktop-portal.mime-handler", 1);
+pref("widget.use-xdg-desktop-portal.open-uri", 1);
+pref("widget.use-xdg-desktop-portal.settings", 1);
 END
 
   install -Dvm644 /dev/stdin "$pref/disable_typeahead.js" <<END

@@ -5,7 +5,7 @@
 pkgname=firefox-nightly-brli
 pkgver=126.0a1.20240325.19d905446a32
 pkgrel=1
-pkgdesc="Standalone web browser from mozilla.org"
+pkgdesc="Standalone web browser from mozilla.org - Nightly branch"
 arch=(x86_64)
 license=(MPL GPL LGPL)
 url="https://www.mozilla.org/firefox/"
@@ -20,9 +20,6 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'speech-dispatcher: Text-to-Speech'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
-provides=(firefox=${pkgver:0:5})
-conflicts=(firefox firefox-i18n-zh-tw firefox-config)
-replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
 _moz_revision=19d905446a32ebc5b281e61c8ee49718ee784a25
 _gentoo_patch=124-patches-01
@@ -129,7 +126,7 @@ prepare() {
 
   cat >../mozconfig <<END
 ac_add_options --enable-application=browser
-ac_add_options --with-app-name=firefox
+ac_add_options --with-app-name=${pkgname%%-brli}
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 
 ac_add_options --prefix=/usr
@@ -144,14 +141,14 @@ ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 # ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
-ac_add_options --enable-official-branding
-ac_add_options --enable-update-channel=release
+ac_add_options --with-branding=browser/branding/nightly
+ac_add_options --enable-update-channel=default
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
 export RUSTC_OPT_LEVEL=2
 export MOZILLA_OFFICIAL=1
-export MOZ_APP_REMOTINGNAME=firefox
+export MOZ_APP_REMOTINGNAME=${pkgname%%-brli}
 export MOZ_REQUIRE_SIGNING=1
 unset MOZ_TELEMETRY_REPORTING
 unset MOZ_DATA_REPORTING
@@ -267,7 +264,7 @@ package() {
   cd mozilla-central
   DESTDIR="$pkgdir" ./mach install
 
-  local pref="$pkgdir/usr/lib/firefox/browser/defaults/preferences"
+  local pref="$pkgdir/usr/lib/${pkgname%%-brli}/browser/defaults/preferences"
   install -Dvm644 /dev/stdin "$pref/vendor.js" <<END
 // Use system-provided dictionaries
 pref("spellchecker.dictionary_path", "/usr/share/hunspell");
@@ -338,7 +335,7 @@ sticky_pref("accessibility.typeaheadfind.manual", false);
 sticky_pref("accessibility.typeaheadfind.flashBar", 0);
 END
 
-  local distini="$pkgdir/usr/lib/firefox/distribution/distribution.ini"
+  local distini="$pkgdir/usr/lib/${pkgname%%-brli}/distribution/distribution.ini"
   install -Dvm644 /dev/stdin "$distini" <<END
 [Global]
 id=archlinux
@@ -347,19 +344,19 @@ about=Mozilla Firefox for Arch Linux
 
 [Preferences]
 app.distributor=archlinux
-app.distributor.channel=firefox
+app.distributor.channel=${pkgname%%-brli}
 app.partner.archlinux=archlinux
 END
 
   local i theme=official
   for i in 16 22 24 32 48 64 128 256; do
     install -Dvm644 browser/branding/$theme/default$i.png \
-      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/firefox.png"
+      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/${pkgname%%-brli}.png"
   done
   install -Dvm644 browser/branding/$theme/content/about-logo.png \
-    "$pkgdir/usr/share/icons/hicolor/192x192/apps/firefox.png"
+    "$pkgdir/usr/share/icons/hicolor/192x192/apps/${pkgname%%-brli}.png"
   install -Dvm644 browser/branding/$theme/content/about-logo@2x.png \
-    "$pkgdir/usr/share/icons/hicolor/384x384/apps/firefox.png"
+    "$pkgdir/usr/share/icons/hicolor/384x384/apps/${pkgname%%-brli}.png"
   install -Dvm644 browser/branding/$theme/content/about-logo.svg \
     "$pkgdir/usr/share/icons/hicolor/scalable/apps/firefox.svg"
   install -Dvm644 ../identity-icons-brand.svg \
@@ -369,17 +366,17 @@ END
     "$pkgdir/usr/share/applications/firefox.desktop"
 
   # Install a wrapper to avoid confusion about binary path
-  install -Dvm755 /dev/stdin "$pkgdir/usr/bin/firefox" <<END
+  install -Dvm755 /dev/stdin "$pkgdir/usr/bin/${pkgname%%-brli}" <<END
 #!/bin/sh
-exec /usr/lib/firefox/firefox "\$@"
+exec /usr/lib/${pkgname%%-brli}/${pkgname%%-brli} "\$@"
 END
 
   # Replace duplicate binary with wrapper
   # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
-  ln -srfv "$pkgdir/usr/bin/firefox" "$pkgdir/usr/lib/firefox/firefox-bin"
+  ln -srfv "$pkgdir/usr/bin/${pkgname%%-brli}" "$pkgdir/usr/lib/${pkgname%%-brli}/${pkgname%%-brli}"
 
   # Use system certificates
-  local nssckbi="$pkgdir/usr/lib/firefox/libnssckbi.so"
+  local nssckbi="$pkgdir/usr/lib/${pkgname%%-brli}/libnssckbi.so"
   if [[ -e $nssckbi ]]; then
     ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
   fi

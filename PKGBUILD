@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly-brli
-pkgver=125.0a1.20240312.5dbe89396d7f
+pkgver=126.0a1.20240325.19d905446a32
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -21,14 +21,14 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
 provides=(firefox=${pkgver:0:5})
-conflicts=(firefox firefox-i18n-zh-tw)
+conflicts=(firefox firefox-i18n-zh-tw firefox-config)
 replaces=(firefox firefox-i18n-zh-tw)
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=5dbe89396d7f52d57c4a21457fcf95d4e1ae24c3
-_gentoo_patch=123-patches-07
+_moz_revision=19d905446a32ebc5b281e61c8ee49718ee784a25
+_gentoo_patch=124-patches-01
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
-        hg+http://www.rosenauer.org/hg/mozilla#branch=firefox119
+        hg+http://www.rosenauer.org/hg/mozilla#branch=firefox123
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
@@ -41,7 +41,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'ba1caa7c36f6edb0e3f8c965967e53e908853582197e48600abd1b28298baea6'
+            '62afe2c2581979edb71422afb1653f1602313e809f843ecb0d3400ce1f41be68'
             '645028f3f7ee4524a4a4fc71c0f95fe481525c9faccbb3100926f6046928c82f'
             '0732034ea0d97b3cd5ec7b84bc541d762d603971b955bba4f403ddb5bdb4a178'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
@@ -81,24 +81,8 @@ prepare() {
   # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
   msg 'Gentoo patch'
-  # local gentoo_patch=($(ls $srcdir/firefox-patches/))
-  local gentoo_patch=('0003-bmo-847568-Support-system-harfbuzz.patch'
-                      # '0004-bmo-847568-Support-system-graphite2.patch'
-                      '0011-build-Disable-Werror.patch'
-                      '0012-LTO-Only-enable-LTO-for-Rust-when-complete-build-use.patch'
-                      # '0013-Enable-FLAC-on-platforms-without-ffvpx-via-ffmpeg.patch'
-                      '0014-bgo-816975-fix-build-on-x86.patch'
-                      '0015-bmo-1196777-Set-GDK_FOCUS_CHANGE_MASK.patch'
-                      '0016-bmo-1754469-memory_mozalloc_throw.patch'
-                      '0017-bgo-860033-firefox-wayland-no-dbus.patch'
-                      '0018-bmo-1516803-gcc-lto-sandbox.patch'
-                      '0019-enable-vaapi-on-all-amd-cards.patch'
-                      '0020-bgo-907963-rustflags-single-string.patch'
-                      '0021-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch'
-                      '0022-gcc-lto-patch-from-fedora.patch'
-                      '0023-bmo-1862601-system-icu-74.patch'
-                      '0024-bgo-748849-RUST_TARGET_override.patch'
-                      '0027-bmo-1559213-Support-system-av1.patch')
+  rm -rf $srcdir/firefox-patches/{0012*,0024*,0025*,0028*}
+  local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -188,7 +172,7 @@ ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
 # ac_add_options --with-system-graphite2
 ac_add_options --with-system-icu
-# ac_add_options --with-system-av1
+ac_add_options --with-system-av1
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-pixman
 
@@ -205,7 +189,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '120.0' > config/milestone.txt
+  echo '124.0.1' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"
@@ -230,6 +214,7 @@ build() {
   export CXX_LD=lld
   export AR=llvm-ar
   export NM=llvm-nm
+  LDFLAGS+=' -Wl,--undefined-version'
 
   # LTO needs more open files
   ulimit -n 4096
@@ -337,6 +322,13 @@ END
 // KDE.js
 pref("browser.preferences.instantApply", false);
 pref("browser.backspace_action", 0);
+
+// Enable XDG Desktop Portal by defualt
+pref("widget.use-xdg-desktop-portal.file-picker", 1);
+pref("widget.use-xdg-desktop-portal.location", 1);
+pref("widget.use-xdg-desktop-portal.mime-handler", 1);
+pref("widget.use-xdg-desktop-portal.open-uri", 1);
+pref("widget.use-xdg-desktop-portal.settings", 1);
 END
 
   install -Dvm644 /dev/stdin "$pref/disable_typeahead.js" <<END
@@ -391,10 +383,6 @@ END
   if [[ -e $nssckbi ]]; then
     ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
   fi
-
-  # Install zh-TW locale
-  #local xpi_dest="$pkgdir/usr/lib/firefox/browser/extensions"
-  #install -Dvm644 "$srcdir/firefox-105.0a1.zh-TW.langpack.xpi" "$xpi_dest/langpack-zh-TW@firefox.mozilla.org.xpi"
 }
 
 # vim:set sw=2 et:

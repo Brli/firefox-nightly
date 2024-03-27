@@ -151,7 +151,7 @@ export RUSTC_OPT_LEVEL=2
 
 # Branding
 ac_add_options --with-branding=browser/branding/aurora
-ac_add_options --enable-update-channel=release
+ac_add_options --enable-update-channel=aurora
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload

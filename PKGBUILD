@@ -3,9 +3,9 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=11.10.5
+pkgver=11.11.2
 _esrver=115
-pkgrel=1
+pkgrel=2
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -23,36 +23,47 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'xdg-desktop-portal: Screensharing with Wayland')
 options=(!emptydirs !makeflags !strip !lto !debug)
 source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.zip
-        git+https://github.com/Floorp-Projects/Unified-l10n-central.git
-        git+https://github.com/Floorp-Projects/Floorp-core.git#commit=d6a770f
+        floorp-projects.unified-l10n-central::git+https://github.com/Floorp-Projects/Unified-l10n-central.git
+        floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git
+        "floorp-projects.private-components"::"git+https://github.com/Floorp-Projects/Floorp-private-components.git"
         hg+https://www.rosenauer.org/hg/mozilla#branch=firefox${_esrver}
-        librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git#tag=${_esrver}.0.2-2
+        librewolf-patch::git+https://codeberg.org/librewolf/source.git#tag=${_esrver}.0.2-2
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-09.tar.xz
-        mozilla-kde.patch unity-menubar.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         fix_csd_window_buttons.patch)
-sha256sums=('3a8417bce81fe51c457484e5c34cac5f41a7aef4c96cbf5f0bacc568a48838a1'
+sha256sums=('c3adc5fc5e5689c44fa6e5ba8336e9b78ee941462f586f061d2fbbd8529aa687'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
+            'da8d3843704978eef8b36f58188cbb51cf967328c27e1551ef642db705dfc016'
             '482b71df487ea18e9b0719da97f5cd1f7c83cf2bc5180cbda3548cdb3437c3da'
-            'fb59151ae0bee183251d560dc3b04a47bde1b9aab9ee2d9fa251a15337d1eb11'
-            '796d76d079e4e6e106146ceff17b603cfa1afadf4a06114681e734c8f9e8879f'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
 
 prepare() {
   mkdir mozbuild
-  mv -f mozilla-kde.patch unity-menubar.patch -t "${srcdir}/librewolf-patch/patches/unity_kde/"
   cd "Floorp-${pkgver}" || exit
 
   # patch for xdg home
   patch -Np1 -i "$srcdir/0002-move-configuration-home-to-XDG_CONFIG_HOME.patch"
 
   msg 'Tickle Git Submodule'
-  cp -r "$srcdir/Floorp-core/"* floorp/
-  cp -r "$srcdir/Unified-l10n-central/"* "floorp/browser/locales/l10n-central/"
+  (
+    rm -rf "floorp"
+    ln -sf "../floorp-projects.floorp-core" "floorp"
+    cd "$srcdir/floorp-projects.floorp-core"
+    local _submodules=('floorp-projects.unified-l10n-central'::'browser/locales/l10n-central'
+                       'floorp-projects.private-components'::'Floorp-private-components')
+    for _module in "${_submodules[@]}" ; do
+      git submodule init "${_module##*::}"
+      git submodule set-url "${_module##*::}" "$srcdir/${_module%%::*}"
+      git -c protocol.file.allow=always submodule update "${_module##*::}"
+    done
+  )
+
+  # clear forced startup pages
+  sed -E 's&^\s*pref\("startup\.homepage.*$&&' -i "browser/branding/official/pref/firefox-branding.js"
 
   msg 'Gentoo patch'
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
@@ -96,10 +107,7 @@ prepare() {
 
   msg 'librewolf patch'
   local librewolf_patch=(sed-patches/stop-undesired-requests.patch
-                         ui-patches/remove-snippets-from-home.patch
-                         unity_kde/mozilla-kde.patch
-                         unity_kde/firefox-kde.patch
-                         unity_kde/unity-menubar.patch)
+                         ui-patches/remove-snippets-from-home.patch)
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
@@ -166,12 +174,13 @@ ac_add_options --enable-pulseaudio
 ac_add_options --enable-raw
 ac_add_options --enable-sandbox
 ac_add_options --enable-webrtc
+ac_add_options --enable-private-components
 ac_add_options --disable-default-browser-agent
 ac_add_options --disable-parental-controls
 ac_add_options --enable-proxy-bypass-protection
 ac_add_options --enable-alsa
 ac_add_options --enable-jack
-ac_add_options --enable-crashreporter
+ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
 
@@ -233,7 +242,7 @@ ac_add_options --enable-profile-use=cross
 ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
 ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 # L10n
-ac_add_options --with-l10n-base=${srcdir}/Unified-l10n-central
+ac_add_options --with-l10n-base=${PWD@Q}/floorp/browser/locales/l10n-central
 END
   ./mach build
   
@@ -257,6 +266,18 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 
 // Don't disable extensions in the application directory
 pref("extensions.autoDisableScopes", 11);
+
+// Enable GNOME Shell search provider
+pref("browser.gnome-search-provider.enabled", true);
+
+// Enable JPEG XL images
+pref("image.jxl.enabled", true);
+
+// Prevent about:config warning
+pref("browser.aboutConfig.showWarning", false);
+
+// Prevent telemetry notification
+pref("services.settings.main.search-telemetry-v2.last_check", $(date +%s));
 END
 
   install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END
@@ -299,6 +320,13 @@ END
 // KDE.js
 pref("browser.preferences.instantApply", false);
 pref("browser.backspace_action", 0);
+
+// Enable XDG Desktop Portal by defualt
+pref("widget.use-xdg-desktop-portal.file-picker", 1);
+pref("widget.use-xdg-desktop-portal.location", 1);
+pref("widget.use-xdg-desktop-portal.mime-handler", 1);
+pref("widget.use-xdg-desktop-portal.open-uri", 1);
+pref("widget.use-xdg-desktop-portal.settings", 1);
 END
 
   install -Dvm644 /dev/stdin "$pref/disable_typeahead.js" <<END

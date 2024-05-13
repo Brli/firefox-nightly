@@ -18,7 +18,7 @@ index 47c1008..3203967 100644
          if target.kernel in ("WINNT", "Darwin"):
              return "Mozilla"
 -        return ".mozilla"
-+        return ".config/mozilla"
++        return ".config/floorp"
  
      option(
          "--with-user-appdir",
@@ -76,7 +76,7 @@ index ea1e5a8..57b9328 100644
 +    NS_ENSURE_SUCCESS(rv, rv);
 +    rv = localDir->AppendRelativeNativePath(nsDependentCString(".config"));
 +    NS_ENSURE_SUCCESS(rv, rv);
-+    rv = localDir->AppendRelativeNativePath(nsDependentCString("mozilla"));
++    rv = localDir->AppendRelativeNativePath(nsDependentCString("floorp"));
 +    NS_ENSURE_SUCCESS(rv, rv);
 +
 +    rv = EnsureDirectoryExists(localDir);
@@ -125,7 +125,7 @@ index aedaad1..ca3e45f 100644
 +  if (NS_FAILED(rv)) {
 +    return rv;
 +  }
-+  rv = localDir->AppendRelativeNativePath(nsDependentCString("mozilla"));
++  rv = localDir->AppendRelativeNativePath(nsDependentCString("floorp"));
 +  if (NS_FAILED(rv)) {
 +    return rv;
 +  }

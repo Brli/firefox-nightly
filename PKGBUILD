@@ -3,9 +3,10 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=floorp
-pkgver=11.11.2
+_pkgname=Floorp
+pkgver=11.12.2.r83.gaaba23d
 _esrver=115
-pkgrel=2
+pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -22,31 +23,36 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
 options=(!emptydirs !makeflags !strip !lto !debug)
-source=(https://github.com/Floorp-Projects/Floorp/archive/refs/tags/v${pkgver}.zip
+source=(git+https://github.com/Floorp-Projects/Floorp.git#branch=ESR115
         floorp-projects.unified-l10n-central::git+https://github.com/Floorp-Projects/Unified-l10n-central.git
         floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git
-        "floorp-projects.private-components"::"git+https://github.com/Floorp-Projects/Floorp-private-components.git"
+        floorp-projects.private-components::git+https://github.com/Floorp-Projects/Floorp-private-components.git
         hg+https://www.rosenauer.org/hg/mozilla#branch=firefox${_esrver}
-        librewolf-patch::git+https://codeberg.org/librewolf/source.git#tag=${_esrver}.0.2-2
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-09.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-10.tar.xz
+        fix_csd_window_buttons.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
-        fix_csd_window_buttons.patch)
-sha256sums=('c3adc5fc5e5689c44fa6e5ba8336e9b78ee941462f586f061d2fbbd8529aa687'
+        bmo1866829-Replace-obsolete-distutils.patch)
+sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'da8d3843704978eef8b36f58188cbb51cf967328c27e1551ef642db705dfc016'
-            '482b71df487ea18e9b0719da97f5cd1f7c83cf2bc5180cbda3548cdb3437c3da'
-            'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
-            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
+            'dbd1897cddfa835223a2f8e0810f2505250526fa7005ae4471b56d5a1b16cd75'
+            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
+            'b66df8ac8e6054577fa11df866cd1c94b2f36b30ba06bbe60df608cde8c2fbf5'
+            '6952f93889acb514e3b06e251ea901df88c39b429da9677cd5547d90a8b6c73e')
+
+pkgver() {
+  cd "$_pkgname" || exit
+  git describe --long --tags --abbrev=7 | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+}
 
 prepare() {
   mkdir mozbuild
-  cd "Floorp-${pkgver}" || exit
+  cd "$_pkgname" || exit
 
-  # patch for xdg home
   patch -Np1 -i "$srcdir/0002-move-configuration-home-to-XDG_CONFIG_HOME.patch"
+  patch -Np1 -i "${srcdir}/bmo1866829-Replace-obsolete-distutils.patch"
 
   msg 'Tickle Git Submodule'
   (
@@ -74,7 +80,8 @@ prepare() {
 
   msg 'Opensuse Patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
-  local suse_patch=('mozilla-nongnome-proxies.patch'
+  local suse_patch=(# xulrunner/gecko patches
+                    'mozilla-nongnome-proxies.patch'
                     # 'mozilla-kde.patch'
                     'mozilla-ntlm-full-path.patch'
                     'mozilla-aarch64-startup-crash.patch'
@@ -82,35 +89,26 @@ prepare() {
                     # 'mozilla-s390-context.patch'
                     # 'mozilla-pgo.patch' # previous patch detected
                     'mozilla-reduce-rust-debuginfo.patch'
-                    # 'mozilla-bmo1005535.patch'
-                    # 'mozilla-bmo1568145.patch'
-                    # 'mozilla-bmo1504834-part1.patch'
-                    # 'mozilla-bmo1504834-part3.patch'
+                    'mozilla-bmo1504834-part1.patch'
+                    'mozilla-bmo1504834-part3.patch'
                     'mozilla-bmo1512162.patch'
                     # 'mozilla-fix-top-level-asm.patch' # broken patch
                     'mozilla-bmo849632.patch'
                     'mozilla-bmo998749.patch'
-                    # 'mozilla-s390x-skia-gradient.patch'
-                    # 'mozilla-libavcodec58_91.patch' # We don't fallback-support ffmpeg
-                    # 'mozilla-silence-no-return-type.patch'
+                    'mozilla-libavcodec58_91.patch'
+                    'mozilla-silence-no-return-type.patch'
                     # 'mozilla-bmo531915.patch' # broken patch
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
-                    # 'firefox-branded-icons.patch'
+                    'mozilla-partial-revert-1768632.patch'
+                    'mozilla-bmo1775202.patch'
+                    'mozilla-rust-disable-future-incompat.patch'
+                    # Firefox patches
                     # 'firefox-kde.patch'
-                    'mozilla-rust-disable-future-incompat.patch')
+                    'firefox-branded-icons.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/mozilla/${src}"
-  done
-
-
-  msg 'librewolf patch'
-  local librewolf_patch=(sed-patches/stop-undesired-requests.patch
-                         ui-patches/remove-snippets-from-home.patch)
-  for src in "${librewolf_patch[@]}"; do
-    msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
   done
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
@@ -124,7 +122,7 @@ mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 
 ac_add_options --prefix=/usr
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize='-O3'
+ac_add_options --enable-optimize
 ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
@@ -199,7 +197,7 @@ END
 }
 
 build() {
-  cd "Floorp-${pkgver}" || exit
+  cd "$_pkgname" || exit
 
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
@@ -256,7 +254,7 @@ END
 }
 
 package() {
-  cd "Floorp-${pkgver}" || exit
+  cd "$_pkgname" || exit
   DESTDIR="$pkgdir" ./mach install
 
   local pref="$pkgdir/usr/lib/floorp/browser/defaults/preferences"
@@ -359,7 +357,7 @@ END
   install -Dvm644 browser/branding/$theme/content/about-logo.svg \
     "$pkgdir/usr/share/icons/hicolor/scalable/apps/floorp.svg"
 
-  install -Dvm644 "$srcdir/Floorp-$pkgver/.github/floorp-debian.desktop" \
+  install -Dvm644 "$srcdir/$_pkgname/.github/floorp-debian.desktop" \
     "$pkgdir/usr/share/applications/floorp.desktop"
 
   # Install a wrapper to avoid confusion about binary path

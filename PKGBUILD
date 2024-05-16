@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=126.0a1.20240325.19d905446a32
+pkgver=128.0a1.20240514.d1f40cf63952
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org - Nightly branch"
 arch=(x86_64)
@@ -12,8 +12,8 @@ url="https://www.mozilla.org/firefox/"
 depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
-             lld dump_syms mercurial rsync
-             wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi)
+             lld dump_syms mercurial rsync)
+#             wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi)
 optdepends=('networkmanager: Location detection via available WiFi networks'
             'libnotify: Notification integration'
             'pulseaudio: Audio support'
@@ -21,11 +21,11 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=19d905446a32ebc5b281e61c8ee49718ee784a25
-_gentoo_patch=124-patches-01
+_moz_revision=d1f40cf63952dd0310428b72bb6771c2d6a94e7d
+_gentoo_patch=125-patches-03
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
-        hg+http://www.rosenauer.org/hg/mozilla#branch=firefox123
+        hg+http://www.rosenauer.org/hg/mozilla#branch=firefox124
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://codeberg.org/librewolf/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
@@ -37,9 +37,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '62afe2c2581979edb71422afb1653f1602313e809f843ecb0d3400ce1f41be68'
-            '645028f3f7ee4524a4a4fc71c0f95fe481525c9faccbb3100926f6046928c82f'
-            '0732034ea0d97b3cd5ec7b84bc541d762d603971b955bba4f403ddb5bdb4a178'
+            '393ac60ce8a98a3d0bc3c02cf236a7a41fed8ead8e245ab673af6d611e8bdce6'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             '6ed738b3fc95536091d061979ef0cc37811b77188db9702abac53fa5b57e1c0a'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
@@ -76,7 +74,7 @@ prepare() {
   # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/{0012*,0024*,0025*,0028*}
+  rm -rf $srcdir/firefox-patches/{0026*,0027*,0028*}
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -116,6 +114,19 @@ prepare() {
     patch -Np1 -i "${srcdir}/mozilla/$src"
   done
 
+  msg 'librewolf patch'
+  local librewolf_patch=('JXL_enable_by_default.patch'
+                         'JXL_improved_support.patch')
+                         # 'sed-patches/stop-undesired-requests.patch'
+                         # 'ui-patches/remove-snippets-from-home.patch'
+                         # 'unity_kde/mozilla-kde.patch'
+                         # 'unity_kde/firefox-kde.patch'
+                         # 'unity_kde/unity-menubar.patch')
+  for src in "${librewolf_patch[@]}"; do
+    msg "Applying patch $src..."
+    patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
+  done
+
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
 
@@ -135,8 +146,8 @@ ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-# ac_add_options --without-wasm-sandboxed-libraries
+# ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
 ac_add_options --with-branding=browser/branding/nightly
@@ -159,13 +170,13 @@ ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/mozilla-api-key
 # System libraries
 ac_add_options --with-system-nspr
 ac_add_options --with-system-nss
-ac_add_options --with-system-jpeg
+# ac_add_options --with-system-jpeg
 ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libevent
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
-# ac_add_options --with-system-graphite2
+ac_add_options --with-system-graphite2
 ac_add_options --with-system-icu
 ac_add_options --with-system-av1
 ac_add_options --enable-system-ffi
@@ -184,10 +195,10 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '124.0.1' > config/milestone.txt
+  echo '126.0' > config/milestone.txt
 
   # Desktop file
-  sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"
+  sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"
 
   # Remove patched rust file checksums
   sed 's/\("files":{\)[^}]*/\1/' -i \
@@ -311,6 +322,11 @@ pref("webgl.force-enabled",                true);
 sticky_pref("media.ffmpeg.vaapi.enabled", true);
 sticky_pref("media.hardware-video-decoding.force-enabled", true);
 sticky_pref("media.navigator.mediadatadecoder_vpx_enabled", true);
+pref("media.ffvpx.enabled", true);
+
+// nvidia
+pref("widget.dmabuf.force-enabled", true);
+pref("media.rdd-ffmpeg.enabled",    true);
 END
 
   install -Dvm644 /dev/stdin "$pref/kde.js" <<END
@@ -356,12 +372,12 @@ END
   install -Dvm644 browser/branding/$theme/content/about-logo@2x.png \
     "$pkgdir/usr/share/icons/hicolor/384x384/apps/${pkgname}.png"
   install -Dvm644 browser/branding/$theme/content/about-logo.svg \
-    "$pkgdir/usr/share/icons/hicolor/scalable/apps/firefox.svg"
+    "$pkgdir/usr/share/icons/hicolor/scalable/apps/${pkgname}.svg"
   install -Dvm644 ../identity-icons-brand.svg \
-    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/firefox-symbolic.svg"
+    "$pkgdir/usr/share/icons/hicolor/symbolic/apps/${pkgname}-symbolic.svg"
 
   install -Dvm644 $srcdir/firefox.desktop \
-    "$pkgdir/usr/share/applications/firefox.desktop"
+    "$pkgdir/usr/share/applications/${pkgname}.desktop"
 
   # Install a wrapper to avoid confusion about binary path
   install -Dvm755 /dev/stdin "$pkgdir/usr/bin/${pkgname}" <<END

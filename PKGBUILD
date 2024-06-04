@@ -4,7 +4,7 @@
 
 pkgname=floorp
 _pkgname=Floorp
-pkgver=11.12.2.r83.gaaba23d
+pkgver=11.13.3
 _esrver=115
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
@@ -13,7 +13,7 @@ license=(MPL GPL LGPL)
 url="https://floorp.ablaze.one/"
 depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
-             autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
+             autoconf2.13 mold rustup clang llvm jack nodejs cbindgen nasm
              lld dump_syms wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
              mercurial breezy python-dulwich rsync)
 optdepends=('networkmanager: Location detection via available WiFi networks'
@@ -23,15 +23,17 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
 options=(!emptydirs !makeflags !strip !lto !debug)
-source=(git+https://github.com/Floorp-Projects/Floorp.git#branch=ESR115
+source=("git+https://github.com/Floorp-Projects/Floorp.git#branch=ESR${_esrver}"
         floorp-projects.unified-l10n-central::git+https://github.com/Floorp-Projects/Unified-l10n-central.git
         floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git
         floorp-projects.private-components::git+https://github.com/Floorp-Projects/Floorp-private-components.git
-        hg+https://www.rosenauer.org/hg/mozilla#branch=firefox${_esrver}
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-10.tar.xz
+        "hg+https://www.rosenauer.org/hg/mozilla#branch=firefox${_esrver}"
+        "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-10.tar.xz"
         fix_csd_window_buttons.patch
-        0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
-        bmo1866829-Replace-obsolete-distutils.patch)
+        move-user-profile-to-XDG_CONFIG_HOME.patch
+        bmo1866829-Replace-obsolete-distutils.patch
+        bmo1893961-Remove-distutils-use-from-mozbase.patch
+        bmo1887281-Use-shutil.which-instead-of-find_executable.patch)
 sha256sums=('SKIP'
             'SKIP'
             'SKIP'
@@ -39,20 +41,26 @@ sha256sums=('SKIP'
             'SKIP'
             'dbd1897cddfa835223a2f8e0810f2505250526fa7005ae4471b56d5a1b16cd75'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            'b66df8ac8e6054577fa11df866cd1c94b2f36b30ba06bbe60df608cde8c2fbf5'
-            '6952f93889acb514e3b06e251ea901df88c39b429da9677cd5547d90a8b6c73e')
+            '503e07748cd4f9315bb6dbe7795cafdf4de4352d78191f47c2045632adcc9a6a'
+            '6952f93889acb514e3b06e251ea901df88c39b429da9677cd5547d90a8b6c73e'
+            '3cc55401ed5e027f1b9e667b0b52296af11f3c5c62b4a80b7e55cda0e117ed18'
+            'f66a944fa8804c16b1f7bd9b42b18bfc2552a891adc148085f4b91685e8db117')
 
 pkgver() {
   cd "$_pkgname" || exit
-  git describe --long --tags --abbrev=7 | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+  git describe --tags --no-abbrev | sed 's/^v//'
 }
 
 prepare() {
   mkdir mozbuild
   cd "$_pkgname" || exit
 
-  patch -Np1 -i "$srcdir/0002-move-configuration-home-to-XDG_CONFIG_HOME.patch"
+  patch -Np1 -i "${srcdir}/move-user-profile-to-XDG_CONFIG_HOME.patch"
+
+  # Unbreak distutils
   patch -Np1 -i "${srcdir}/bmo1866829-Replace-obsolete-distutils.patch"
+  patch -Np1 -i "${srcdir}/bmo1893961-Remove-distutils-use-from-mozbase.patch"
+  patch -Np1 -i "${srcdir}/bmo1887281-Use-shutil.which-instead-of-find_executable.patch"
 
   msg 'Tickle Git Submodule'
   (
@@ -122,17 +130,18 @@ mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 
 ac_add_options --prefix=/usr
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize
+ac_add_options --enable-optimize="-O3"
 ac_add_options --enable-rust-simd
-ac_add_options --enable-linker=lld
+ac_add_options --enable-wasm-simd
+ac_add_options --enable-linker=mold
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
+#ac_add_options --enable-default-toolkit=cairo-gtk3-x11-wayland
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-# ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
-ac_add_options --enable-update-channel=nightly
+ac_add_options --enable-update-channel=release
 ac_add_options --with-branding=browser/branding/official
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
@@ -140,10 +149,12 @@ ac_add_options --allow-addon-sideload
 
 # Floorp environment variables
 export MOZ_INCLUDE_SOURCE_INFO=1
-export MOZ_APP_REMOTINGNAME=floorp
+export MOZ_APP_REMOTINGNAME=${_pkgname}
 unset MOZ_REQUIRE_SIGNING
 unset MOZ_DATA_REPORTING
 unset MOZ_TELEMETRY_REPORTING
+export OPT_LEVEL="3"
+export RUSTC_OPT_LEVEL="3"
 
 # Keys
 ac_add_options --with-google-location-service-api-keyfile=${PWD@Q}/floorp/apis/api-google-location-service-key
@@ -168,7 +179,7 @@ ac_add_options --enable-system-pixman
 ac_add_options --enable-av1
 ac_add_options --enable-eme=widevine
 ac_add_options --enable-jxl
-ac_add_options --enable-pulseaudio
+ac_add_options --enable-audio-backends="pulseaudio,alsa,jack"
 ac_add_options --enable-raw
 ac_add_options --enable-sandbox
 ac_add_options --enable-webrtc
@@ -176,8 +187,6 @@ ac_add_options --enable-private-components
 ac_add_options --disable-default-browser-agent
 ac_add_options --disable-parental-controls
 ac_add_options --enable-proxy-bypass-protection
-ac_add_options --enable-alsa
-ac_add_options --enable-jack
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
@@ -202,11 +211,18 @@ build() {
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
   export MOZ_ENABLE_FULL_SYMBOLS=0
+  export RUSTUP_TOOLCHAIN=1.77
+  export RUSTFLAGS="-C debuginfo=1"
   export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
   export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-$srcdir/xdg}"
   export LIBGL_ALWAYS_SOFTWARE=true
+  LDFLAGS+=' -Wl,--undefined-version'
   install -dm700 "${XDG_RUNTIME_DIR:?}"
+
+  # malloc_usable_size is used in various parts of the codebase
+  CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+  CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
 
   # LTO needs more open files
   ulimit -n 4096
@@ -337,12 +353,13 @@ END
   local distini="$pkgdir/usr/lib/floorp/distribution/distribution.ini"
   install -Dvm644 /dev/stdin "$distini" <<END
 [Global]
-id=archlinux
+id=one.ablaze.${pkgname}
 version=1.0
 
 [Preferences]
 app.distributor=archlinux
-app.distributor.channel=floorp
+app.distributor.channel=${pkgname}
+app.partner.${pkgname}=${pkgname}
 END
 
   local i theme=official

@@ -1,0 +1,116 @@
+From b50d6fadd13d2bad5a4f36d858a42258095e61ed Mon Sep 17 00:00:00 2001
+From: Brli <brli@chakralinux.org>
+Date: Thu, 6 Jun 2024 06:52:46 +0800
+Subject: [PATCH] move user profile to XDG_CONFIG_HOME
+
+upstream bug ticket: https://bugzilla.mozilla.org/show_bug.cgi?id=259356
+Support for the Freedesktop.org XDG Base Directory Specification
+
+phabricator url: https://phabricator.services.mozilla.com/D6995
+---
+ toolkit/xre/nsXREDirProvider.cpp       | 26 ++++++++++++++------------
+ xpcom/io/nsAppFileLocationProvider.cpp |  9 +++++++++
+ 2 files changed, 23 insertions(+), 12 deletions(-)
+
+diff --git a/toolkit/xre/nsXREDirProvider.cpp b/toolkit/xre/nsXREDirProvider.cpp
+index dac063c8a1..49298532d2 100644
+--- a/toolkit/xre/nsXREDirProvider.cpp
++++ b/toolkit/xre/nsXREDirProvider.cpp
+@@ -1285,8 +1285,9 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
+ 
+ #  ifdef ANDROID /* We want (ProfD == ProfLD) on Android. */
+   aLocal = false;
+-#  endif
+-
++#  else
++  rv = NS_NewNativeLocalFile(nsDependentCString(homeDir), true,
++                             getter_AddRefs(localDir));
+   if (aLocal) {
+     // If $XDG_CACHE_HOME is defined use it, otherwise use $HOME/.cache.
+     const char* cacheHome = getenv("XDG_CACHE_HOME");
+@@ -1294,14 +1295,16 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
+       rv = NS_NewNativeLocalFile(nsDependentCString(cacheHome), true,
+                                  getter_AddRefs(localDir));
+     } else {
+-      rv = NS_NewNativeLocalFile(nsDependentCString(homeDir), true,
+-                                 getter_AddRefs(localDir));
+       if (NS_SUCCEEDED(rv)) rv = localDir->AppendNative(".cache"_ns);
+     }
+   } else {
+-    rv = NS_NewNativeLocalFile(nsDependentCString(homeDir), true,
+-                               getter_AddRefs(localDir));
++    rv = localDir->AppendRelativeNativePath(nsDependentCString(".config"));
++    NS_ENSURE_SUCCESS(rv, rv);
++
++    rv = EnsureDirectoryExists(localDir);
++    NS_ENSURE_SUCCESS(rv, rv);
+   }
++#  endif  // ANDROID
+ #else
+ #  error "Don't know how to get product dir on your platform"
+ #endif
+@@ -1400,9 +1403,11 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+ 
+ #elif defined(XP_UNIX)
+ 
++#  if !defined(MOZ_WIDGET_GTK)
+   static const char* const sXR = ".mozilla";
+   rv = aFile->AppendNative(nsDependentCString(sXR));
+   NS_ENSURE_SUCCESS(rv, rv);
++#  endif
+ 
+   static const char* const sExtensions = "extensions";
+   rv = aFile->AppendNative(nsDependentCString(sExtensions));
+@@ -1468,9 +1473,6 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
+   NS_ENSURE_SUCCESS(rv, rv);
+ #elif defined(XP_UNIX)
+   nsAutoCString folder;
+-  // Make it hidden (by starting with "."), except when local (the
+-  // profile is already under ~/.cache or XDG_CACHE_HOME).
+-  if (!aLocal) folder.Assign('.');
+ 
+   if (!profile.IsEmpty()) {
+     // Skip any leading path characters
+@@ -1490,12 +1492,12 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
+       folder.Append(vendor);
+       ToLowerCase(folder);
+ 
+-      rv = aFile->AppendNative(folder);
+-      NS_ENSURE_SUCCESS(rv, rv);
+-
+       folder.Truncate();
+     }
+ 
++    rv = aFile->AppendNative(folder);
++    NS_ENSURE_SUCCESS(rv, rv);
++
+     // This can be the case in tests.
+     if (!appName.IsEmpty()) {
+       folder.Append(appName);
+diff --git a/xpcom/io/nsAppFileLocationProvider.cpp b/xpcom/io/nsAppFileLocationProvider.cpp
+index 189f1efe13..196b4eba5a 100644
+--- a/xpcom/io/nsAppFileLocationProvider.cpp
++++ b/xpcom/io/nsAppFileLocationProvider.cpp
+@@ -216,10 +216,19 @@ nsresult nsAppFileLocationProvider::GetProductDirectory(nsIFile** aLocalFile,
+ #  error dont_know_how_to_get_product_dir_on_your_platform
+ #endif
+ 
++#if defined(MOZ_WIDGET_GTK)
++  // exclude android/iOS from this check
++  rv = localDir->AppendRelativeNativePath(nsDependentCString(".config"));
++  if (NS_FAILED(rv)) {
++    return rv;
++  }
++#else
+   rv = localDir->AppendRelativeNativePath(DEFAULT_PRODUCT_DIR);
+   if (NS_FAILED(rv)) {
+     return rv;
+   }
++#endif
++
+   rv = localDir->Exists(&exists);
+ 
+   if (NS_SUCCEEDED(rv) && !exists) {
+-- 
+2.45.2
+

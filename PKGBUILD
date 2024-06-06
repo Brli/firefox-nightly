@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=128.0a1.20240514.d1f40cf63952
+pkgver=128.0a1.20240606.5df4f09e6da9
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org - Nightly branch"
 arch=(x86_64)
@@ -12,8 +12,8 @@ url="https://www.mozilla.org/firefox/"
 depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
 makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
              autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
-             lld dump_syms mercurial rsync)
-#             wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi)
+             lld dump_syms mercurial rsync
+             wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi)
 optdepends=('networkmanager: Location detection via available WiFi networks'
             'libnotify: Notification integration'
             'pulseaudio: Audio support'
@@ -21,27 +21,27 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=d1f40cf63952dd0310428b72bb6771c2d6a94e7d
-_gentoo_patch=125-patches-03
+_moz_revision=5df4f09e6da9eafc305dd215200be0cd86cb057e
+_gentoo_patch=126-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
-        hg+http://www.rosenauer.org/hg/mozilla#branch=firefox124
+        hg+https://www.rosenauer.org/hg/mozilla#branch=firefox125
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://codeberg.org/librewolf/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
         fix_csd_window_buttons.patch
         firefox.desktop identity-icons-brand.svg
-        0002-move-configuration-home-to-XDG_CONFIG_HOME.patch)
+        move-user-profile-to-XDG_CONFIG_HOME.patch)
 sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '393ac60ce8a98a3d0bc3c02cf236a7a41fed8ead8e245ab673af6d611e8bdce6'
+            '88f1894bbd0a86d5db30d8323020aeccf0b5c5f41f04ee2193b4af06d8861344'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             '6ed738b3fc95536091d061979ef0cc37811b77188db9702abac53fa5b57e1c0a'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
-            'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3')
+            '8ed579743a531fc596504200c43880c072bdeb004c3fc8b64ce480a974cc0bac')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
@@ -69,12 +69,12 @@ prepare() {
   cd mozilla-central
 
   # Revert NSS requirement
-  # sed 's,nss >= 3.94,nss >= 3.93,' -i build/moz.configure/nss.configure
+  # sed 's,nss >= 3.101,nss >= 3.100,' -i build/moz.configure/nss.configure
   # Revert ICU requirement
   # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/{0026*,0027*,0028*}
+  rm -rf $srcdir/firefox-patches/00{15,20,25,26}*
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -105,10 +105,13 @@ prepare() {
                     # 'mozilla-silence-no-return-type.patch'
                     # 'mozilla-bmo531915.patch'
                     'one_swizzle_to_rule_them_all.patch'
-                    'svg-rendering.patch')
+                    'svg-rendering.patch'
+                    'mozilla-partial-revert-1768632.patch'
+                    'mozilla-bmo1822730.patch')
+                    # 'mozilla-libproxy-fix.patch'
+                    # 'mozilla-rust-disable-future-incompat.patch'
                     # 'firefox-branded-icons.patch'
                     # 'firefox-kde.patch'
-                    # 'mozilla-rust-disable-future-incompat.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/mozilla/$src"
@@ -143,11 +146,12 @@ ac_add_options --enable-release
 ac_add_options --enable-hardening
 ac_add_options --enable-optimize='-O3'
 ac_add_options --enable-rust-simd
+ac_add_options --enable-wasm-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-# ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-ac_add_options --without-wasm-sandboxed-libraries
+ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+# ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
 ac_add_options --with-branding=browser/branding/nightly
@@ -169,14 +173,14 @@ ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/mozilla-api-key
 
 # System libraries
 ac_add_options --with-system-nspr
-ac_add_options --with-system-nss
-# ac_add_options --with-system-jpeg
+ac_add_options --without-system-nss
+ac_add_options --with-system-jpeg
 ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libevent
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
-ac_add_options --with-system-graphite2
+# ac_add_options --with-system-graphite2
 ac_add_options --with-system-icu
 ac_add_options --with-system-av1
 ac_add_options --enable-system-ffi
@@ -185,7 +189,6 @@ ac_add_options --enable-system-pixman
 # Features
 ac_add_options --enable-av1
 ac_add_options --enable-sandbox
-ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --enable-audio-backends='alsa,pulseaudio,jack'
 ac_add_options --enable-jxl
 ac_add_options --disable-necko-wifi
@@ -195,7 +198,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '126.0' > config/milestone.txt
+  echo '126.0.1' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"
@@ -204,7 +207,7 @@ END
   sed 's/\("files":{\)[^}]*/\1/' -i \
     third_party/rust/*/.cargo-checksum.json
 
-  patch -Np1 -i "${srcdir}/0002-move-configuration-home-to-XDG_CONFIG_HOME.patch"
+  patch -Np1 -i "${srcdir}/move-user-profile-to-XDG_CONFIG_HOME.patch"
 }
 
 build() {
@@ -213,6 +216,8 @@ build() {
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
   export MOZ_ENABLE_FULL_SYMBOLS=0
+  export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
+  export LIBGL_ALWAYS_SOFTWARE=true
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
   export CC=clang
   export CXX=clang++
@@ -221,6 +226,14 @@ build() {
   export AR=llvm-ar
   export NM=llvm-nm
   LDFLAGS+=' -Wl,--undefined-version'
+
+  # malloc_usable_size is used in various parts of the codebase
+  CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+  CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+
+  # Breaks compilation since https://bugzilla.mozilla.org/show_bug.cgi?id=1896066
+  CFLAGS="${CFLAGS/-fexceptions/}"
+  CXXFLAGS="${CXXFLAGS/-fexceptions/}"
 
   # LTO needs more open files
   ulimit -n 4096

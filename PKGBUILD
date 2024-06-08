@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=128.0a1.20240606.5df4f09e6da9
+pkgver=128.0a1.20240608.decc37f392c2
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org - Nightly branch"
 arch=(x86_64)
@@ -21,7 +21,7 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
 options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=5df4f09e6da9eafc305dd215200be0cd86cb057e
+_moz_revision=decc37f392c250b5a3aa4a7822148cdf6e990627
 _gentoo_patch=126-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
@@ -41,7 +41,7 @@ sha256sums=('SKIP'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             '6ed738b3fc95536091d061979ef0cc37811b77188db9702abac53fa5b57e1c0a'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
-            '8ed579743a531fc596504200c43880c072bdeb004c3fc8b64ce480a974cc0bac')
+            '1274c067bca11f3b344ab52b42a75959b72df6af31a1396d25102ac3edea120b')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
@@ -336,7 +336,8 @@ sticky_pref("media.ffmpeg.vaapi.enabled", true);
 sticky_pref("media.hardware-video-decoding.force-enabled", true);
 sticky_pref("media.navigator.mediadatadecoder_vpx_enabled", true);
 pref("media.ffvpx.enabled", true);
-
+END
+  install -Dvm644 /dev/stdin "$pref/nvidia.js" <<END
 // nvidia
 pref("widget.dmabuf.force-enabled", true);
 pref("media.rdd-ffmpeg.enabled",    true);
@@ -375,7 +376,7 @@ app.distributor.channel=${pkgname}
 app.partner.archlinux=archlinux
 END
 
-  local i theme=official
+  local i theme=nightly
   for i in 16 22 24 32 48 64 128 256; do
     install -Dvm644 browser/branding/$theme/default$i.png \
       "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/${pkgname}.png"
@@ -395,7 +396,7 @@ END
   # Install a wrapper to avoid confusion about binary path
   install -Dvm755 /dev/stdin "$pkgdir/usr/bin/${pkgname}" <<END
 #!/bin/sh
-exec /usr/lib/${pkgname}/${pkgname}-bin "\$@"
+MOZ_LEGACY_HOME=0 exec /usr/lib/${pkgname}/${pkgname}-bin "\$@"
 END
 
   # Replace duplicate binary with wrapper

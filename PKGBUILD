@@ -4,8 +4,8 @@
 
 pkgname=floorp
 _pkgname=Floorp
-pkgver=11.13.3
-_esrver=115
+pkgver=11.18.0
+_esrver=128
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
@@ -26,25 +26,19 @@ options=(!emptydirs !makeflags !strip !lto !debug)
 source=("git+https://github.com/Floorp-Projects/Floorp.git#branch=ESR${_esrver}"
         floorp-projects.unified-l10n-central::git+https://github.com/Floorp-Projects/Unified-l10n-central.git
         floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git
-        floorp-projects.private-components::git+https://github.com/Floorp-Projects/Floorp-private-components.git
-        "hg+https://www.rosenauer.org/hg/mozilla#branch=firefox${_esrver}"
-        "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-10.tar.xz"
+        "git+https://github.com/openSUSE/firefox-maintenance.git#branch=${_esrver}esr"
+        "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-02.tar.xz"
         fix_csd_window_buttons.patch
-        move-user-profile-to-XDG_CONFIG_HOME.patch
-        bmo1866829-Replace-obsolete-distutils.patch
-        bmo1893961-Remove-distutils-use-from-mozbase.patch
-        bmo1887281-Use-shutil.which-instead-of-find_executable.patch)
+        0001-move-user-profile-to-XDG_CONFIG_HOME.patch
+        0002-skip-creation-of-user-directory-extensions.patch)
 sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'SKIP'
-            'dbd1897cddfa835223a2f8e0810f2505250526fa7005ae4471b56d5a1b16cd75'
+            'dc73683c3e2c71dadad6477ec5edda58b03c172e7c1d2f0c0698e87327c2fa6d'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            '503e07748cd4f9315bb6dbe7795cafdf4de4352d78191f47c2045632adcc9a6a'
-            '6952f93889acb514e3b06e251ea901df88c39b429da9677cd5547d90a8b6c73e'
-            '3cc55401ed5e027f1b9e667b0b52296af11f3c5c62b4a80b7e55cda0e117ed18'
-            'f66a944fa8804c16b1f7bd9b42b18bfc2552a891adc148085f4b91685e8db117')
+            'eab88fab4ffc28966462f56ef7586ed4f1cec1d528e124289adf8c05a3f3006f'
+            '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970')
 
 pkgver() {
   cd "$_pkgname" || exit
@@ -55,20 +49,15 @@ prepare() {
   mkdir mozbuild
   cd "$_pkgname" || exit
 
-  patch -Np1 -i "${srcdir}/move-user-profile-to-XDG_CONFIG_HOME.patch"
-
-  # Unbreak distutils
-  patch -Np1 -i "${srcdir}/bmo1866829-Replace-obsolete-distutils.patch"
-  patch -Np1 -i "${srcdir}/bmo1893961-Remove-distutils-use-from-mozbase.patch"
-  patch -Np1 -i "${srcdir}/bmo1887281-Use-shutil.which-instead-of-find_executable.patch"
+  patch -Np1 -i "${srcdir}/0001-move-user-profile-to-XDG_CONFIG_HOME.patch"
+  patch -Np1 -i "${srcdir}/0002-skip-creation-of-user-directory-extensions.patch"
 
   msg 'Tickle Git Submodule'
   (
     rm -rf "floorp"
     ln -sf "../floorp-projects.floorp-core" "floorp"
     cd "$srcdir/floorp-projects.floorp-core"
-    local _submodules=('floorp-projects.unified-l10n-central'::'browser/locales/l10n-central'
-                       'floorp-projects.private-components'::'Floorp-private-components')
+    local _submodules=('floorp-projects.unified-l10n-central'::'browser/locales/l10n-central')
     for _module in "${_submodules[@]}" ; do
       git submodule init "${_module##*::}"
       git submodule set-url "${_module##*::}" "$srcdir/${_module%%::*}"
@@ -80,6 +69,7 @@ prepare() {
   sed -E 's&^\s*pref\("startup\.homepage.*$&&' -i "browser/branding/official/pref/firefox-branding.js"
 
   msg 'Gentoo patch'
+  rm -rf $srcdir/firefox-patches/{0026*,0028*,0029*}
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -93,13 +83,13 @@ prepare() {
                     # 'mozilla-kde.patch'
                     'mozilla-ntlm-full-path.patch'
                     'mozilla-aarch64-startup-crash.patch'
-                    'mozilla-fix-aarch64-libopus.patch'
+                    # 'mozilla-fix-aarch64-libopus.patch'
                     # 'mozilla-s390-context.patch'
                     # 'mozilla-pgo.patch' # previous patch detected
                     'mozilla-reduce-rust-debuginfo.patch'
                     'mozilla-bmo1504834-part1.patch'
-                    'mozilla-bmo1504834-part3.patch'
-                    'mozilla-bmo1512162.patch'
+                    # 'mozilla-bmo1504834-part3.patch'
+                    # 'mozilla-bmo1512162.patch'
                     # 'mozilla-fix-top-level-asm.patch' # broken patch
                     'mozilla-bmo849632.patch'
                     'mozilla-bmo998749.patch'
@@ -108,15 +98,15 @@ prepare() {
                     # 'mozilla-bmo531915.patch' # broken patch
                     'one_swizzle_to_rule_them_all.patch'
                     'svg-rendering.patch'
-                    'mozilla-partial-revert-1768632.patch'
-                    'mozilla-bmo1775202.patch'
-                    'mozilla-rust-disable-future-incompat.patch'
+                    # 'mozilla-partial-revert-1768632.patch'
+                    # 'mozilla-bmo1775202.patch'
+                    # 'mozilla-rust-disable-future-incompat.patch'
                     # Firefox patches
                     # 'firefox-kde.patch'
                     'firefox-branded-icons.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/mozilla/${src}"
+    patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/${src}"
   done
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
@@ -183,7 +173,7 @@ ac_add_options --enable-audio-backends="pulseaudio,alsa,jack"
 ac_add_options --enable-raw
 ac_add_options --enable-sandbox
 ac_add_options --enable-webrtc
-ac_add_options --enable-private-components
+# ac_add_options --enable-private-components
 ac_add_options --disable-default-browser-agent
 ac_add_options --disable-parental-controls
 ac_add_options --enable-proxy-bypass-protection
@@ -211,7 +201,7 @@ build() {
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
   export MOZ_ENABLE_FULL_SYMBOLS=0
-  export RUSTUP_TOOLCHAIN=1.77
+  export RUSTUP_TOOLCHAIN=stable
   export RUSTFLAGS="-C debuginfo=1"
   export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
@@ -223,6 +213,10 @@ build() {
   # malloc_usable_size is used in various parts of the codebase
   CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
   CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+
+  # Breaks compilation since https://bugzilla.mozilla.org/show_bug.cgi?id=1896066
+  CFLAGS="${CFLAGS/-fexceptions/}"
+  CXXFLAGS="${CXXFLAGS/-fexceptions/}"
 
   # LTO needs more open files
   ulimit -n 4096
@@ -380,7 +374,7 @@ END
   # Install a wrapper to avoid confusion about binary path
   install -Dvm755 /dev/stdin "$pkgdir/usr/bin/floorp" <<END
 #!/bin/sh
-exec /usr/lib/floorp/floorp "\$@"
+MOZ_LEGACY_HOME=0 /usr/lib/floorp/floorp "\$@"
 END
 
   # Replace duplicate binary with wrapper

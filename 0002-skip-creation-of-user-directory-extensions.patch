@@ -1,0 +1,58 @@
+From d5c7d22cf8f5e51c7ce5ef5a034bc739789920a4 Mon Sep 17 00:00:00 2001
+From: Brli <brli@chakralinux.org>
+Date: Mon, 17 Jun 2024 00:31:24 +0800
+Subject: [PATCH 2/2] skip creation of user directory extensions
+
+---
+ toolkit/xre/nsXREDirProvider.cpp | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/toolkit/xre/nsXREDirProvider.cpp b/toolkit/xre/nsXREDirProvider.cpp
+index 5cad3d43fd..e02763904b 100644
+--- a/toolkit/xre/nsXREDirProvider.cpp
++++ b/toolkit/xre/nsXREDirProvider.cpp
+@@ -1379,6 +1379,13 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+   NS_ASSERTION(aFile, "Null pointer!");
+ 
+   nsresult rv;
++  bool exists;
++
++  // check if we are using legace home
++  const char* legacyhomedir = PR_GetEnv("MOZ_LEGACY_HOME");
++  if (legacyhomedir) {
++    exists = legacyhomedir[0] == '1';
++  }
+ 
+ #if defined(XP_MACOSX) || defined(XP_WIN)
+ 
+@@ -1387,8 +1394,11 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+   NS_ENSURE_SUCCESS(rv, rv);
+ 
+   static const char* const sExtensions = "Extensions";
+-  rv = aFile->AppendNative(nsDependentCString(sExtensions));
+-  NS_ENSURE_SUCCESS(rv, rv);
++
++  if (exists) {
++    rv = aFile->AppendNative(nsDependentCString(sExtensions));
++    NS_ENSURE_SUCCESS(rv, rv);
++  }
+ 
+ #elif defined(XP_UNIX)
+ 
+@@ -1398,9 +1408,10 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+   NS_ENSURE_SUCCESS(rv, rv);
+ #  endif
+   static const char* const sExtensions = "extensions";
+-  rv = aFile->AppendNative(nsDependentCString(sExtensions));
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
++  if (exists) {
++    rv = aFile->AppendNative(nsDependentCString(sExtensions));
++    NS_ENSURE_SUCCESS(rv, rv);
++  }
+ #else
+ #  error "Don't know how to get XRE user extension path on your platform"
+ #endif
+-- 
+2.45.2
+

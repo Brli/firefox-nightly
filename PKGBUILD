@@ -4,9 +4,9 @@
 
 pkgname=floorp
 _pkgname=Floorp
-pkgver=11.18.0
+pkgver=11.19.1
 _esrver=128
-pkgrel=1
+pkgrel=4
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -27,7 +27,7 @@ source=("git+https://github.com/Floorp-Projects/Floorp.git#branch=ESR${_esrver}"
         floorp-projects.unified-l10n-central::git+https://github.com/Floorp-Projects/Unified-l10n-central.git
         floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git
         "git+https://github.com/openSUSE/firefox-maintenance.git#branch=${_esrver}esr"
-        "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-02.tar.xz"
+        "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-03.tar.xz"
         fix_csd_window_buttons.patch
         0001-move-user-profile-to-XDG_CONFIG_HOME.patch
         0002-skip-creation-of-user-directory-extensions.patch)
@@ -35,7 +35,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'dc73683c3e2c71dadad6477ec5edda58b03c172e7c1d2f0c0698e87327c2fa6d'
+            '6428f628ab93670c0455ab436ed4d6e361893968f57daf7b53e3446fbe3784ef'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'eab88fab4ffc28966462f56ef7586ed4f1cec1d528e124289adf8c05a3f3006f'
             '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970')
@@ -69,7 +69,6 @@ prepare() {
   sed -E 's&^\s*pref\("startup\.homepage.*$&&' -i "browser/branding/official/pref/firefox-branding.js"
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/{0026*,0028*,0029*}
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -190,6 +189,9 @@ ac_add_options --enable-install-strip
 export STRIP_FLAGS="--strip-debug --strip-unneeded"
 END
 
+  # Ablaze Branding
+  sed 's,MOZ_APP_VENDOR=Mozilla,MOZ_APP_VENDOR=Ablaze,' -i browser/confvars.sh
+
   # Remove patched rust file checksums
   sed 's/\("files":{\)[^}]*/\1/' -i \
     third_party/rust/*/.cargo-checksum.json
@@ -253,7 +255,7 @@ ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 ac_add_options --with-l10n-base=${PWD@Q}/floorp/browser/locales/l10n-central
 END
   ./mach build
-  
+
   msg 'Building locales'
   ./mach package
   export MOZ_CHROME_MULTILOCALE="en-US ja zh-TW"

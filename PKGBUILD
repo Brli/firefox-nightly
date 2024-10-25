@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=128.0a1.20240608.decc37f392c2
+pkgver=133.0a1.20241024.be024277429a
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -32,6 +32,7 @@ makedepends=(
   jack
   lld
   llvm
+  mercurial
   mesa
   nasm
   nodejs
@@ -65,24 +66,24 @@ _moz_revision=be024277429aa81609b3c21e3842f3ba7b975b5d
 _gentoo_patch=131-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
-        hg+https://www.rosenauer.org/hg/mozilla#branch=firefox125
+        git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://codeberg.org/librewolf/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
         firefox.desktop
         identity-icons-brand.svg
         fix_csd_window_buttons.patch
-        move-user-profile-to-XDG_CONFIG_HOME.patch)
-sha256sums=('SKIP'
+        0001-patch.patch)
+sha256sums=('d1c74c6046b0578ccb1cd2bbcf67a1c6e02dfd7cbb4b8930517b9b0c4821dcfe'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '88f1894bbd0a86d5db30d8323020aeccf0b5c5f41f04ee2193b4af06d8861344'
-            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            '6ed738b3fc95536091d061979ef0cc37811b77188db9702abac53fa5b57e1c0a'
+            '0da1bb4730193864d227c48a2640e96e8b7f8f321de260de4e27aa30a33253a9'
+            '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
-            '1274c067bca11f3b344ab52b42a75959b72df6af31a1396d25102ac3edea120b')
+            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
+            '66edf5f03dbad1a6b1f2fac4158e5867f0793380b5c329a51cd2d7608b0b6b8b')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
@@ -109,7 +110,8 @@ prepare() {
   # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
   msg 'Gentoo patch'
-  # rm -rf $srcdir/firefox-patches/00{15,20,25,26}*
+  rm -rf $srcdir/firefox-patches/00{13,19,27,28,29,3*}*
+  mv $srcdir/0001-patch.patch $srcdir/firefox-patches/0019-bmo-1862601-system-icu-74.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -121,7 +123,7 @@ prepare() {
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=('mozilla-nongnome-proxies.patch'
                     # 'mozilla-kde.patch'
-                    'mozilla-ntlm-full-path.patch'
+                    # 'mozilla-ntlm-full-path.patch'
                     # 'mozilla-aarch64-startup-crash.patch'
                     # 'mozilla-fix-aarch64-libopus.patch'
                     # 'mozilla-s390-context.patch'
@@ -131,7 +133,7 @@ prepare() {
                     # 'mozilla-bmo1568145.patch'
                     # 'mozilla-bmo1504834-part1.patch'
                     # 'mozilla-bmo1504834-part3.patch'
-                    'mozilla-bmo1512162.patch'
+                    # 'mozilla-bmo1512162.patch'
                     # 'mozilla-fix-top-level-asm.patch'
                     'mozilla-bmo849632.patch'
                     'mozilla-bmo998749.patch'
@@ -140,16 +142,16 @@ prepare() {
                     # 'mozilla-silence-no-return-type.patch'
                     # 'mozilla-bmo531915.patch'
                     'one_swizzle_to_rule_them_all.patch'
-                    'svg-rendering.patch'
-                    'mozilla-partial-revert-1768632.patch'
-                    'mozilla-bmo1822730.patch')
+                    'svg-rendering.patch')
+                    # 'mozilla-partial-revert-1768632.patch'
+                    # 'mozilla-bmo1822730.patch'
                     # 'mozilla-libproxy-fix.patch'
                     # 'mozilla-rust-disable-future-incompat.patch'
                     # 'firefox-branded-icons.patch'
                     # 'firefox-kde.patch'
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/mozilla/$src"
+    patch -Np1 -i "${srcdir}/firefox-maintenance/$src"
   done
 
   msg 'librewolf patch'
@@ -160,10 +162,10 @@ prepare() {
                          # 'unity_kde/mozilla-kde.patch'
                          # 'unity_kde/firefox-kde.patch'
                          # 'unity_kde/unity-menubar.patch')
-  for src in "${librewolf_patch[@]}"; do
-    msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
-  done
+  #for src in "${librewolf_patch[@]}"; do
+  #   msg "Applying patch $src..."
+  #   patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
+  #done
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
@@ -240,7 +242,7 @@ END
   sed 's/\("files":{\)[^}]*/\1/' -i \
     third_party/rust/*/.cargo-checksum.json
 
-  patch -Np1 -i "${srcdir}/move-user-profile-to-XDG_CONFIG_HOME.patch"
+  # patch -Np1 -i "${srcdir}/move-user-profile-to-XDG_CONFIG_HOME.patch"
 }
 
 build() {

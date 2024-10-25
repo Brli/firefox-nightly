@@ -5,32 +5,73 @@
 pkgname=firefox-nightly
 pkgver=128.0a1.20240608.decc37f392c2
 pkgrel=1
-pkgdesc="Standalone web browser from mozilla.org - Nightly branch"
+pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
-license=(MPL GPL LGPL)
+license=(
+  GPL
+  LGPL
+  MPL
+)
 url="https://www.mozilla.org/firefox/"
-depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
-makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
-             autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
-             lld dump_syms mercurial rsync
-             wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi)
-optdepends=('networkmanager: Location detection via available WiFi networks'
-            'libnotify: Notification integration'
-            'pulseaudio: Audio support'
-            'speech-dispatcher: Text-to-Speech'
-            'hunspell-en_US: Spell checking, American English'
-            'xdg-desktop-portal: Screensharing with Wayland')
-options=(!emptydirs !makeflags !strip !lto !debug)
-_moz_revision=decc37f392c250b5a3aa4a7822148cdf6e990627
-_gentoo_patch=126-patches-02
+depends=(
+  dbus
+  ffmpeg
+  gtk3
+  libpulse
+  libxt
+  mime-types
+  nss
+  ttf-font
+)
+makedepends=(
+  cbindgen
+  clang
+  diffutils
+  dump_syms
+  imake
+  jack
+  lld
+  llvm
+  mesa
+  nasm
+  nodejs
+  python
+  rust
+  unzip
+  wasi-compiler-rt
+  wasi-libc
+  wasi-libc++
+  wasi-libc++abi
+  xorg-server-xvfb
+  yasm
+  zip
+)
+optdepends=(
+  'hunspell-en_US: Spell checking, American English'
+  'libnotify: Notification integration'
+  'networkmanager: Location detection via available WiFi networks'
+  'pulseaudio: Audio support'
+  'speech-dispatcher: Text-to-Speech'
+  'xdg-desktop-portal: Screensharing with Wayland'
+)
+options=(
+  !debug
+  !emptydirs
+  !lto
+  !makeflags
+  !strip
+)
+_moz_revision=be024277429aa81609b3c21e3842f3ba7b975b5d
+_gentoo_patch=131-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         hg+https://www.rosenauer.org/hg/mozilla#branch=firefox125
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://codeberg.org/librewolf/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
+        firefox.desktop
+        identity-icons-brand.svg
         fix_csd_window_buttons.patch
-        firefox.desktop identity-icons-brand.svg
         move-user-profile-to-XDG_CONFIG_HOME.patch)
 sha256sums=('SKIP'
             'SKIP'
@@ -50,12 +91,6 @@ validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Rel
 # more information.
 _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 
-# Mozilla API keys (see https://location.services.mozilla.com/api)
-# Note: These are for Arch Linux use ONLY. For your own distribution, please
-# get your own set of keys. Feel free to contact heftig@archlinux.org for
-# more information.
-_mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
-
 pkgver() {
   cd mozilla-central
   _pkgver=$(cat browser/config/version.txt)
@@ -74,7 +109,7 @@ prepare() {
   # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/00{15,20,25,26}*
+  # rm -rf $srcdir/firefox-patches/00{15,20,25,26}*
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -134,7 +169,6 @@ prepare() {
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
 
   echo -n "$_google_api_key" >google-api-key
-  echo -n "$_mozilla_api_key" >mozilla-api-key
 
   cat >../mozconfig <<END
 ac_add_options --enable-application=browser
@@ -169,7 +203,6 @@ unset MOZ_DATA_REPORTING
 # Keys
 ac_add_options --with-google-location-service-api-keyfile=${PWD@Q}/google-api-key
 ac_add_options --with-google-safebrowsing-api-keyfile=${PWD@Q}/google-api-key
-ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/mozilla-api-key
 
 # System libraries
 ac_add_options --with-system-nspr
@@ -198,7 +231,7 @@ ac_add_options --disable-tests
 END
 
   # Fake mozilla version
-  echo '126.0.1' > config/milestone.txt
+  echo '131.0.3' > config/milestone.txt
 
   # Desktop file
   sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"
@@ -248,7 +281,15 @@ END
   msg "Profiling instrumented browser..."
   ./mach package
   LLVM_PROFDATA=llvm-profdata \
-    JARLOG_FILE="$PWD/jarlog" \
+      JARLOG_FILE="$PWD/jarlog" \
+      MOZ_DISABLE_CONTENT_SANDBOX=1 \
+      MOZ_DISABLE_GMP_SANDBOX=1 \
+      MOZ_DISABLE_GPU_SANDBOX=1 \
+      MOZ_DISABLE_RDD_SANDBOX=1 \
+      MOZ_DISABLE_SOCKET_PROCESS_SANDBOX=1 \
+      MOZ_DISABLE_UTILITY_SANDBOX=1 \
+      MOZ_DISABLE_VR_SANDBOX=1 \
+      GTK_A11Y=none NO_AT_BRIDGE=1 dbus-run-session \
     xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
     ./mach python build/pgo/profileserver.py
 
@@ -272,7 +313,7 @@ ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 ac_add_options --with-l10n-base=$srcdir/mozbuild
 END
   ./mach build
-  
+
   msg 'Building locales'
   ./mach package
   export MOZ_CHROME_MULTILOCALE="zh-TW"
@@ -410,4 +451,4 @@ END
   fi
 }
 
-# vim:set sw=2 et:
+# vim:set sw=2 sts=-1 et:

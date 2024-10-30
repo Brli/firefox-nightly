@@ -3,32 +3,68 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-brli
-pkgver=123.0.1
-pkgrel=3
+pkgver=132.0
+pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
 license=(MPL GPL LGPL)
 url="https://www.mozilla.org/firefox/"
-depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
-makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
-             autoconf2.13 rust clang llvm jack nodejs cbindgen nasm
-             lld dump_syms wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
-             mercurial rsync)
-optdepends=('networkmanager: Location detection via available WiFi networks'
-            'libnotify: Notification integration'
-            'pulseaudio: Audio support'
-            'speech-dispatcher: Text-to-Speech'
-            'hunspell-en_US: Spell checking, American English'
-            'xdg-desktop-portal: Screensharing with Wayland')
+depends=(
+  dbus
+  ffmpeg
+  gtk3
+  libpulse
+  libxt
+  mime-types
+  nss
+  ttf-font
+)
+makedepends=(
+  cbindgen
+  clang
+  diffutils
+  dump_syms
+  imake
+  jack
+  lld
+  llvm
+  mesa
+  nasm
+  nodejs
+  python
+  rust
+  unzip
+  wasi-compiler-rt
+  wasi-libc
+  wasi-libc++
+  wasi-libc++abi
+  xorg-server-xvfb
+  yasm
+  zip
+)
+optdepends=(
+  'hunspell-en_US: Spell checking, American English'
+  'libnotify: Notification integration'
+  'networkmanager: Location detection via available WiFi networks'
+  'pulseaudio: Audio support'
+  'speech-dispatcher: Text-to-Speech'
+  'xdg-desktop-portal: Screensharing with Wayland'
+)
+options=(
+  !debug
+  !emptydirs
+  !lto
+  !makeflags
+  !strip
+)
 provides=(firefox)
 conflicts=(firefox firefox-i18n-zh-tw)
 replaces=(firefox-i18n-zh-tw)
-options=(!emptydirs !makeflags !strip !lto !debug)
 source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"{,.asc}
         hg+https://hg.mozilla.org/l10n-central/zh-TW
-        hg+http://www.rosenauer.org/hg/mozilla#branch=firefox120
+        git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-07.tar.xz
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01.tar.xz
         fix_csd_window_buttons.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
         firefox-kde.patch mozilla-kde.patch bm1875573-update-aom.patch
@@ -54,19 +90,11 @@ validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Rel
 # more information.
 _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 
-# Mozilla API keys (see https://location.services.mozilla.com/api)
-# Note: These are for Arch Linux use ONLY. For your own distribution, please
-# get your own set of keys. Feel free to contact heftig@archlinux.org for
-# more information.
-_mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
-
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  mv -f mozilla-kde.patch firefox-kde.patch -t "${srcdir}/mozilla/"
+  # mv -f mozilla-kde.patch firefox-kde.patch -t "${srcdir}/firefox-maintenance/firefox/"
   cd firefox-${pkgver}
-
-  patch -Np1 -i "${srcdir}/bm1875573-update-aom.patch"
 
   msg 'Gentoo patch'
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
@@ -105,11 +133,17 @@ prepare() {
                     # 'mozilla-rust-disable-future-incompat.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/mozilla/${src}"
+    patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/$src"
   done
 
   msg 'librewolf patch'
-  local librewolf_patch=('sed-patches/stop-undesired-requests.patch')
+  local librewolf_patch=('sed-patches/stop-undesired-requests.patch'
+                         'sed-patches/remove-internal-plugin-certs.patch'
+                         'remove_addons.patch'
+                         'disable-data-reporting-at-compile-time.patch'
+                         'JXL_enable_by_default.patch'
+                         'JXL_improved_support.patch'
+                         'allow-JXL-in-non-nightly-browser.patch')
                          # 'ui-patches/remove-snippets-from-home.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
@@ -118,9 +152,8 @@ prepare() {
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
-  
+
   echo -n "$_google_api_key" >google-api-key
-  echo -n "$_mozilla_api_key" >mozilla-api-key
 
   cat >../mozconfig <<END
 ac_add_options --enable-application=browser
@@ -135,8 +168,8 @@ ac_add_options --enable-rust-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-# ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
-ac_add_options --without-wasm-sandboxed-libraries
+ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+# ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
 ac_add_options --enable-official-branding
@@ -152,7 +185,6 @@ unset MOZ_TELEMETRY_REPORTING
 # Keys
 ac_add_options --with-google-location-service-api-keyfile=${PWD@Q}/google-api-key
 ac_add_options --with-google-safebrowsing-api-keyfile=${PWD@Q}/google-api-key
-ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/mozilla-api-key
 
 # System libraries
 ac_add_options --with-system-nspr
@@ -181,7 +213,7 @@ ac_add_options --disable-tests
 END
 
   # Desktop file
-  sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"
+  sed "s,@MOZ_APP_NAME@,firefox,g" -i "${srcdir}/firefox.desktop"
 
   # remove checksum for files patched
   sed 's/\("files":{\)[^}]*/\1/' -i \
@@ -212,7 +244,15 @@ END
   msg "Profiling instrumented browser..."
   ./mach package
   LLVM_PROFDATA=llvm-profdata \
-    JARLOG_FILE="$PWD/jarlog" \
+      JARLOG_FILE="$PWD/jarlog" \
+      MOZ_DISABLE_CONTENT_SANDBOX=1 \
+      MOZ_DISABLE_GMP_SANDBOX=1 \
+      MOZ_DISABLE_GPU_SANDBOX=1 \
+      MOZ_DISABLE_RDD_SANDBOX=1 \
+      MOZ_DISABLE_SOCKET_PROCESS_SANDBOX=1 \
+      MOZ_DISABLE_UTILITY_SANDBOX=1 \
+      MOZ_DISABLE_VR_SANDBOX=1 \
+      GTK_A11Y=none NO_AT_BRIDGE=1 dbus-run-session \
     xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
     ./mach python build/pgo/profileserver.py
 
@@ -236,7 +276,7 @@ ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 ac_add_options --with-l10n-base=$srcdir/mozbuild
 END
   ./mach build
-  
+
   msg 'Building locales'
   ./mach package
   export MOZ_CHROME_MULTILOCALE="zh-TW"
@@ -365,4 +405,4 @@ END
   fi
 }
 
-# vim:set sw=2 et:
+# vim:set sw=2 sts=-1 et:

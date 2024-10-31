@@ -29,6 +29,7 @@ makedepends=(
   lld
   llvm
   mesa
+  mercurial
   nasm
   nodejs
   python
@@ -58,8 +59,7 @@ options=(
   !strip
 )
 provides=(firefox)
-conflicts=(firefox firefox-i18n-zh-tw)
-replaces=(firefox-i18n-zh-tw)
+conflicts=(firefox)
 source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"{,.asc}
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -67,20 +67,16 @@ source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-$
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${pkgver%%.*}-patches-01.tar.xz
         fix_csd_window_buttons.patch
         0002-move-configuration-home-to-XDG_CONFIG_HOME.patch
-        firefox-kde.patch mozilla-kde.patch bm1875573-update-aom.patch
         firefox.desktop identity-icons-brand.svg)
-sha256sums=('d5dcb955b65e0f164a90cac0760724486e36e896221b98f244801dfd045d741c'
+sha256sums=('8908b144895b354460c6975291b75ea804b07bf9bb0ee386eafeaf3c82c55c7e'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'ba1caa7c36f6edb0e3f8c965967e53e908853582197e48600abd1b28298baea6'
+            'fe234494d2da36b6c1ad9f420c0bb6cfa31110d56af8f79fba6a5873e8a9244f'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'd00779111b7cd51213caa7358582507b964bba5c849d0a6d966cecd28b5d1ef3'
-            '909256c126a649c5c214281b10462474452c46c912ea2ecae830ea489b94a4db'
-            '09d7f85f03bd6f88d9302decca478489acbf6d69f72a4691650bb8fd619b9421'
-            'df41b3bf13e73c6b5185d3176823fbc2998c5db9404218d15bdf029b1349d589'
-            'ca27cd74a8391c0d5580d2068696309e4086d05d9cd0bd5c42cf5e4e9fa4d472'
+            '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
@@ -93,7 +89,6 @@ _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 prepare() {
   mkdir mozbuild
   mv zh-TW mozbuild/
-  # mv -f mozilla-kde.patch firefox-kde.patch -t "${srcdir}/firefox-maintenance/firefox/"
   cd firefox-${pkgver}
 
   msg 'Gentoo patch'
@@ -107,10 +102,9 @@ prepare() {
   msg 'opensuse patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=('mozilla-nongnome-proxies.patch'
-                    'mozilla-kde.patch'
-                    'mozilla-ntlm-full-path.patch'
+                    # 'mozilla-kde.patch'
+                    # 'mozilla-ntlm-full-path.patch'
                     'mozilla-aarch64-startup-crash.patch'
-                    'mozilla-fix-aarch64-libopus.patch'
                     # 'mozilla-s390-context.patch'
                     # 'mozilla-pgo.patch' # previous patch detected
                     'mozilla-reduce-rust-debuginfo.patch'
@@ -118,7 +112,7 @@ prepare() {
                     # 'mozilla-bmo1568145.patch'
                     # 'mozilla-bmo1504834-part1.patch'
                     # 'mozilla-bmo1504834-part3.patch'
-                    'mozilla-bmo1512162.patch'
+                    # 'mozilla-bmo1512162.patch'
                     # 'mozilla-fix-top-level-asm.patch' # broken patch
                     'mozilla-bmo849632.patch'
                     'mozilla-bmo998749.patch'
@@ -127,10 +121,10 @@ prepare() {
                     # 'mozilla-silence-no-return-type.patch'
                     # 'mozilla-bmo531915.patch' # broken patch
                     'one_swizzle_to_rule_them_all.patch'
-                    'svg-rendering.patch'
+                    'svg-rendering.patch')
                     # 'firefox-branded-icons.patch'
-                    'firefox-kde.patch')
-                    # 'mozilla-rust-disable-future-incompat.patch')
+                    # 'firefox-kde.patch'
+                    # 'mozilla-rust-disable-future-incompat.patch'
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/$src"
@@ -138,13 +132,11 @@ prepare() {
 
   msg 'librewolf patch'
   local librewolf_patch=('sed-patches/stop-undesired-requests.patch'
-                         'sed-patches/remove-internal-plugin-certs.patch'
                          'remove_addons.patch'
-                         'disable-data-reporting-at-compile-time.patch'
-                         'JXL_enable_by_default.patch'
-                         'JXL_improved_support.patch'
-                         'allow-JXL-in-non-nightly-browser.patch')
-                         # 'ui-patches/remove-snippets-from-home.patch')
+                         'disable-data-reporting-at-compile-time.patch')
+                         # 'JXL_enable_by_default.patch'
+                         # 'JXL_improved_support.patch'
+                         # 'allow-JXL-in-non-nightly-browser.patch'
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
@@ -169,6 +161,7 @@ ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
 ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
+# ac_add_options --with-wasm-sandboxed-libraries="ogg,hunspell,expat,woff2,soundtouch"
 # ac_add_options --without-wasm-sandboxed-libraries
 
 # Branding
@@ -195,7 +188,7 @@ ac_add_options --with-system-zlib
 ac_add_options --with-system-libevent
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
-ac_add_options --with-system-graphite2
+# ac_add_options --with-system-graphite2
 ac_add_options --with-system-icu
 ac_add_options --with-system-av1
 ac_add_options --enable-system-ffi
@@ -225,11 +218,24 @@ END
 build() {
   cd firefox-${pkgver%%b*}
 
-  export MOZ_NOSPAM=1
-  export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
-  export MOZ_ENABLE_FULL_SYMBOLS=1
+
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
+  export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
+  export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
+  export MOZ_NOSPAM=1
+  export LIBGL_ALWAYS_SOFTWARE=true
+  export MOZ_ENABLE_FULL_SYMBOLS=0
+
+  # avoid error: version script failed: symbol not defined
   LDFLAGS+=' -Wl,--undefined-version'
+
+  # malloc_usable_size is used in various parts of the codebase
+  CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+  CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+
+  # Breaks compilation since https://bugzilla.mozilla.org/show_bug.cgi?id=1896066
+  CFLAGS="${CFLAGS/-fexceptions/}"
+  CXXFLAGS="${CXXFLAGS/-fexceptions/}"
 
   # LTO needs more open files
   ulimit -n 4096

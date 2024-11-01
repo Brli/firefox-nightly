@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=133.0a1.20241024.be024277429a
+pkgver=134.0a1.20241031.b584d7d6324f
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,24 +62,24 @@ options=(
   !makeflags
   !strip
 )
-_moz_revision=be024277429aa81609b3c21e3842f3ba7b975b5d
-_gentoo_patch=131-patches-02
+_moz_revision=b584d7d6324f3942d865d81db37e7128d8d01793
+_gentoo_patch=132-patches-01
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
-        librewolf-patch::git+https://codeberg.org/librewolf/source.git
+        librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
         firefox.desktop
         identity-icons-brand.svg
         fix_csd_window_buttons.patch
         0001-patch.patch)
-sha256sums=('d1c74c6046b0578ccb1cd2bbcf67a1c6e02dfd7cbb4b8930517b9b0c4821dcfe'
+sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '0da1bb4730193864d227c48a2640e96e8b7f8f321de260de4e27aa30a33253a9'
+            'fe234494d2da36b6c1ad9f420c0bb6cfa31110d56af8f79fba6a5873e8a9244f'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
@@ -180,7 +180,8 @@ mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 ac_add_options --prefix=/usr
 ac_add_options --enable-release
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize='-O3'
+ac_add_options --enable-wasm-avx
+ac_add_options --enable-optimize="-O3 -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -maes -mpopcnt -mpclmul"
 ac_add_options --enable-rust-simd
 ac_add_options --enable-wasm-simd
 ac_add_options --enable-linker=lld
@@ -230,13 +231,14 @@ ac_add_options --disable-necko-wifi
 ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
+ac_add_options --target=x86_64-pc-linux
 END
 
   # Fake mozilla version
   echo '131.0.3' > config/milestone.txt
 
   # Desktop file
-  sed "/^%%/d;/@MOZ_DISPLAY_NAME@/d;s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"
+  sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"
 
   # Remove patched rust file checksums
   sed 's/\("files":{\)[^}]*/\1/' -i \
@@ -263,12 +265,20 @@ build() {
   LDFLAGS+=' -Wl,--undefined-version'
 
   # malloc_usable_size is used in various parts of the codebase
-  CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
-  CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+  # CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+  # CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
 
   # Breaks compilation since https://bugzilla.mozilla.org/show_bug.cgi?id=1896066
   CFLAGS="${CFLAGS/-fexceptions/}"
   CXXFLAGS="${CXXFLAGS/-fexceptions/}"
+
+  # Borrow from Zen Browser
+  # https://github.com/zen-browser/desktop/blob/dev/configs/linux/mozconfig
+  export CFLAGS="$CFLAGS -O3 -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"
+  export CPPFLAGS="$CPPFLAGS -O3 -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"
+  export CXXFLAGS="$CXXFLAGS -O3 -flto=thin -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"
+  export LDFLAGS="$LDFLAGS -Wl,-O3 -Wl,-mllvm,-fp-contract=fast -march=x86-64-v3"
+  export RUSTFLAGS="$RUSTFLAGS -C target-cpu=x86-64-v3 -C target-feature=+sse4.1 -C target-feature=+avx2 -C codegen-units=1 -Clink-args=--icf=safe"
 
   # LTO needs more open files
   ulimit -n 4096

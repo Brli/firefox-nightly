@@ -4,30 +4,69 @@
 
 pkgname=floorp
 _pkgname=Floorp
-pkgver=11.19.1
+_reverse_dns_pkgname=one.ablaze.floorp
+pkgver=11.20.0
 _esrver=128
-pkgrel=4
+pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
 url="https://floorp.ablaze.one/"
-depends=(gtk3 libxt mime-types dbus-glib ffmpeg nss ttf-font libpulse)
-makedepends=(unzip zip diffutils yasm mesa imake inetutils xorg-server-xvfb
-             autoconf2.13 mold rustup clang llvm jack nodejs cbindgen nasm
-             lld dump_syms wasi-compiler-rt wasi-libc wasi-libc++ wasi-libc++abi
-             mercurial breezy python-dulwich rsync)
-optdepends=('networkmanager: Location detection via available WiFi networks'
-            'libnotify: Notification integration'
-            'pulseaudio: Audio support'
-            'speech-dispatcher: Text-to-Speech'
-            'hunspell-en_US: Spell checking, American English'
-            'xdg-desktop-portal: Screensharing with Wayland')
-options=(!emptydirs !makeflags !strip !lto !debug)
+depends=(
+  dbus-glib
+  ffmpeg
+  gtk3
+  libpulse
+  libxt
+  mime-types
+  nss
+  ttf-font
+)
+makedepends=(
+  breezy
+  cbindgen
+  clang
+  diffutils
+  dump_syms
+  imake
+  jack
+  lld
+  llvm
+  mercurial
+  mesa
+  nasm
+  nodejs
+  python-dulwich
+  rust
+  unzip
+  wasi-compiler-rt
+  wasi-libc
+  wasi-libc++
+  wasi-libc++abi
+  xorg-server-xvfb
+  yasm
+  zip
+)
+optdepends=(
+  'hunspell-en_US: Spell checking, American English'
+  'libnotify: Notification integration'
+  'networkmanager: Location detection via available WiFi networks'
+  'pulseaudio: Audio support'
+  'speech-dispatcher: Text-to-Speech'
+  'xdg-desktop-portal: Screensharing with Wayland'
+)
+options=(
+  !debug
+  !emptydirs
+  !lto
+  !makeflags
+  !strip
+)
 source=("git+https://github.com/Floorp-Projects/Floorp.git#branch=ESR${_esrver}"
         floorp-projects.unified-l10n-central::git+https://github.com/Floorp-Projects/Unified-l10n-central.git
         floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git
         "git+https://github.com/openSUSE/firefox-maintenance.git#branch=${_esrver}esr"
-        "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-03.tar.xz"
+        "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-04.tar.xz"
         fix_csd_window_buttons.patch
         0001-move-user-profile-to-XDG_CONFIG_HOME.patch
         0002-skip-creation-of-user-directory-extensions.patch)
@@ -35,7 +74,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '6428f628ab93670c0455ab436ed4d6e361893968f57daf7b53e3446fbe3784ef'
+            '0fa7d10e6ab60785ed57cdd51c694e04b775dc0ca7701ac927ff05fceb109585'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'eab88fab4ffc28966462f56ef7586ed4f1cec1d528e124289adf8c05a3f3006f'
             '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970')
@@ -113,24 +152,25 @@ prepare() {
 
   cat >../mozconfig <<END
 ac_add_options --enable-application=browser
+ac_add_options --disable-artifact-builds
 ac_add_options --with-app-name=floorp
 ac_add_options --with-app-basename=Floorp
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 
 ac_add_options --prefix=/usr
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize="-O3"
+ac_add_options --enable-optimize="-O3 -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -maes -mpopcnt -mpclmul"
 ac_add_options --enable-rust-simd
 ac_add_options --enable-wasm-simd
-ac_add_options --enable-linker=mold
+ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
-#ac_add_options --enable-default-toolkit=cairo-gtk3-x11-wayland
+# ac_add_options --enable-default-toolkit=cairo-gtk3-x11-wayland
 ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 
 # Branding
-ac_add_options --enable-update-channel=release
+ac_add_options --enable-update-channel=nightly
 ac_add_options --with-branding=browser/branding/official
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
@@ -144,11 +184,11 @@ unset MOZ_DATA_REPORTING
 unset MOZ_TELEMETRY_REPORTING
 export OPT_LEVEL="3"
 export RUSTC_OPT_LEVEL="3"
+export MOZ_APP_PROFILE="floorp"
 
 # Keys
 ac_add_options --with-google-location-service-api-keyfile=${PWD@Q}/floorp/apis/api-google-location-service-key
 ac_add_options --with-google-safebrowsing-api-keyfile=${PWD@Q}/floorp/apis/api-google-safe-browsing-key
-ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/floorp/apis/api-mozilla-key
 
 # System libraries
 ac_add_options --with-system-nspr
@@ -165,12 +205,14 @@ ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman
 
 # Features
+ac_add_options --target=x86_64-pc-linux
 ac_add_options --enable-av1
 ac_add_options --enable-eme=widevine
 ac_add_options --enable-jxl
 ac_add_options --enable-audio-backends="pulseaudio,alsa,jack"
 ac_add_options --enable-raw
 ac_add_options --enable-sandbox
+ac_add_options --enable-wasm-avx
 ac_add_options --enable-webrtc
 # ac_add_options --enable-private-components
 ac_add_options --disable-default-browser-agent
@@ -200,15 +242,14 @@ END
 build() {
   cd "$_pkgname" || exit
 
-  export MOZ_NOSPAM=1
+  export LIBGL_ALWAYS_SOFTWARE=true
+  export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
+  export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
   export MOZ_ENABLE_FULL_SYMBOLS=0
-  export RUSTUP_TOOLCHAIN=stable
+  export MOZ_NOSPAM=1
   export RUSTFLAGS="-C debuginfo=1"
-  export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
-  export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
   export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-$srcdir/xdg}"
-  export LIBGL_ALWAYS_SOFTWARE=true
   LDFLAGS+=' -Wl,--undefined-version'
   install -dm700 "${XDG_RUNTIME_DIR:?}"
 
@@ -220,6 +261,22 @@ build() {
   CFLAGS="${CFLAGS/-fexceptions/}"
   CXXFLAGS="${CXXFLAGS/-fexceptions/}"
 
+  # Compiler setting
+  export AR=llvm-ar
+  export CC=clang
+  export CC_LD=lld
+  export CXX=clang++
+  export CXX_LD=lld
+  export NM=llvm-nm
+  export RANLIB=llvm-ranlib
+
+  # Zen Browser flags
+  export CFLAGS="$CFLAGS -O3 -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"
+  export CPPFLAGS="$CPPFLAGS -O3 -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"
+  export CXXFLAGS="$CXXFLAGS -O3 -flto=thin -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"
+  export LDFLAGS="$LDFLAGS -Wl,-O3 -Wl,-mllvm,-fp-contract=fast -march=x86-64-v3"
+  export RUSTFLAGS="$RUSTFLAGS -C target-cpu=x86-64-v3 -C target-feature=+sse4.1 -C target-feature=+avx2 -C codegen-units=1 -Clink-args=--icf=safe"
+
   # LTO needs more open files
   ulimit -n 4096
 
@@ -229,12 +286,20 @@ build() {
 ac_add_options --enable-profile-generate=cross
 export MOZ_ENABLE_FULL_SYMBOLS=1
 END
-  ./mach build
+  ./mach build --priority normal
 
   msg "Profiling instrumented browser..."
   ./mach package
   LLVM_PROFDATA=llvm-profdata \
     JARLOG_FILE="$PWD/jarlog" \
+    MOZ_DISABLE_CONTENT_SANDBOX=1 \
+    MOZ_DISABLE_GMP_SANDBOX=1 \
+    MOZ_DISABLE_GPU_SANDBOX=1 \
+    MOZ_DISABLE_RDD_SANDBOX=1 \
+    MOZ_DISABLE_SOCKET_PROCESS_SANDBOX=1 \
+    MOZ_DISABLE_UTILITY_SANDBOX=1 \
+    MOZ_DISABLE_VR_SANDBOX=1 \
+    GTK_A11Y=none NO_AT_BRIDGE=1 dbus-run-session \
     xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
     ./mach python build/pgo/profileserver.py
 
@@ -254,7 +319,7 @@ ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 # L10n
 ac_add_options --with-l10n-base=${PWD@Q}/floorp/browser/locales/l10n-central
 END
-  ./mach build
+  ./mach build --priority normal
 
   msg 'Building locales'
   ./mach package
@@ -349,7 +414,7 @@ END
   local distini="$pkgdir/usr/lib/floorp/distribution/distribution.ini"
   install -Dvm644 /dev/stdin "$distini" <<END
 [Global]
-id=one.ablaze.${pkgname}
+id=${_reverse_dns_pkgname}
 version=1.0
 
 [Preferences]
@@ -361,27 +426,30 @@ END
   local i theme=official
   for i in 16 22 24 32 48 64 128 256; do
     install -Dvm644 browser/branding/$theme/default$i.png \
-      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/floorp.png"
+      "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/${_reverse_dns_pkgname}.png"
   done
   install -Dvm644 browser/branding/$theme/content/about-logo.png \
-    "$pkgdir/usr/share/icons/hicolor/192x192/apps/floorp.png"
+    "$pkgdir/usr/share/icons/hicolor/192x192/apps/${_reverse_dns_pkgname}.png"
   install -Dvm644 browser/branding/$theme/content/about-logo@2x.png \
-    "$pkgdir/usr/share/icons/hicolor/384x384/apps/floorp.png"
+    "$pkgdir/usr/share/icons/hicolor/384x384/apps/${_reverse_dns_pkgname}.png"
   install -Dvm644 browser/branding/$theme/content/about-logo.svg \
-    "$pkgdir/usr/share/icons/hicolor/scalable/apps/floorp.svg"
+    "$pkgdir/usr/share/icons/hicolor/scalable/apps/${_reverse_dns_pkgname}.svg"
 
-  install -Dvm644 "$srcdir/$_pkgname/.github/floorp-debian.desktop" \
-    "$pkgdir/usr/share/applications/floorp.desktop"
+  install -Dvm644 "$srcdir/$_pkgname/.github/flatpak-one.ablaze.floorp.desktop" \
+    "$pkgdir/usr/share/applications/${_reverse_dns_pkgname}.desktop"
+  sed "s,Exec=floorp,Exec=${_reverse_dns_pkgname},g" -i "$pkgdir/usr/share/applications/${_reverse_dns_pkgname}.desktop"
 
   # Install a wrapper to avoid confusion about binary path
-  install -Dvm755 /dev/stdin "$pkgdir/usr/bin/floorp" <<END
+  install -Dvm755 /dev/stdin "$pkgdir/usr/bin/${_reverse_dns_pkgname}" <<END
 #!/bin/sh
 MOZ_LEGACY_HOME=0 /usr/lib/floorp/floorp "\$@"
 END
 
   # Replace duplicate binary with wrapper
   # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
-  ln -srfv "$pkgdir/usr/bin/floorp" "$pkgdir/usr/lib/floorp/floorp-bin"
+  ln -srfv "$pkgdir/usr/bin/${_reverse_dns_pkgname}" "$pkgdir/usr/lib/floorp/floorp-bin"
+  ln -srfv "$pkgdir/usr/bin/${_reverse_dns_pkgname}" "$pkgdir/usr/bin/floorp"
+
 
   # Use system certificates
   local nssckbi="$pkgdir/usr/lib/floorp/libnssckbi.so"

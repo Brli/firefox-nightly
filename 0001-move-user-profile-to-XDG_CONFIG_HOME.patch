@@ -1,7 +1,7 @@
-From ea1f562ae009698245639baebf996a3847414125 Mon Sep 17 00:00:00 2001
+From be82130a419b7209a9e110b875581088b37064d4 Mon Sep 17 00:00:00 2001
 From: Brli <brli@chakralinux.org>
-Date: Mon, 17 Jun 2024 00:20:36 +0800
-Subject: [PATCH 1/2] move user profile to XDG_CONFIG_HOME
+Date: Sat, 2 Nov 2024 17:04:30 +0800
+Subject: [PATCH] move user profile to XDG_CONFIG_HOME
 
 Floorp patch derived from bugzilla.mozilla.org for Mozilla Firefox
 
@@ -10,17 +10,17 @@ Support for the Freedesktop.org XDG Base Directory Specification
 
 phabricator url: https://phabricator.services.mozilla.com/D6995
 ---
- toolkit/xre/nsXREDirProvider.cpp       | 159 +++++++++++++++++++------
+ toolkit/xre/nsXREDirProvider.cpp       | 156 +++++++++++++++++++------
  toolkit/xre/nsXREDirProvider.h         |   6 +
  xpcom/io/moz.build                     |   1 +
  xpcom/io/nsAppFileLocationProvider.cpp |  36 ++++--
- 4 files changed, 160 insertions(+), 42 deletions(-)
+ 4 files changed, 157 insertions(+), 42 deletions(-)
 
 diff --git a/toolkit/xre/nsXREDirProvider.cpp b/toolkit/xre/nsXREDirProvider.cpp
-index 41d2353fe8..5cad3d43fd 100644
+index d3af49b495b8..ff0a42cc9fc3 100644
 --- a/toolkit/xre/nsXREDirProvider.cpp
 +++ b/toolkit/xre/nsXREDirProvider.cpp
-@@ -297,7 +297,7 @@ static nsresult GetSystemParentDirectory(nsIFile** aFile) {
+@@ -300,7 +300,7 @@ static nsresult GetSystemParentDirectory(nsIFile** aFile) {
    rv = GetOSXFolderType(kOnSystemDisk, kApplicationSupportFolderType,
                          getter_AddRefs(localDir));
    if (NS_SUCCEEDED(rv)) {
@@ -29,7 +29,7 @@ index 41d2353fe8..5cad3d43fd 100644
    }
  #  else
    constexpr auto dirname =
-@@ -381,13 +381,11 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
+@@ -378,13 +378,11 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
    else if (!strcmp(aProperty, XRE_SYS_NATIVE_MANIFESTS)) {
      rv = ::GetSystemParentDirectory(getter_AddRefs(file));
    } else if (!strcmp(aProperty, XRE_USER_NATIVE_MANIFESTS)) {
@@ -48,7 +48,7 @@ index 41d2353fe8..5cad3d43fd 100644
    }
  #endif  // defined(XP_UNIX) || defined(XP_MACOSX)
    else if (!strcmp(aProperty, XRE_UPDATE_ROOT_DIR)) {
-@@ -1118,7 +1116,7 @@ nsresult nsXREDirProvider::GetUpdateRootDir(nsIFile** aResult,
+@@ -1132,7 +1130,7 @@ nsresult nsXREDirProvider::GetUpdateRootDir(nsIFile** aResult,
              nsDependentCString(hasVendor ? GetAppVendor() : GetAppName())))) {
        return NS_ERROR_FAILURE;
      }
@@ -57,7 +57,7 @@ index 41d2353fe8..5cad3d43fd 100644
      return NS_ERROR_FAILURE;
    }
  
-@@ -1198,6 +1196,7 @@ nsresult nsXREDirProvider::SetUserDataProfileDirectory(nsCOMPtr<nsIFile>& aFile,
+@@ -1226,6 +1224,7 @@ nsresult nsXREDirProvider::SetUserDataProfileDirectory(nsCOMPtr<nsIFile>& aFile,
    return NS_OK;
  }
  
@@ -65,7 +65,7 @@ index 41d2353fe8..5cad3d43fd 100644
  nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
                                                      bool aLocal) {
    // Copied from nsAppFileLocationProvider (more or less)
-@@ -1259,29 +1258,25 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
+@@ -1287,29 +1286,25 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
    NS_ENSURE_SUCCESS(rv, rv);
  
    rv = NS_NewLocalFile(path, true, getter_AddRefs(localDir));
@@ -107,7 +107,7 @@ index 41d2353fe8..5cad3d43fd 100644
  #else
  #  error "Don't know how to get product dir on your platform"
  #endif
-@@ -1290,6 +1285,23 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
+@@ -1318,6 +1313,23 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
    return rv;
  }
  
@@ -131,7 +131,7 @@ index 41d2353fe8..5cad3d43fd 100644
  nsresult nsXREDirProvider::GetSysUserExtensionsDirectory(nsIFile** aFile) {
    nsCOMPtr<nsIFile> localDir;
    nsresult rv = GetUserDataDirectoryHome(getter_AddRefs(localDir), false);
-@@ -1370,7 +1382,7 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+@@ -1398,7 +1410,7 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
  
  #if defined(XP_MACOSX) || defined(XP_WIN)
  
@@ -140,7 +140,7 @@ index 41d2353fe8..5cad3d43fd 100644
    rv = aFile->AppendNative(nsDependentCString(sXR));
    NS_ENSURE_SUCCESS(rv, rv);
  
-@@ -1380,10 +1392,11 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+@@ -1408,10 +1420,11 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
  
  #elif defined(XP_UNIX)
  
@@ -154,7 +154,7 @@ index 41d2353fe8..5cad3d43fd 100644
    static const char* const sExtensions = "extensions";
    rv = aFile->AppendNative(nsDependentCString(sExtensions));
    NS_ENSURE_SUCCESS(rv, rv);
-@@ -1394,6 +1407,82 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+@@ -1422,6 +1435,79 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
    return NS_OK;
  }
  
@@ -220,9 +220,6 @@ index 41d2353fe8..5cad3d43fd 100644
 +    }
 +    NS_ENSURE_SUCCESS(rv, rv);
 +
-+    rv = localDir->AppendRelativeNativePath("floorp"_ns);
-+    NS_ENSURE_SUCCESS(rv, rv);
-+
 +    rv = EnsureDirectoryExists(localDir);
 +    NS_ENSURE_SUCCESS(rv, rv);
 +  }
@@ -237,7 +234,7 @@ index 41d2353fe8..5cad3d43fd 100644
  nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
    NS_ASSERTION(aFile, "Null pointer!");
  
-@@ -1444,13 +1533,10 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
+@@ -1472,13 +1558,10 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
    // The parent of this directory is set in GetUserDataDirectoryHome
    // XXX: handle gAppData->profile properly
    // XXXsmaug ...and the rest of the profile creation!
@@ -252,7 +249,7 @@ index 41d2353fe8..5cad3d43fd 100644
  
    if (!profile.IsEmpty()) {
      // Skip any leading path characters
-@@ -1467,11 +1553,14 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
+@@ -1495,11 +1578,14 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
      rv = AppendProfileString(aFile, folder.BeginReading());
    } else {
      if (!vendor.IsEmpty()) {
@@ -271,7 +268,7 @@ index 41d2353fe8..5cad3d43fd 100644
        folder.Truncate();
      }
 diff --git a/toolkit/xre/nsXREDirProvider.h b/toolkit/xre/nsXREDirProvider.h
-index e25fccda22..ec4ad7ab6f 100644
+index e25fccda223f..ec4ad7ab6f7b 100644
 --- a/toolkit/xre/nsXREDirProvider.h
 +++ b/toolkit/xre/nsXREDirProvider.h
 @@ -74,6 +74,11 @@ class nsXREDirProvider final : public nsIDirectoryServiceProvider2,
@@ -295,7 +292,7 @@ index e25fccda22..ec4ad7ab6f 100644
  #if defined(XP_UNIX) || defined(XP_MACOSX)
    static nsresult GetSystemExtensionsDirectory(nsIFile** aFile);
 diff --git a/xpcom/io/moz.build b/xpcom/io/moz.build
-index 97fe1663ab..52ec4684a0 100644
+index 91dca0cdd185..7c2f0cbbd338 100644
 --- a/xpcom/io/moz.build
 +++ b/xpcom/io/moz.build
 @@ -159,4 +159,5 @@ if CONFIG["OS_ARCH"] == "Linux" and "lib64" in CONFIG["libdir"]:
@@ -305,7 +302,7 @@ index 97fe1663ab..52ec4684a0 100644
 +    "/toolkit/xre",
  ]
 diff --git a/xpcom/io/nsAppFileLocationProvider.cpp b/xpcom/io/nsAppFileLocationProvider.cpp
-index aedaad1b4f..c57079049e 100644
+index 189f1efe130f..741e42d14f68 100644
 --- a/xpcom/io/nsAppFileLocationProvider.cpp
 +++ b/xpcom/io/nsAppFileLocationProvider.cpp
 @@ -13,6 +13,7 @@
@@ -385,5 +382,5 @@ index aedaad1b4f..c57079049e 100644
  nsresult nsAppFileLocationProvider::GetDefaultUserProfileRoot(
      nsIFile** aLocalFile, bool aLocal) {
 -- 
-2.45.2
+2.47.0
 

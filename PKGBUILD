@@ -322,12 +322,8 @@ END
   ./mach build --priority normal
 
   msg 'Building locales'
-  ./mach package
-  export MOZ_CHROME_MULTILOCALE="en-US ja zh-TW"
-  for AB_CD in $MOZ_CHROME_MULTILOCALE; do
-    msg "Building locales $AB_CD"
-    ./mach build chrome-$AB_CD
-  done
+  ./mach package-multi-locale --locales ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk vi zh-CN zh-TW
+
 }
 
 package() {

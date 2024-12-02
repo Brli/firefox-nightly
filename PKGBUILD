@@ -5,7 +5,7 @@
 pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
-pkgver=11.20.0
+pkgver=11.21.0
 _esrver=128
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
@@ -66,7 +66,7 @@ source=("git+https://github.com/Floorp-Projects/Floorp.git#branch=ESR${_esrver}"
         floorp-projects.unified-l10n-central::git+https://github.com/Floorp-Projects/Unified-l10n-central.git
         floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git
         "git+https://github.com/openSUSE/firefox-maintenance.git#branch=${_esrver}esr"
-        "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-04.tar.xz"
+        "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-06.tar.xz"
         fix_csd_window_buttons.patch
         0001-move-user-profile-to-XDG_CONFIG_HOME.patch
         0002-skip-creation-of-user-directory-extensions.patch)
@@ -74,9 +74,9 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '0fa7d10e6ab60785ed57cdd51c694e04b775dc0ca7701ac927ff05fceb109585'
+            'd8bd8811c54450ad14619b00b7b98f2b92047ce835f7eb988fbcaa424ff0f956'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            'eab88fab4ffc28966462f56ef7586ed4f1cec1d528e124289adf8c05a3f3006f'
+            '9f56a74420b38dffdb701eabd4343bfd75e7457f5da4cdc05dd593a4aa7d8a82'
             '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970')
 
 pkgver() {
@@ -108,6 +108,7 @@ prepare() {
   sed -E 's&^\s*pref\("startup\.homepage.*$&&' -i "browser/branding/official/pref/firefox-branding.js"
 
   msg 'Gentoo patch'
+  rm "$srcdir/firefox-patches/0030-bgo-940031-wasm-support.patch"
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -170,7 +171,7 @@ ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 
 # Branding
-ac_add_options --enable-update-channel=nightly
+ac_add_options --enable-update-channel=release
 ac_add_options --with-branding=browser/branding/official
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
@@ -323,7 +324,6 @@ END
 
   msg 'Building locales'
   ./mach package-multi-locale --locales ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk vi zh-CN zh-TW
-
 }
 
 package() {

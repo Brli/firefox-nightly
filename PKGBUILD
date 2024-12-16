@@ -3,67 +3,67 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=134.0a1.20241031.b584d7d6324f
+pkgver=135.0a1.20241215.38ad50fbdf91
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
 license=(
-  GPL
-  LGPL
-  MPL
+GPL
+LGPL
+MPL
 )
 url="https://www.mozilla.org/firefox/"
 depends=(
-  dbus
-  ffmpeg
-  gtk3
-  libpulse
-  libxt
-  mime-types
-  nss
-  ttf-font
+dbus
+ffmpeg
+gtk3
+libpulse
+libxt
+mime-types
+nss
+ttf-font
 )
 makedepends=(
-  cbindgen
-  clang
-  diffutils
-  dump_syms
-  imake
-  jack
-  lld
-  llvm
-  mercurial
-  mesa
-  nasm
-  nodejs
-  python
-  rust
-  unzip
-  wasi-compiler-rt
-  wasi-libc
-  wasi-libc++
-  wasi-libc++abi
-  xorg-server-xvfb
-  yasm
-  zip
+cbindgen
+clang
+diffutils
+dump_syms
+imake
+jack
+lld
+llvm
+mercurial
+mesa
+nasm
+nodejs
+python
+rust
+unzip
+wasi-compiler-rt
+wasi-libc
+wasi-libc++
+wasi-libc++abi
+xorg-server-xvfb
+yasm
+zip
 )
 optdepends=(
-  'hunspell-en_US: Spell checking, American English'
-  'libnotify: Notification integration'
-  'networkmanager: Location detection via available WiFi networks'
-  'pulseaudio: Audio support'
-  'speech-dispatcher: Text-to-Speech'
-  'xdg-desktop-portal: Screensharing with Wayland'
+'hunspell-en_US: Spell checking, American English'
+'libnotify: Notification integration'
+'networkmanager: Location detection via available WiFi networks'
+'pulseaudio: Audio support'
+'speech-dispatcher: Text-to-Speech'
+'xdg-desktop-portal: Screensharing with Wayland'
 )
 options=(
-  !debug
-  !emptydirs
-  !lto
-  !makeflags
-  !strip
+!debug
+!emptydirs
+!lto
+!makeflags
+!strip
 )
-_moz_revision=b584d7d6324f3942d865d81db37e7128d8d01793
-_gentoo_patch=132-patches-01
+_moz_revision=38ad50fbdf916b73179812f7f9b361178ac1f7e5
+_gentoo_patch=133-patches-03
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -72,18 +72,16 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
         firefox.desktop
         identity-icons-brand.svg
-        fix_csd_window_buttons.patch
-        0001-patch.patch)
+        fix_csd_window_buttons.patch)
 sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'fe234494d2da36b6c1ad9f420c0bb6cfa31110d56af8f79fba6a5873e8a9244f'
+            '283ec450e9358432fbcdb0624d99b8566ced6c6d85a59089a3f15624e7dd24ee'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
-            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            '66edf5f03dbad1a6b1f2fac4158e5867f0793380b5c329a51cd2d7608b0b6b8b')
+            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
@@ -110,8 +108,7 @@ prepare() {
   # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/00{13,19,27,28,29,3*}*
-  mv $srcdir/0001-patch.patch $srcdir/firefox-patches/0019-bmo-1862601-system-icu-74.patch
+  rm -rf $srcdir/firefox-patches/00{17,22,26,28,29,30,32,33,34}*
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -272,7 +269,7 @@ build() {
   CFLAGS="${CFLAGS/-fexceptions/}"
   CXXFLAGS="${CXXFLAGS/-fexceptions/}"
 
-  # Borrow from Zen Browser
+  # Borrow from Zen Browser, probably no much meaning
   # https://github.com/zen-browser/desktop/blob/dev/configs/linux/mozconfig
   export CFLAGS="$CFLAGS -O3 -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"
   export CPPFLAGS="$CPPFLAGS -O3 -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"

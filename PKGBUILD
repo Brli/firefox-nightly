@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=135.0a1.20241215.38ad50fbdf91
+pkgver=135.0a1.20241230.1542f650101a
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,8 +62,8 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=38ad50fbdf916b73179812f7f9b361178ac1f7e5
-_gentoo_patch=133-patches-03
+_moz_revision=1542f650101aac965e1b6cb9dc6162fe2b5e35b3
+_gentoo_patch=133-patches-06
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -78,7 +78,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '283ec450e9358432fbcdb0624d99b8566ced6c6d85a59089a3f15624e7dd24ee'
+            '061445f0ccd47f08159e5cd8336896d1af7b91a7e2825a50738be6ab70cc3166'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
@@ -108,7 +108,7 @@ prepare() {
   # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/00{17,22,26,28,29,30,32,33,34}*
+  rm -rf $srcdir/firefox-patches/00{16,21,25,27,28,29,30,31,32,33,34}*
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do

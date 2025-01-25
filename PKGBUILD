@@ -7,7 +7,7 @@ _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 pkgver=11.22.0
 _esrver=128
-pkgrel=1
+pkgrel=2
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -331,7 +331,12 @@ END
   ./mach build --priority normal
 
   msg 'Building locales'
-  ./mach package-multi-locale --locales ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk vi zh-CN zh-TW
+  ./mach package
+  export MOZ_CHROME_MULTILOCALE="en-US ja zh-TW"
+  for AB_CD in $MOZ_CHROME_MULTILOCALE; do
+    msg "Building locales $AB_CD"
+    ./mach build chrome-$AB_CD
+  done
 }
 
 package() {

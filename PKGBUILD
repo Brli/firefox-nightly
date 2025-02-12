@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=135.0a1.20241230.1542f650101a
+pkgver=137.0a1.20250206.731d4b2dcdc5
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,8 +62,8 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=1542f650101aac965e1b6cb9dc6162fe2b5e35b3
-_gentoo_patch=133-patches-06
+_moz_revision=731d4b2dcdc5955ba826a55077d5d5ba4b8e1ea8
+_gentoo_patch=135-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -78,7 +78,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '061445f0ccd47f08159e5cd8336896d1af7b91a7e2825a50738be6ab70cc3166'
+            'cccfaabb455c3dca9e5f2dcd0e51333115b555b104492b6a11a2c7ee813105b2'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
@@ -105,10 +105,10 @@ prepare() {
   # Revert NSS requirement
   # sed 's,nss >= 3.101,nss >= 3.100,' -i build/moz.configure/nss.configure
   # Revert ICU requirement
-  # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
+  sed 's,icu-i18n >= 76.1,icu-i18n >= 75.1,' -i js/moz.configure
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/00{16,21,25,27,28,29,30,31,32,33,34}*
+  rm -rf $srcdir/firefox-patches/00{13,23,25}*
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -145,7 +145,7 @@ prepare() {
                     # 'mozilla-libproxy-fix.patch'
                     # 'mozilla-rust-disable-future-incompat.patch'
                     # 'firefox-branded-icons.patch'
-                    # 'firefox-kde.patch'
+                    # 'firefox-kde.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/firefox-maintenance/$src"
@@ -215,7 +215,7 @@ ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
 # ac_add_options --with-system-graphite2
 ac_add_options --with-system-icu
-ac_add_options --with-system-av1
+# ac_add_options --with-system-av1
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-pixman
 
@@ -232,7 +232,7 @@ ac_add_options --target=x86_64-pc-linux
 END
 
   # Fake mozilla version
-  echo '131.0.3' > config/milestone.txt
+  echo '135.0' > config/milestone.txt
 
   # Desktop file
   sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"

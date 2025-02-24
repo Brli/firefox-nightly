@@ -62,7 +62,7 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=731d4b2dcdc5955ba826a55077d5d5ba4b8e1ea8
+_moz_revision=f75c525bb3939748df0341e9401d8bc7ea42009d
 _gentoo_patch=135-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
@@ -105,7 +105,7 @@ prepare() {
   # Revert NSS requirement
   # sed 's,nss >= 3.101,nss >= 3.100,' -i build/moz.configure/nss.configure
   # Revert ICU requirement
-  sed 's,icu-i18n >= 76.1,icu-i18n >= 75.1,' -i js/moz.configure
+  # sed 's,icu-i18n >= 76.1,icu-i18n >= 75.1,' -i js/moz.configure
 
   msg 'Gentoo patch'
   rm -rf $srcdir/firefox-patches/00{13,23,25}*

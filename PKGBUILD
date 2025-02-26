@@ -5,9 +5,9 @@
 pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
-pkgver=11.22.0
+pkgver=11.23.1
 _esrver=128
-pkgrel=2
+pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -69,9 +69,7 @@ source=("git+https://github.com/Floorp-Projects/Floorp.git#branch=ESR${_esrver}"
         "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-08.tar.xz"
         fix_csd_window_buttons.patch
         0001-move-user-profile-to-XDG_CONFIG_HOME.patch
-        0002-skip-creation-of-user-directory-extensions.patch
-        bmo-1926140-Replace-pipes-imports.patch
-        bmo-1925198-Move-telnetlib-import-to-BaseEmulator.patch)
+        0002-skip-creation-of-user-directory-extensions.patch)
 sha256sums=('SKIP'
             'SKIP'
             'SKIP'
@@ -79,9 +77,7 @@ sha256sums=('SKIP'
             'de368e0a8d6a2a6f13d1d3be3d611efe22778c087d96e1aa562ea0d264cb64b0'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             '9f56a74420b38dffdb701eabd4343bfd75e7457f5da4cdc05dd593a4aa7d8a82'
-            '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
-            'd01d3b692db818dab1f15035b73ad27894c7b2b80431b9eb7ca80194765c91a9'
-            'f68c5fd889288726fa6deff0aec6d30c60c0864e1ba9318cb3186af6a771748d')
+            '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970')
 
 pkgver() {
   cd "$_pkgname" || exit
@@ -94,8 +90,9 @@ prepare() {
 
   patch -Np1 -i "${srcdir}/0001-move-user-profile-to-XDG_CONFIG_HOME.patch"
   patch -Np1 -i "${srcdir}/0002-skip-creation-of-user-directory-extensions.patch"
-  patch -Np1 -i "${srcdir}/bmo-1926140-Replace-pipes-imports.patch"
-  patch -Np1 -i "${srcdir}/bmo-1925198-Move-telnetlib-import-to-BaseEmulator.patch"
+
+  # Fix js ICU compatibility error for icu-76.1
+  sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
 
   msg 'Tickle Git Submodule'
   (
@@ -114,7 +111,9 @@ prepare() {
   sed -E 's&^\s*pref\("startup\.homepage.*$&&' -i "browser/branding/official/pref/firefox-branding.js"
 
   msg 'Gentoo patch'
-  rm "$srcdir/firefox-patches/0029-bgo-940031-wasm-support.patch"
+  #rm "$srcdir/firefox-patches/0029-bgo-940031-wasm-support.patch"
+  sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
+       s,%%WASI_SDK_LLVM_VER%%,19,' -i "$srcdir/firefox-patches/0029-bgo-940031-wasm-support.patch"
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."

@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=137.0a1.20250206.731d4b2dcdc5
+pkgver=137.0a1.20250225.74fc528d64f4
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,7 +62,7 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=f75c525bb3939748df0341e9401d8bc7ea42009d
+_moz_revision=74fc528d64f449162e2eda609969a49e96c0965b
 _gentoo_patch=135-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         hg+https://hg.mozilla.org/l10n-central/zh-TW
@@ -107,8 +107,13 @@ prepare() {
   # Revert ICU requirement
   # sed 's,icu-i18n >= 76.1,icu-i18n >= 75.1,' -i js/moz.configure
 
+  # Fix js ICU compatibility error for icu-76.1
+  sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
+
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/00{13,23,25}*
+  rm -rf $srcdir/firefox-patches/00{13,25}*
+  sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
+       s,%%WASI_SDK_LLVM_VER%%,19,' -i "$srcdir/firefox-patches/0023-bgo-940031-wasm-support.patch"
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -345,10 +350,14 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 pref("extensions.autoDisableScopes", 11);
 
 // UA override
-// pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36");
+pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.3");
 
 // Scale UI
 // pref("layout.css.devPixelsPerPx",    "1.2");
+
+// Enable new vedrtical tab
+pref("sidebar.revamp", true);
+pref("sidebar.verticalTabs", true);
 END
 
   install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END

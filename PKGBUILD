@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=137.0a1.20250225.74fc528d64f4
+pkgver=138.0a1.20250309.f18201ee1e36
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,10 +62,10 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=74fc528d64f449162e2eda609969a49e96c0965b
-_gentoo_patch=135-patches-02
+_moz_revision=f18201ee1e36ebc08faead363cd58f90d9769b6a
+_gentoo_patch=136-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
-        hg+https://hg.mozilla.org/l10n-central/zh-TW
+        git+https://github.com/mozilla-l10n/firefox-l10n.git
         git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
         librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
@@ -78,7 +78,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'cccfaabb455c3dca9e5f2dcd0e51333115b555b104492b6a11a2c7ee813105b2'
+            '72dda27e0f502bf70e17da69c17d59611eac6b5abd8d1268d0ca7f297def8f04'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
@@ -99,7 +99,7 @@ pkgver() {
 
 prepare() {
   mkdir mozbuild
-  mv zh-TW mozbuild/
+  mv firefox-l10n/* mozbuild/
   cd mozilla-central
 
   # Revert NSS requirement
@@ -111,9 +111,9 @@ prepare() {
   sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/00{13,25}*
+  rm -rf $srcdir/firefox-patches/00{22,24}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-       s,%%WASI_SDK_LLVM_VER%%,19,' -i "$srcdir/firefox-patches/0023-bgo-940031-wasm-support.patch"
+       s,%%WASI_SDK_LLVM_VER%%,19,' -i "$srcdir/firefox-patches/0021-bgo-940031-wasm-support.patch"
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do

@@ -5,7 +5,7 @@
 pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
-pkgver=11.23.1
+pkgver=11.24.0
 _esrver=128
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
@@ -111,7 +111,6 @@ prepare() {
   sed -E 's&^\s*pref\("startup\.homepage.*$&&' -i "browser/branding/official/pref/firefox-branding.js"
 
   msg 'Gentoo patch'
-  #rm "$srcdir/firefox-patches/0029-bgo-940031-wasm-support.patch"
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
        s,%%WASI_SDK_LLVM_VER%%,19,' -i "$srcdir/firefox-patches/0029-bgo-940031-wasm-support.patch"
   local gentoo_patch=($(ls $srcdir/firefox-patches/))

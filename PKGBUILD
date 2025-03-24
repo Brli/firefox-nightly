@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=138.0a1.20250309.f18201ee1e36
+pkgver=138.0a1.20250324.b8af7aacbc03
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,7 +62,7 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=f18201ee1e36ebc08faead363cd58f90d9769b6a
+_moz_revision=b8af7aacbc0367de4ddc514b1353bac2c4ff07ab
 _gentoo_patch=136-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/mozilla-l10n/firefox-l10n.git
@@ -237,7 +237,7 @@ ac_add_options --target=x86_64-pc-linux
 END
 
   # Fake mozilla version
-  echo '135.0' > config/milestone.txt
+  echo '136.0' > config/milestone.txt
 
   # Desktop file
   sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"
@@ -350,13 +350,18 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 pref("extensions.autoDisableScopes", 11);
 
 // UA override
-pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.3");
+pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.6998.35/36 Safari/537.36");
 
 // Scale UI
 // pref("layout.css.devPixelsPerPx",    "1.2");
 
 // Enable new vedrtical tab
+pref("browser.engagement.sidebar-button.has-used", true);
+pref("browser.toolbarbuttons.introduced.sidebar-button", true);
+pref("sidebar.nimbus", "sidebar-vertical-tabs-layout-and-new-tools:treatment-a");
+pref("sidebar.backupState", "{"panelOpen":false,"launcherWidth":250,"launcherExpanded":true,"launcherVisible":true}");
 pref("sidebar.revamp", true);
+pref("sidebar.revamp.round-content-area", true);
 pref("sidebar.verticalTabs", true);
 END
 

@@ -267,8 +267,8 @@ build() {
   LDFLAGS+=' -Wl,--undefined-version'
 
   # malloc_usable_size is used in various parts of the codebase
-  # CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
-  # CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+  CFLAGS="${CFLAGS/_FORTIFY_SOURCE=2/_FORTIFY_SOURCE=3}"
+  CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=2/_FORTIFY_SOURCE=3}"
 
   # Breaks compilation since https://bugzilla.mozilla.org/show_bug.cgi?id=1896066
   CFLAGS="${CFLAGS/-fexceptions/}"
@@ -330,7 +330,7 @@ END
 
   msg 'Building locales'
   ./mach package
-  export MOZ_CHROME_MULTILOCALE="en-US ja zh-TW"
+  export MOZ_CHROME_MULTILOCALE="ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk vi zh-CN zh-TW"
   for AB_CD in $MOZ_CHROME_MULTILOCALE; do
     msg "Building locales $AB_CD"
     ./mach build chrome-$AB_CD

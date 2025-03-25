@@ -358,13 +358,12 @@ pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Ap
 // Enable new vedrtical tab
 pref("browser.engagement.sidebar-button.has-used", true);
 pref("browser.toolbarbuttons.introduced.sidebar-button", true);
-pref("sidebar.new-sidebar.has-used", true);
 pref("sidebar.nimbus", "sidebar-vertical-tabs-layout-and-new-tools:treatment-a");
-pref("sidebar.backupState", "{"panelOpen":false,"launcherWidth":53,"launcherExpanded":false,"launcherVisible":true}");
+pref("sidebar.backupState", "{\"panelOpen\":false,\"launcherWidth\":53,\"launcherExpanded\":false,\"launcherVisible\":true}");
 pref("sidebar.revamp", true);
 pref("sidebar.revamp.round-content-area", true);
 pref("sidebar.verticalTabs", true);
-pref("sidebar.visibility", true);
+pref("sidebar.visibility", "expand-on-hover");
 END
 
   install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END

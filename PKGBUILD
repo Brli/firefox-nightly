@@ -63,21 +63,21 @@ options=(
   !strip
 )
 source=("git+https://github.com/Floorp-Projects/Floorp.git#branch=ESR${_esrver}"
-        floorp-projects.unified-l10n-central::git+https://github.com/Floorp-Projects/Unified-l10n-central.git
-        floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git
-        "git+https://github.com/openSUSE/firefox-maintenance.git#branch=${_esrver}esr"
-        "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-08.tar.xz"
-        fix_csd_window_buttons.patch
-        0001-move-user-profile-to-XDG_CONFIG_HOME.patch
-        0002-skip-creation-of-user-directory-extensions.patch)
+  floorp-projects.unified-l10n-central::git+https://github.com/Floorp-Projects/Unified-l10n-central.git
+  floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git
+  "git+https://github.com/openSUSE/firefox-maintenance.git#branch=${_esrver}esr"
+  "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-08.tar.xz"
+  fix_csd_window_buttons.patch
+  0001-move-user-profile-to-XDG_CONFIG_HOME.patch
+  0002-skip-creation-of-user-directory-extensions.patch)
 sha256sums=('SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'de368e0a8d6a2a6f13d1d3be3d611efe22778c087d96e1aa562ea0d264cb64b0'
-            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            '9f56a74420b38dffdb701eabd4343bfd75e7457f5da4cdc05dd593a4aa7d8a82'
-            '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970')
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'de368e0a8d6a2a6f13d1d3be3d611efe22778c087d96e1aa562ea0d264cb64b0'
+  'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
+  '9f56a74420b38dffdb701eabd4343bfd75e7457f5da4cdc05dd593a4aa7d8a82'
+  '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970')
 
 pkgver() {
   cd "$_pkgname" || exit
@@ -100,7 +100,7 @@ prepare() {
     ln -sf "../floorp-projects.floorp-core" "floorp"
     cd "$srcdir/floorp-projects.floorp-core"
     local _submodules=('floorp-projects.unified-l10n-central'::'browser/locales/l10n-central')
-    for _module in "${_submodules[@]}" ; do
+    for _module in "${_submodules[@]}"; do
       git submodule init "${_module##*::}"
       git submodule set-url "${_module##*::}" "$srcdir/${_module%%::*}"
       git -c protocol.file.allow=always submodule update "${_module##*::}"
@@ -116,37 +116,37 @@ prepare() {
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
-    patch -Np1 < "$srcdir/firefox-patches/$src"
+    patch -Np1 <"$srcdir/firefox-patches/$src"
   done
 
   msg 'Opensuse Patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
-  local suse_patch=(# xulrunner/gecko patches
-                    'mozilla-nongnome-proxies.patch'
-                    # 'mozilla-kde.patch'
-                    'mozilla-ntlm-full-path.patch'
-                    'mozilla-aarch64-startup-crash.patch'
-                    # 'mozilla-fix-aarch64-libopus.patch'
-                    # 'mozilla-s390-context.patch'
-                    # 'mozilla-pgo.patch' # previous patch detected
-                    'mozilla-reduce-rust-debuginfo.patch'
-                    'mozilla-bmo1504834-part1.patch'
-                    # 'mozilla-bmo1504834-part3.patch'
-                    # 'mozilla-bmo1512162.patch'
-                    # 'mozilla-fix-top-level-asm.patch' # broken patch
-                    'mozilla-bmo849632.patch'
-                    'mozilla-bmo998749.patch'
-                    'mozilla-libavcodec58_91.patch'
-                    'mozilla-silence-no-return-type.patch'
-                    # 'mozilla-bmo531915.patch' # broken patch
-                    'one_swizzle_to_rule_them_all.patch'
-                    'svg-rendering.patch'
-                    # 'mozilla-partial-revert-1768632.patch'
-                    # 'mozilla-bmo1775202.patch'
-                    # 'mozilla-rust-disable-future-incompat.patch'
-                    # Firefox patches
-                    # 'firefox-kde.patch'
-                    'firefox-branded-icons.patch')
+  local suse_patch=( # xulrunner/gecko patches
+    'mozilla-nongnome-proxies.patch'
+    # 'mozilla-kde.patch'
+    'mozilla-ntlm-full-path.patch'
+    'mozilla-aarch64-startup-crash.patch'
+    # 'mozilla-fix-aarch64-libopus.patch'
+    # 'mozilla-s390-context.patch'
+    # 'mozilla-pgo.patch' # previous patch detected
+    'mozilla-reduce-rust-debuginfo.patch'
+    'mozilla-bmo1504834-part1.patch'
+    # 'mozilla-bmo1504834-part3.patch'
+    # 'mozilla-bmo1512162.patch'
+    # 'mozilla-fix-top-level-asm.patch' # broken patch
+    'mozilla-bmo849632.patch'
+    'mozilla-bmo998749.patch'
+    'mozilla-libavcodec58_91.patch'
+    'mozilla-silence-no-return-type.patch'
+    # 'mozilla-bmo531915.patch' # broken patch
+    'one_swizzle_to_rule_them_all.patch'
+    'svg-rendering.patch'
+    # 'mozilla-partial-revert-1768632.patch'
+    # 'mozilla-bmo1775202.patch'
+    # 'mozilla-rust-disable-future-incompat.patch'
+    # Firefox patches
+    # 'firefox-kde.patch'
+    'firefox-branded-icons.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/${src}"
@@ -313,7 +313,6 @@ END
   stat -c "Jar log found (%s bytes)" jarlog
   test -s jarlog
 
-
   msg "Removing instrumented browser..."
   ./mach clobber
 
@@ -430,6 +429,16 @@ app.distributor.channel=${pkgname}
 app.partner.${pkgname}=${pkgname}
 END
 
+  # search provider
+  local sprovider="$pkgdir/usr/share/gnome-shell/search-providers/${_reverse_dns_pkgname}.search-provider.ini"
+  install -Dm644 /dev/stdin "$sprovider" <<END
+[Shell Search Provider]
+DesktopId=${_reverse_dns_pkgname}.desktop
+BusName=${_reverse_dns_pkgname}.SearchProvider
+ObjectPath=/one/Ablaze/Floorp/SearchProvider
+Version=2
+END
+
   local i theme=official
   for i in 16 22 24 32 48 64 128 256; do
     install -Dvm644 browser/branding/$theme/default$i.png \
@@ -456,7 +465,6 @@ END
   # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
   ln -srfv "$pkgdir/usr/bin/${_reverse_dns_pkgname}" "$pkgdir/usr/lib/floorp/floorp-bin"
   ln -srfv "$pkgdir/usr/bin/${_reverse_dns_pkgname}" "$pkgdir/usr/bin/floorp"
-
 
   # Use system certificates
   local nssckbi="$pkgdir/usr/lib/floorp/libnssckbi.so"

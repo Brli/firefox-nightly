@@ -5,7 +5,7 @@
 pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
-pkgver=11.26.0
+pkgver=11.26.1
 _esrver=128
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"
@@ -66,18 +66,18 @@ source=("git+https://github.com/Floorp-Projects/Floorp.git#branch=ESR${_esrver}"
   floorp-projects.unified-l10n-central::git+https://github.com/Floorp-Projects/Unified-l10n-central.git
   floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git
   "git+https://github.com/openSUSE/firefox-maintenance.git#branch=${_esrver}esr"
-  "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-08.tar.xz"
+  "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-11.tar.xz"
   fix_csd_window_buttons.patch
   0001-move-user-profile-to-XDG_CONFIG_HOME.patch
   0002-skip-creation-of-user-directory-extensions.patch)
 sha256sums=('SKIP'
-  'SKIP'
-  'SKIP'
-  'SKIP'
-  'de368e0a8d6a2a6f13d1d3be3d611efe22778c087d96e1aa562ea0d264cb64b0'
-  'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-  '9f56a74420b38dffdb701eabd4343bfd75e7457f5da4cdc05dd593a4aa7d8a82'
-  '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970')
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            '2514de58b0b4ac2e0bae2dab8284843e5d1d0badfce1e2ae2cb2aecfb53f86b8'
+            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
+            '9f56a74420b38dffdb701eabd4343bfd75e7457f5da4cdc05dd593a4aa7d8a82'
+            '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970')
 
 pkgver() {
   cd "$_pkgname" || exit

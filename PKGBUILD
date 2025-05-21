@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=140.0a1.20250328.9ce66cc9e864
+pkgver=140.0a1.20250508.abe9dfdecc4f
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,18 +62,22 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=9ce66cc9e864ac6752aff8b8ec1db28fc6eed391
+_moz_revision=abe9dfdecc4f5ef56ff58814a337fae1d57bdf52
 _gentoo_patch=138-patches-01
 source=(hg+https://hg-edge.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/mozilla-l10n/firefox-l10n.git
         git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
-        librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
+        librewolf-patch::git+https://codeberg.org/librewolf-community/browser/source.git
+        librewolf-settings::https://codeberg.org/librewolf/settings.git
+        arkenfox::https://github.com/arkenfox/user.js.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
         firefox.desktop
         identity-icons-brand.svg
         fix_csd_window_buttons.patch)
 sha256sums=('SKIP'
+            'SKIP'
+            'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -111,7 +115,7 @@ prepare() {
   sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/00{22,24}*
+  rm -rf $srcdir/firefox-patches/00{02,14,22,23,24}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
        s,%%WASI_SDK_LLVM_VER%%,19,' -i "$srcdir/firefox-patches/0021-bgo-940031-wasm-support.patch"
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
@@ -158,16 +162,16 @@ prepare() {
 
   msg 'librewolf patch'
   local librewolf_patch=('JXL_enable_by_default.patch'
-                         'JXL_improved_support.patch')
+                         'allow-ubo-private-mode.patch')
                          # 'sed-patches/stop-undesired-requests.patch'
                          # 'ui-patches/remove-snippets-from-home.patch'
                          # 'unity_kde/mozilla-kde.patch'
                          # 'unity_kde/firefox-kde.patch'
                          # 'unity_kde/unity-menubar.patch')
-  #for src in "${librewolf_patch[@]}"; do
-  #   msg "Applying patch $src..."
-  #   patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
-  #done
+  for src in "${librewolf_patch[@]}"; do
+    msg "Applying patch $src..."
+    patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
+  done
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
@@ -217,7 +221,7 @@ ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libevent
 ac_add_options --with-system-libvpx
-ac_add_options --with-system-harfbuzz
+# ac_add_options --with-system-harfbuzz
 # ac_add_options --with-system-graphite2
 ac_add_options --with-system-icu
 # ac_add_options --with-system-av1
@@ -340,6 +344,18 @@ END
 package() {
   cd mozilla-central
   DESTDIR="$pkgdir" ./mach install
+
+  # install arkenfox user.js
+  install -Dvm644 "$srcdir/arkenfox/user.js" "$pkgdir/usr/lib/${pkgname}/browser/defaults/preferences/arkenfox.js"
+
+  # install librewolf policy
+  install -Dvm644 "$srcdir/librewolf-settings/distribution/policies.json" "$pkgdir/usr/lib/${pkgname}/distribution/policies.json"
+
+  # install arkenfox user.js
+  install -Dvm644 "$srcdir/arkenfox/user.js" "$pkgdir/usr/lib/${pkgname}/browser/defaults/preferences/arkenfox.js"
+
+  # install librewolf policy
+  install -Dvm644 "$srcdir/librewolf-settings/distribution/policies.json" "$pkgdir/usr/lib/${pkgname}/distribution/policies.json"
 
   local pref="$pkgdir/usr/lib/${pkgname}/browser/defaults/preferences"
   install -Dvm644 /dev/stdin "$pref/vendor.js" <<END

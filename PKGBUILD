@@ -241,7 +241,7 @@ ac_add_options --target=x86_64-pc-linux
 END
 
   # Fake mozilla version
-  echo '136.0' > config/milestone.txt
+  echo '139.0' > config/milestone.txt
 
   # Desktop file
   sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"

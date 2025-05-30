@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=140.0a1.20250508.abe9dfdecc4f
+pkgver=141.0a1.20250527.8b348e466de5
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,15 +62,15 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=abe9dfdecc4f5ef56ff58814a337fae1d57bdf52
-_gentoo_patch=138-patches-01
+_moz_revision=8b348e466de5a582800861339f311bef9810c931
+_gentoo_patch=139-patches-03
 source=(hg+https://hg-edge.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/mozilla-l10n/firefox-l10n.git
         git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
-        librewolf-patch::git+https://codeberg.org/librewolf-community/browser/source.git
-        librewolf-settings::https://codeberg.org/librewolf/settings.git
-        arkenfox::https://github.com/arkenfox/user.js.git
+        librewolf-patch::git+https://codeberg.org/librewolf/source.git
+        librewolf-settings::git+https://codeberg.org/librewolf/settings.git
+        arkenfox::git+https://github.com/arkenfox/user.js.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
         firefox.desktop
         identity-icons-brand.svg
@@ -82,7 +82,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '5051e81607bb75934ed516dd4e7c03c9c80c6dc16f70d98968776df1f641a1b8'
+            '9b60846ef8f0e4b33e7b0273e2eb477d2a8540743a0a4dd18bd84d0ea794af23'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
@@ -115,9 +115,9 @@ prepare() {
   sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/00{02,14,22,23,24}*
+  # rm -rf $srcdir/firefox-patches/00{02,14,22,23,24}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-       s,%%WASI_SDK_LLVM_VER%%,19,' -i "$srcdir/firefox-patches/0021-bgo-940031-wasm-support.patch"
+       s,%%WASI_SDK_LLVM_VER%%,19,' -i "$srcdir/firefox-patches/0020-bgo-940031-wasm-support.patch"
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -374,10 +374,9 @@ pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Ap
 // Enable new vedrtical tab
 pref("browser.engagement.sidebar-button.has-used", true);
 pref("browser.toolbarbuttons.introduced.sidebar-button", true);
-pref("sidebar.nimbus", "sidebar-vertical-tabs-layout-and-new-tools:treatment-a");
 pref("sidebar.backupState", "{\"panelOpen\":false,\"launcherWidth\":53,\"launcherExpanded\":false,\"launcherVisible\":true}");
+pref("sidebar.new-sidebar.has-used", true);
 pref("sidebar.revamp", true);
-pref("sidebar.revamp.round-content-area", true);
 pref("sidebar.verticalTabs", true);
 pref("sidebar.visibility", "expand-on-hover");
 END

@@ -334,7 +334,9 @@ END
 
   msg 'Building locales'
   ./mach package
-  export MOZ_CHROME_MULTILOCALE="ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk vi zh-CN zh-TW"
+  # export MOZ_CHROME_MULTILOCALE="ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk vi zh-CN zh-TW"
+  export MOZ_CHROME_MULTILOCALE="en-US zh-TW"
+
   for AB_CD in $MOZ_CHROME_MULTILOCALE; do
     msg "Building locales $AB_CD"
     ./mach build chrome-$AB_CD
@@ -344,12 +346,6 @@ END
 package() {
   cd mozilla-central
   DESTDIR="$pkgdir" ./mach install
-
-  # install arkenfox user.js
-  install -Dvm644 "$srcdir/arkenfox/user.js" "$pkgdir/usr/lib/${pkgname}/browser/defaults/preferences/arkenfox.js"
-
-  # install librewolf policy
-  install -Dvm644 "$srcdir/librewolf-settings/distribution/policies.json" "$pkgdir/usr/lib/${pkgname}/distribution/policies.json"
 
   # install arkenfox user.js
   install -Dvm644 "$srcdir/arkenfox/user.js" "$pkgdir/usr/lib/${pkgname}/browser/defaults/preferences/arkenfox.js"

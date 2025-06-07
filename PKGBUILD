@@ -62,7 +62,7 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=8b348e466de5a582800861339f311bef9810c931
+_moz_revision=dcea5a30dd46304a57edeae85daf6210fbf3da01
 _gentoo_patch=139-patches-03
 source=(hg+https://hg-edge.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/mozilla-l10n/firefox-l10n.git

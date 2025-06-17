@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=141.0a1.20250527.8b348e466de5
+pkgver=141.0a1.20250616.d9ebab766913
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,13 +62,13 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=dcea5a30dd46304a57edeae85daf6210fbf3da01
+_moz_revision=d9ebab766913c4c24261ec92d215e118cfc8a226
 _gentoo_patch=139-patches-03
-source=(hg+https://hg-edge.mozilla.org/mozilla-central#revision=$_moz_revision
+source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/mozilla-l10n/firefox-l10n.git
         git+https://github.com/openSUSE/firefox-maintenance.git
         git+https://github.com/Brli/firefox-trunk.git#branch=master
-        librewolf-patch::git+https://codeberg.org/librewolf/source.git
+        librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
         librewolf-settings::git+https://codeberg.org/librewolf/settings.git
         arkenfox::git+https://github.com/arkenfox/user.js.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
@@ -117,7 +117,7 @@ prepare() {
   msg 'Gentoo patch'
   # rm -rf $srcdir/firefox-patches/00{02,14,22,23,24}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-       s,%%WASI_SDK_LLVM_VER%%,19,' -i "$srcdir/firefox-patches/0020-bgo-940031-wasm-support.patch"
+       s,%%WASI_SDK_LLVM_VER%%,20,' -i "$srcdir/firefox-patches/0020-bgo-940031-wasm-support.patch"
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do

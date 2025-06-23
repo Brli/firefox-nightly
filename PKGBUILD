@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=141.0a1.20250616.d9ebab766913
+pkgver=141.0a1.20250623.f0d0bfd67983
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,7 +62,7 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=d9ebab766913c4c24261ec92d215e118cfc8a226
+_moz_revision=f0d0bfd6798309be41a01beeb8b046aa34b53b82
 _gentoo_patch=139-patches-03
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/mozilla-l10n/firefox-l10n.git
@@ -74,6 +74,7 @@ source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
         firefox.desktop
         identity-icons-brand.svg
+        org.mozilla.firefox-nightly.metainfo.xml
         fix_csd_window_buttons.patch)
 sha256sums=('SKIP'
             'SKIP'
@@ -85,6 +86,7 @@ sha256sums=('SKIP'
             '9b60846ef8f0e4b33e7b0273e2eb477d2a8540743a0a4dd18bd84d0ea794af23'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
+            '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
             'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
@@ -294,7 +296,7 @@ build() {
   cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
 END
-  ./mach build
+  ./mach build --priority normal
 
   msg "Profiling instrumented browser..."
   ./mach package
@@ -330,7 +332,12 @@ ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 # L10n
 ac_add_options --with-l10n-base=$srcdir/mozbuild
 END
-  ./mach build
+  ./mach build --priority normal
+
+  if [[ -f $startdir/.crash-stats-api.token ]]; then
+    echo "Building symbol archive..."
+    ./mach buildsymbols
+  fi
 
   msg 'Building locales'
   ./mach package
@@ -361,8 +368,11 @@ pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 // Don't disable extensions in the application directory
 pref("extensions.autoDisableScopes", 11);
 
+// Enable GNOME Shell search provider
+pref("browser.gnome-search-provider.enabled", true);
+
 // UA override
-pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.6998.35/36 Safari/537.36");
+pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36");
 
 // Scale UI
 // pref("layout.css.devPixelsPerPx",    "1.2");
@@ -444,7 +454,7 @@ END
 [Global]
 id=archlinux
 version=1.0
-about=Mozilla Firefox for Arch Linux
+about=Mozilla Firefox (Nightly version) for Arch Linux
 
 [Preferences]
 app.distributor=archlinux
@@ -463,11 +473,14 @@ END
     "$pkgdir/usr/share/icons/hicolor/384x384/apps/${pkgname}.png"
   install -Dvm644 browser/branding/$theme/content/about-logo.svg \
     "$pkgdir/usr/share/icons/hicolor/scalable/apps/${pkgname}.svg"
+
   install -Dvm644 ../identity-icons-brand.svg \
     "$pkgdir/usr/share/icons/hicolor/symbolic/apps/${pkgname}-symbolic.svg"
 
   install -Dvm644 $srcdir/firefox.desktop \
     "$pkgdir/usr/share/applications/${pkgname}.desktop"
+
+  install -Dvm644 "$srcdir/org.mozilla.$pkgname.metainfo.xml" -t "$pkgdir/usr/share/metainfo"
 
   # Install a wrapper to avoid confusion about binary path
   install -Dvm755 /dev/stdin "$pkgdir/usr/bin/${pkgname}" <<END
@@ -483,6 +496,20 @@ END
   local nssckbi="$pkgdir/usr/lib/${pkgname}/libnssckbi.so"
   if [[ -e $nssckbi ]]; then
     ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
+  fi
+
+  local sprovider="$pkgdir/usr/share/gnome-shell/search-providers/$pkgname.search-provider.ini"
+  install -Dvm644 /dev/stdin "$sprovider" <<END
+[Shell Search Provider]
+DesktopId=$pkgname.desktop
+BusName=org.mozilla.${pkgname//-/_}.SearchProvider
+ObjectPath=/org/mozilla/${pkgname//-/_}/SearchProvider
+Version=2
+END
+
+  export SOCORRO_SYMBOL_UPLOAD_TOKEN_FILE="$startdir/.crash-stats-api.token"
+  if [[ -f $SOCORRO_SYMBOL_UPLOAD_TOKEN_FILE ]]; then
+    make -C obj uploadsymbols
   fi
 }
 

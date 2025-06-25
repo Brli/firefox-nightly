@@ -5,7 +5,7 @@
 pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
-pkgver=11.27.0
+pkgver=11.28.0
 _esrver=128
 pkgrel=1
 pkgdesc="Firefox fork from Ablaze, a Japanese community"

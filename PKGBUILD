@@ -112,7 +112,7 @@ prepare() {
 
   msg 'Gentoo patch'
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-       s,%%WASI_SDK_LLVM_VER%%,19,' -i "$srcdir/firefox-patches/0029-bgo-940031-wasm-support.patch"
+       s,%%WASI_SDK_LLVM_VER%%,20,' -i "$srcdir/firefox-patches/0029-bgo-940031-wasm-support.patch"
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."

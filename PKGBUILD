@@ -362,6 +362,9 @@ package() {
 
   local pref="$pkgdir/usr/lib/${pkgname}/browser/defaults/preferences"
   install -Dvm644 /dev/stdin "$pref/vendor.js" <<END
+// Default download to /tmp
+pref("browser.download.dir", "/tmp");
+
 // Use system-provided dictionaries
 pref("spellchecker.dictionary_path", "/usr/share/hunspell");
 

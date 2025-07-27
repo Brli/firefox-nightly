@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=142.0a1.20250711.0a0cf8765127
+pkgver=143.0a1.20250726.1aa61f787abe
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,8 +62,8 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=0a0cf87651274d2f86228467e41dafd62a510749
-_gentoo_patch=140-patches-01
+_moz_revision=1aa61f787abe2c5f679e288df87086d43fbaf3f7
+_gentoo_patch=141-patches-01
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/mozilla-l10n/firefox-l10n.git
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -83,7 +83,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '816ecf784ff908e9b4d14b3c362e95c9e06a107838307800a6685ea68f5311c1'
+            '9fccc449421277735f0547b18b88b27dbfe562a37526accee9ba90ec6e14a1bc'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
@@ -243,7 +243,7 @@ ac_add_options --target=x86_64-pc-linux
 END
 
   # Fake mozilla version
-  echo '139.0' > config/milestone.txt
+  echo '141.0' > config/milestone.txt
 
   # Desktop file
   sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"
@@ -363,6 +363,7 @@ package() {
   local pref="$pkgdir/usr/lib/${pkgname}/browser/defaults/preferences"
   install -Dvm644 /dev/stdin "$pref/vendor.js" <<END
 // Default download to /tmp
+pref("browser.download.folderList", 2);
 pref("browser.download.dir", "/tmp");
 
 // Use system-provided dictionaries
@@ -374,8 +375,8 @@ pref("extensions.autoDisableScopes", 11);
 // Enable GNOME Shell search provider
 pref("browser.gnome-search-provider.enabled", true);
 
-// UA override
-pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36");
+// UA override to latest Edge
+pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.3351.77");
 
 // Scale UI
 // pref("layout.css.devPixelsPerPx",    "1.2");

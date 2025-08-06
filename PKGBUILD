@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=143.0a1.20250726.1aa61f787abe
+pkgver=143.0a1.20250806.62b93e0936e5
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,8 +62,8 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=1aa61f787abe2c5f679e288df87086d43fbaf3f7
-_gentoo_patch=141-patches-01
+_moz_revision=62b93e0936e577dc3983b93027e7212a88bb0d38
+_gentoo_patch=141-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/mozilla-l10n/firefox-l10n.git
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -83,7 +83,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '9fccc449421277735f0547b18b88b27dbfe562a37526accee9ba90ec6e14a1bc'
+            '582b922f23549876d1d66bcb250d745e8de49517fa685eb74b4431736ad9a1d5'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
@@ -384,7 +384,7 @@ pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Ap
 // Enable new vedrtical tab
 pref("browser.engagement.sidebar-button.has-used", true);
 pref("browser.toolbarbuttons.introduced.sidebar-button", true);
-pref("sidebar.backupState", "{\"panelOpen\":false,\"launcherWidth\":53,\"launcherExpanded\":false,\"launcherVisible\":true}");
+pref("sidebar.backupState", "{\"command\":\"\",\"panelOpen\":false,\"launcherWidth\":53,\"launcherExpanded\":false,\"launcherVisible\":true}");
 pref("sidebar.new-sidebar.has-used", true);
 pref("sidebar.revamp", true);
 pref("sidebar.verticalTabs", true);

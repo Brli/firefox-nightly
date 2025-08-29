@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=143.0a1.20250806.62b93e0936e5
+pkgver=144.0a1.20250825.2b71102f99a6
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,7 +62,7 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=62b93e0936e577dc3983b93027e7212a88bb0d38
+_moz_revision=2b71102f99a605a5ff46391f22f8164f494209c8
 _gentoo_patch=141-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/mozilla-l10n/firefox-l10n.git
@@ -117,9 +117,11 @@ prepare() {
   sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
 
   msg 'Gentoo patch'
-  # rm -rf $srcdir/firefox-patches/00{02,14,22,23,24}*
+  # rm -rf $srcdir/firefox-patches/00{02,14}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-       s,%%WASI_SDK_LLVM_VER%%,20,' -i "$srcdir/firefox-patches/0020-bgo-940031-wasm-support.patch"
+       s,%%WASI_SDK_LLVM_VER%%,20,;
+       s,wasm32-unknown-wasi,wasi,;
+       s,libclang_rt.builtins.a,libclang_rt.builtins-wasm32.a,' -i "$srcdir/firefox-patches/0020-bgo-940031-wasm-support.patch"
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -129,7 +131,7 @@ prepare() {
 
   msg 'opensuse patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
-  local suse_patch=('mozilla-nongnome-proxies.patch'
+  local suse_patch=(#'mozilla-nongnome-proxies.patch'
                     # 'mozilla-kde.patch'
                     # 'mozilla-ntlm-full-path.patch'
                     # 'mozilla-aarch64-startup-crash.patch'
@@ -223,7 +225,7 @@ ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libevent
 ac_add_options --with-system-libvpx
-# ac_add_options --with-system-harfbuzz
+ac_add_options --with-system-harfbuzz
 # ac_add_options --with-system-graphite2
 ac_add_options --with-system-icu
 # ac_add_options --with-system-av1
@@ -271,6 +273,9 @@ build() {
   export AR=llvm-ar
   export NM=llvm-nm
   LDFLAGS+=' -Wl,--undefined-version'
+
+  # Work around https://bugzilla.mozilla.org/show_bug.cgi?id=1969383
+  export RUST_MIN_STACK=16777216
 
   # malloc_usable_size is used in various parts of the codebase
   CFLAGS="${CFLAGS/_FORTIFY_SOURCE=2/_FORTIFY_SOURCE=3}"
@@ -376,7 +381,7 @@ pref("extensions.autoDisableScopes", 11);
 pref("browser.gnome-search-provider.enabled", true);
 
 // UA override to latest Edge
-pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.3351.77");
+pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.3405.111");
 
 // Scale UI
 // pref("layout.css.devPixelsPerPx",    "1.2");

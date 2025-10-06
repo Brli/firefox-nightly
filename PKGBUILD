@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=144.0a1.20250825.2b71102f99a6
+pkgver=145.0a1.20251001.75a595a9d65d
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,8 +62,8 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=2b71102f99a605a5ff46391f22f8164f494209c8
-_gentoo_patch=141-patches-02
+_moz_revision=75a595a9d65d529c86a28bc528c86caf24891d85
+_gentoo_patch=143-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/mozilla-l10n/firefox-l10n.git
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -83,7 +83,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '582b922f23549876d1d66bcb250d745e8de49517fa685eb74b4431736ad9a1d5'
+            'SKIP'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
@@ -117,11 +117,11 @@ prepare() {
   sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
 
   msg 'Gentoo patch'
-  # rm -rf $srcdir/firefox-patches/00{02,14}*
+  rm -rf $srcdir/firefox-patches/00{07,13,21,22}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
        s,%%WASI_SDK_LLVM_VER%%,20,;
        s,wasm32-unknown-wasi,wasi,;
-       s,libclang_rt.builtins.a,libclang_rt.builtins-wasm32.a,' -i "$srcdir/firefox-patches/0020-bgo-940031-wasm-support.patch"
+       s,libclang_rt.builtins.a,libclang_rt.builtins-wasm32.a,' -i "$srcdir/firefox-patches/0019-bgo-940031-wasm-support.patch"
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
 
   for src in "${gentoo_patch[@]}"; do
@@ -146,7 +146,7 @@ prepare() {
                     # 'mozilla-bmo1512162.patch'
                     # 'mozilla-fix-top-level-asm.patch'
                     'mozilla-bmo849632.patch'
-                    'mozilla-bmo998749.patch'
+                    # 'mozilla-bmo998749.patch'
                     # 'mozilla-s390x-skia-gradient.patch'
                     # 'mozilla-libavcodec58_91.patch'
                     # 'mozilla-silence-no-return-type.patch'
@@ -245,7 +245,7 @@ ac_add_options --target=x86_64-pc-linux
 END
 
   # Fake mozilla version
-  echo '141.0' > config/milestone.txt
+  echo '143.0.1' > config/milestone.txt
 
   # Desktop file
   sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"

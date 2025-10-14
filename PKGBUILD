@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=145.0a1.20251001.75a595a9d65d
+pkgver=145.0a1.20251008.d081307ff18f
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,7 +62,7 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=75a595a9d65d529c86a28bc528c86caf24891d85
+_moz_revision=d081307ff18fc14455a8f8fefa706ac5c4c1490e
 _gentoo_patch=143-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/mozilla-l10n/firefox-l10n.git
@@ -114,7 +114,7 @@ prepare() {
   # sed 's,icu-i18n >= 76.1,icu-i18n >= 75.1,' -i js/moz.configure
 
   # Fix js ICU compatibility error for icu-76.1
-  sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
+  # sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
 
   msg 'Gentoo patch'
   rm -rf $srcdir/firefox-patches/00{07,13,21,22}*

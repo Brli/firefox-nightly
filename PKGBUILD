@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=145.0a1.20251008.d081307ff18f
+pkgver=146.0a1.20251018.80c73ea6c2f4
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,8 +62,8 @@ options=(
 !makeflags
 !strip
 )
-_moz_revision=d081307ff18fc14455a8f8fefa706ac5c4c1490e
-_gentoo_patch=143-patches-02
+_moz_revision=80c73ea6c2f452268aac47363d61f8633beb69fe
+_gentoo_patch=144-patches-02
 source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
         git+https://github.com/mozilla-l10n/firefox-l10n.git
         git+https://github.com/openSUSE/firefox-maintenance.git
@@ -83,7 +83,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'SKIP'
+            '63a2cd263b512ea6f9b487a7dcca3b7c673aeedf9c6dc0b7574bc64193515080'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
@@ -117,7 +117,8 @@ prepare() {
   # sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/00{07,13,21,22}*
+  # Must check to remove 1988166-musl-remove-nonexisting-system-header-req
+  rm -rf $srcdir/firefox-patches/00{07,13,22,23}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
        s,%%WASI_SDK_LLVM_VER%%,20,;
        s,wasm32-unknown-wasi,wasi,;
@@ -126,7 +127,7 @@ prepare() {
 
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
-    patch -Np1 < "$srcdir/firefox-patches/$src"
+    patch -Np1 -i "$srcdir/firefox-patches/$src"
   done
 
   msg 'opensuse patch'
@@ -346,7 +347,8 @@ END
 
   msg 'Building locales'
   ./mach package
-  # export MOZ_CHROME_MULTILOCALE="ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk vi zh-CN zh-TW"
+#   ./mach package-multi-locale --locales ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk vi zh-CN zh-TW
+#   export MOZ_CHROME_MULTILOCALE="ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk vi zh-CN zh-TW"
   export MOZ_CHROME_MULTILOCALE="en-US zh-TW"
 
   for AB_CD in $MOZ_CHROME_MULTILOCALE; do

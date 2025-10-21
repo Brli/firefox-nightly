@@ -5,10 +5,10 @@
 pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
-pkgver=11.28.0
-_esrver=128
+_pkgsrc_runtime='floorp-runtime'
+pkgver=12.3.2
 pkgrel=1
-pkgdesc="Firefox fork from Ablaze, a Japanese community"
+pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
 url="https://floorp.ablaze.one/"
@@ -26,6 +26,7 @@ makedepends=(
   breezy
   cbindgen
   clang
+  deno
   diffutils
   dump_syms
   imake
@@ -37,6 +38,7 @@ makedepends=(
   nasm
   nodejs
   python-dulwich
+  rsync
   rust
   unzip
   wasi-compiler-rt
@@ -62,70 +64,76 @@ options=(
   !makeflags
   !strip
 )
-source=("git+https://github.com/Floorp-Projects/Floorp.git#branch=ESR${_esrver}"
-  floorp-projects.unified-l10n-central::git+https://github.com/Floorp-Projects/Unified-l10n-central.git
+source=("git+https://github.com/Floorp-Projects/Floorp.git#tag=v${pkgver}"
+  floorp-runtime::git+https://github.com/Floorp-Projects/Floorp-runtime#tag=daily-527
+  git+https://github.com/mozilla-l10n/firefox-l10n.git
   floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git
-  "git+https://github.com/openSUSE/firefox-maintenance.git#branch=${_esrver}esr"
-  "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_esrver}esr-patches-11.tar.xz"
+  "git+https://github.com/openSUSE/firefox-maintenance.git"
+  "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-144-patches-02.tar.xz"
   fix_csd_window_buttons.patch
-  0001-move-user-profile-to-XDG_CONFIG_HOME.patch
-  0002-skip-creation-of-user-directory-extensions.patch)
+  0002-skip-creation-of-user-directory-extensions.patch
+  floorp.desktop)
 sha256sums=('SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            '2514de58b0b4ac2e0bae2dab8284843e5d1d0badfce1e2ae2cb2aecfb53f86b8'
-            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-            '9f56a74420b38dffdb701eabd4343bfd75e7457f5da4cdc05dd593a4aa7d8a82'
-            '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970')
-
-pkgver() {
-  cd "$_pkgname" || exit
-  git describe --tags --no-abbrev | sed 's/^v//'
-}
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  '63a2cd263b512ea6f9b487a7dcca3b7c673aeedf9c6dc0b7574bc64193515080'
+  'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
+  '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
+  'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092')
 
 prepare() {
   mkdir mozbuild
-  cd "$_pkgname" || exit
 
-  patch -Np1 -i "${srcdir}/0001-move-user-profile-to-XDG_CONFIG_HOME.patch"
+  # put Floorp into Mozilla source tree "./floorp-runtime/floorp"
+  rm -rfv "$_pkgsrc_runtime/$pkgname"
+  cp -rf "$srcdir/$_pkgname" "$_pkgsrc_runtime/$pkgname"
+
+  # replace Firefox branding using Floorp core components
+  cp -rf "$srcdir/floorp-projects.floorp-core"/browser/branding/* "$_pkgsrc_runtime"/browser/branding/
+#   mv "$_pkgsrc_runtime"/.github/assets/config "$_pkgsrc_runtime"/browser/branding/
+  cp -rf "$_pkgsrc_runtime"/.github/assets/branding/noraneko-unofficial "$_pkgsrc_runtime"/browser/branding/noraneko
+
+  sed -i 's|https://@MOZ_APPUPDATE_HOST@/update/6/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%SYSTEM_CAPABILITIES%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/update.xml|https://%NORA_UPDATE_HOST%update.xml|g' "$_pkgsrc_runtime/build/application.ini.in"
+
+  # clear forced startup pages
+  sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' \
+    -i "$_pkgsrc_runtime"/browser/branding/*/pref/firefox-branding.js
+
+  # fix locale compile error
+  sed '/brand.dtd/d' -i "$_pkgsrc_runtime"/browser/branding/*/locales/jar.mn
+
+  # prepare firefox source
+  cd "$_pkgsrc_runtime" || exit
+
+  # prepare api keys
+  cp "${srcdir}"/floorp-projects.floorp-core/apis/api-*-key ./
+
+  # patch -Np1 -i "${srcdir}/0001-move-user-profile-to-XDG_CONFIG_HOME.patch"
   patch -Np1 -i "${srcdir}/0002-skip-creation-of-user-directory-extensions.patch"
 
   # Fix js ICU compatibility error for icu-76.1
-  sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
-
-  msg 'Tickle Git Submodule'
-  (
-    rm -rf "floorp"
-    ln -sf "../floorp-projects.floorp-core" "floorp"
-    cd "$srcdir/floorp-projects.floorp-core"
-    local _submodules=('floorp-projects.unified-l10n-central'::'browser/locales/l10n-central')
-    for _module in "${_submodules[@]}"; do
-      git submodule init "${_module##*::}"
-      git submodule set-url "${_module##*::}" "$srcdir/${_module%%::*}"
-      git -c protocol.file.allow=always submodule update "${_module##*::}"
-    done
-  )
-
-  # clear forced startup pages
-  sed -E 's&^\s*pref\("startup\.homepage.*$&&' -i "browser/branding/official/pref/firefox-branding.js"
+  # sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
 
   msg 'Gentoo patch'
+  rm -rf $srcdir/firefox-patches/00{21,22}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-       s,%%WASI_SDK_LLVM_VER%%,20,' -i "$srcdir/firefox-patches/0029-bgo-940031-wasm-support.patch"
+       s,%%WASI_SDK_LLVM_VER%%,21,g;
+       s,wasm32-unknown-wasi,wasi,;
+       s,libclang_rt.builtins.a,libclang_rt.builtins-wasm32.a,' -i "$srcdir"/firefox-patches/*-bgo-940031-wasm-support.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
-    patch -Np1 <"$srcdir/firefox-patches/$src"
+    patch -Np1 -i "$srcdir/firefox-patches/$src"
   done
 
   msg 'Opensuse Patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=( # xulrunner/gecko patches
-    'mozilla-nongnome-proxies.patch'
     # 'mozilla-kde.patch'
     'mozilla-ntlm-full-path.patch'
-    'mozilla-aarch64-startup-crash.patch'
+    # 'mozilla-aarch64-startup-crash.patch'
     # 'mozilla-fix-aarch64-libopus.patch'
     # 'mozilla-s390-context.patch'
     # 'mozilla-pgo.patch' # previous patch detected
@@ -137,16 +145,16 @@ prepare() {
     'mozilla-bmo849632.patch'
     'mozilla-bmo998749.patch'
     'mozilla-libavcodec58_91.patch'
-    'mozilla-silence-no-return-type.patch'
+    # 'mozilla-silence-no-return-type.patch'
     # 'mozilla-bmo531915.patch' # broken patch
     'one_swizzle_to_rule_them_all.patch'
-    'svg-rendering.patch'
-    # 'mozilla-partial-revert-1768632.patch'
-    # 'mozilla-bmo1775202.patch'
-    # 'mozilla-rust-disable-future-incompat.patch'
-    # Firefox patches
-    # 'firefox-kde.patch'
-    'firefox-branded-icons.patch')
+    'svg-rendering.patch')
+  # 'mozilla-partial-revert-1768632.patch'
+  # 'mozilla-bmo1775202.patch'
+  # 'mozilla-rust-disable-future-incompat.patch'
+  # Firefox patches
+  # 'firefox-kde.patch'
+  # 'firefox-branded-icons.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/${src}"
@@ -158,9 +166,9 @@ prepare() {
   cat >../mozconfig <<END
 ac_add_options --enable-application=browser
 ac_add_options --disable-artifact-builds
-ac_add_options --with-app-name=floorp
-ac_add_options --with-app-basename=Floorp
-mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
+ac_add_options --with-app-name=${pkgname}
+ac_add_options --with-app-basename=${_pkgname}
+mk_add_options MOZ_OBJDIR=${PWD@Q}/obj-artifact-build-output
 
 ac_add_options --prefix=/usr
 ac_add_options --enable-hardening
@@ -176,12 +184,13 @@ ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 
 # Branding
 ac_add_options --enable-update-channel=release
-ac_add_options --with-branding=browser/branding/official
+ac_add_options --enable-official-branding
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
 
 # Floorp environment variables
+mk_add_options AUTOCLOBBER=1
 export MOZ_INCLUDE_SOURCE_INFO=1
 export MOZ_APP_REMOTINGNAME=${_pkgname}
 unset MOZ_REQUIRE_SIGNING
@@ -189,11 +198,12 @@ unset MOZ_DATA_REPORTING
 unset MOZ_TELEMETRY_REPORTING
 export OPT_LEVEL="3"
 export RUSTC_OPT_LEVEL="3"
-export MOZ_APP_PROFILE="floorp"
+export MOZ_PACKAGE_JSSHELL=1
 
 # Keys
-ac_add_options --with-google-location-service-api-keyfile=${PWD@Q}/floorp/apis/api-google-location-service-key
-ac_add_options --with-google-safebrowsing-api-keyfile=${PWD@Q}/floorp/apis/api-google-safe-browsing-key
+ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/api-mozilla-key
+ac_add_options --with-google-location-service-api-keyfile=${PWD@Q}/api-google-location-service-key
+ac_add_options --with-google-safebrowsing-api-keyfile=${PWD@Q}/api-google-safe-browsing-key
 
 # System libraries
 ac_add_options --with-system-nspr
@@ -237,7 +247,9 @@ export STRIP_FLAGS="--strip-debug --strip-unneeded"
 END
 
   # Ablaze Branding
-  sed 's,MOZ_APP_VENDOR=Mozilla,MOZ_APP_VENDOR=Ablaze,' -i browser/confvars.sh
+  sed '/MOZ_APP_VENDOR/d;/MOZ_APP_PROFILE/d' -i browser/branding/official/configure.sh
+  sed 's,\"Mozilla\",\"Ablaze\",' -i browser/moz.configure
+#   sed 's,browser/branding/official,browser/branding/floorp-official,' -i browser/branding/branding-common.mozbuild
 
   # Remove patched rust file checksums
   sed 's/\("files":{\)[^}]*/\1/' -i \
@@ -245,7 +257,7 @@ END
 }
 
 build() {
-  cd "$_pkgname" || exit
+  cd "$_pkgsrc_runtime" || exit
 
   export LIBGL_ALWAYS_SOFTWARE=true
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
@@ -259,8 +271,8 @@ build() {
   install -dm700 "${XDG_RUNTIME_DIR:?}"
 
   # malloc_usable_size is used in various parts of the codebase
-  CFLAGS="${CFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
-  CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=3/_FORTIFY_SOURCE=2}"
+  CFLAGS="${CFLAGS/_FORTIFY_SOURCE=2/_FORTIFY_SOURCE=3}"
+  CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=2/_FORTIFY_SOURCE=3}"
 
   # Breaks compilation since https://bugzilla.mozilla.org/show_bug.cgi?id=1896066
   CFLAGS="${CFLAGS/-fexceptions/}"
@@ -304,6 +316,7 @@ END
     MOZ_DISABLE_SOCKET_PROCESS_SANDBOX=1 \
     MOZ_DISABLE_UTILITY_SANDBOX=1 \
     MOZ_DISABLE_VR_SANDBOX=1 \
+    MOZ_REMOTE_SETTINGS_DEVTOOLS=1 \
     GTK_A11Y=none NO_AT_BRIDGE=1 dbus-run-session \
     xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
     ./mach python build/pgo/profileserver.py
@@ -314,7 +327,7 @@ END
   test -s jarlog
 
   msg "Removing instrumented browser..."
-  ./mach clobber
+  ./mach clobber objdir
 
   msg "Building optimized browser..."
   cat >.mozconfig ../mozconfig - <<END
@@ -323,11 +336,30 @@ ac_add_options --enable-profile-use=cross
 ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
 ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 # L10n
-ac_add_options --with-l10n-base=${PWD@Q}/floorp/browser/locales/l10n-central
+ac_add_options --with-l10n-base=${srcdir}/firefox-l10n
 END
+
+  msg 'Injecting Floorp... before-mach step'
+  pushd "$srcdir/$_pkgsrc_runtime/floorp" || return
+  deno install --allow-scripts
+  NODE_ENV=production deno task feles-build build --phase before-mach
+  popd || return
+
+  msg 'Apply packaging patches'
+  # FIXME: the patch has issue that tries to apply from top directory instead of from branding directory
+  # git apply --ignore-space-change --ignore-whitespace .github/patches/packaging/*.patch
   ./mach build --priority normal
 
-  msg 'Building locales'
+  msg 'Injecting Floorp... after-mach step'
+  pushd "$srcdir/$_pkgsrc_runtime/floorp" || return
+  deno task feles-build build --phase after-mach
+  popd || return
+
+  rsync -aL obj-artifact-build-output/ obj-artifact-build-output_new/
+  mv obj-artifact-build-output obj-artifact-build-output_old
+  mv obj-artifact-build-output_new obj-artifact-build-output
+
+  msg 'Building locales...'
   ./mach package
   export MOZ_CHROME_MULTILOCALE="en-US ja zh-TW"
   for AB_CD in $MOZ_CHROME_MULTILOCALE; do
@@ -337,7 +369,7 @@ END
 }
 
 package() {
-  cd "$_pkgname" || exit
+  cd "$_pkgsrc_runtime" || exit
   DESTDIR="$pkgdir" ./mach install
 
   local pref="$pkgdir/usr/lib/floorp/browser/defaults/preferences"
@@ -421,12 +453,13 @@ END
   install -Dvm644 /dev/stdin "$distini" <<END
 [Global]
 id=${_reverse_dns_pkgname}
-version=1.0
+version=rolling
+about=Floorp for Arch Linux
 
 [Preferences]
 app.distributor=archlinux
 app.distributor.channel=${pkgname}
-app.partner.${pkgname}=${pkgname}
+app.partner.archlinux=archlinux
 END
 
   # search provider
@@ -451,9 +484,9 @@ END
   install -Dvm644 browser/branding/$theme/content/about-logo.svg \
     "$pkgdir/usr/share/icons/hicolor/scalable/apps/${_reverse_dns_pkgname}.svg"
 
-  install -Dvm644 "$srcdir/$_pkgname/.github/flatpak-one.ablaze.floorp.desktop" \
+  install -Dvm644 "$srcdir/floorp.desktop" \
     "$pkgdir/usr/share/applications/${_reverse_dns_pkgname}.desktop"
-  sed "s,Exec=floorp,Exec=${_reverse_dns_pkgname},g" -i "$pkgdir/usr/share/applications/${_reverse_dns_pkgname}.desktop"
+  sed "s,\=floorp,\=${_reverse_dns_pkgname},g" -i "$pkgdir/usr/share/applications/${_reverse_dns_pkgname}.desktop"
 
   # Install a wrapper to avoid confusion about binary path
   install -Dvm755 /dev/stdin "$pkgdir/usr/bin/${_reverse_dns_pkgname}" <<END

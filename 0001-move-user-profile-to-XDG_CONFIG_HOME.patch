@@ -259,7 +259,7 @@ index d3af49b495b8..ff0a42cc9fc3 100644
        rv = aFile->AppendNative(folder);
        NS_ENSURE_SUCCESS(rv, rv);
 +      // Keep the 'mozilla' path for cache:
-+      // Use ${XDG_CACHE_HOME:-$HOME/.cache}/mozilla/firefox
++      // Use ${XDG_CACHE_HOME:-$HOME/.cache}/floorp/firefox
 +      if (aLocal) {
 +        rv = aFile->AppendNative(folder);
 +        NS_ENSURE_SUCCESS(rv, rv);

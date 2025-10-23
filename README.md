@@ -5,30 +5,18 @@
 
 You can find the code [here](https://github.com/archlinux/svntogit-packages/tree/packages/firefox/trunk)
 
-```
-keys/pgp
-identity-icons-brand.svg
-upload-symbol-archive
-libwebrtc-screen-cast-sync.patch
-```
-
 `PKGBUILD` originated from official's, is later diverged into my own.
 
 ## [firefox-kde-opensuse-kde](https://gitlab.com/Thaodan/firefox-kde-opensuse)
 ```
 fix_csd_window_buttons.patch
-5022efe33088.patch
 ```
+
+## [Firefox l10n](https://github.com/mozilla-l10n/firefox-l10n.git)
 
 ## [OpenSuSE](https://github.com/openSUSE/firefox-maintenance.git)
-```
-firefox-kde.patch
-```
 
 ## [Gentoo](https://gitweb.gentoo.org/repo/gentoo.git/tree/www-client/firefox)
-```
-0003-bmo-847568-Support-system-harfbuzz.patch
-```
 
 ## [Ubuntu](https://code.launchpad.net/~mozillateam/firefox/firefox-trunk.head)
 
@@ -36,8 +24,32 @@ firefox-kde.patch
 
 Other than above mentioned files, which has their own licenses and permissions, are licensed GPL v3.0.
 
-## [Librewolf](https://gitlab.com/librewolf-community/browser/source.git)
-```
-unity-menubar.patch
-mozilla-kde_after_unity.patch
-```
+# Building Process Investigation
+
+## The Official way
+
+- Genrate instrumented browser artifcial on routine (the 1st tier)
+
+- Do PGO (the 2nd tier)
+
+- Download artifacts and apply Floorp (noraneko) changes
+
+- Compile the target browser (3-tier)
+
+## The PKGBUILD
+
+- Make Floorp branding blobs in place
+
+- Apply Patch from Gentoo and OpenSuSE
+
+- Apply noraneko upstream series patches, apply deno task for "before mach"
+
+- Add Floorp specific options
+
+- Build the somehow-vanilla instrumented browser (1-tier)
+
+- Do PGO (2-tier)
+
+- Apply Floorp (noraneko) package patches, apply deno task for "after mach"
+
+- Build the Floorp-branded browser with PGO (3-tier)

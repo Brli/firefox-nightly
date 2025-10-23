@@ -6,8 +6,8 @@ pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
-pkgver=12.3.2
-pkgrel=1
+pkgver=12.3.3
+pkgrel=4
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -64,10 +64,11 @@ options=(
   !makeflags
   !strip
 )
-source=("git+https://github.com/Floorp-Projects/Floorp.git#tag=v${pkgver}"
-  floorp-runtime::git+https://github.com/Floorp-Projects/Floorp-runtime#tag=daily-527
-  git+https://github.com/mozilla-l10n/firefox-l10n.git
-  floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git
+source=("git+https://github.com/Floorp-Projects/Floorp.git#commit=28d0456b71a2f3327c832a10a9ac6d32d6cf30db"
+  "floorp-runtime::git+https://github.com/Floorp-Projects/Floorp-runtime#commit=73a0f7dc9fe50b7af48c184ac3bdc88237ba040a"
+  # floorp-projects.unified-l10n-central::git+https://github.com/Floorp-Projects/Unified-l10n-central.git
+  "git+https://github.com/mozilla-l10n/firefox-l10n.git"
+  "floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git"
   "git+https://github.com/openSUSE/firefox-maintenance.git"
   "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-144-patches-02.tar.xz"
   fix_csd_window_buttons.patch
@@ -86,26 +87,27 @@ sha256sums=('SKIP'
 prepare() {
   mkdir mozbuild
 
-  # put Floorp into Mozilla source tree "./floorp-runtime/floorp"
+  # put Floorp into Mozilla source tree "./floorp-runtime/noraneko"
   rm -rfv "$_pkgsrc_runtime/$pkgname"
-  cp -rf "$srcdir/$_pkgname" "$_pkgsrc_runtime/$pkgname"
+  cp -rf "$srcdir/$_pkgname" "$_pkgsrc_runtime/noraneko"
 
-  # replace Firefox branding using Floorp core components
-  cp -rf "$srcdir/floorp-projects.floorp-core"/browser/branding/* "$_pkgsrc_runtime"/browser/branding/
-#   mv "$_pkgsrc_runtime"/.github/assets/config "$_pkgsrc_runtime"/browser/branding/
-  cp -rf "$_pkgsrc_runtime"/.github/assets/branding/noraneko-unofficial "$_pkgsrc_runtime"/browser/branding/noraneko
+  # fix locale compile error
+  sed '/brand.dtd/d' -i "$_pkgsrc_runtime"/.github/assets/branding/*/locales/jar.mn
+
+  # clear forced startup pages
+  sed -E 's&^\s*pref\("startup\.homepage.*$&&;/floorp.startup/d' \
+    -i "$_pkgsrc_runtime"/.github/assets/branding/*/pref/firefox-branding.js
+
+  # copy branding assets
+  sed '/MOZ_APP_VENDOR/d' -i "$_pkgsrc_runtime"/.github/assets/branding/*/configure.sh
+  cp -rf "$_pkgsrc_runtime"/.github/assets/branding/* "$_pkgsrc_runtime"/browser/branding/
 
   sed -i 's|https://@MOZ_APPUPDATE_HOST@/update/6/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%SYSTEM_CAPABILITIES%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/update.xml|https://%NORA_UPDATE_HOST%update.xml|g' "$_pkgsrc_runtime/build/application.ini.in"
 
-  # clear forced startup pages
-  sed -E -e 's&^\s*pref\("startup\.homepage.*$&&' \
-    -i "$_pkgsrc_runtime"/browser/branding/*/pref/firefox-branding.js
-
-  # fix locale compile error
-  sed '/brand.dtd/d' -i "$_pkgsrc_runtime"/browser/branding/*/locales/jar.mn
-
   # prepare firefox source
   cd "$_pkgsrc_runtime" || exit
+
+  sed 's,browser/branding/unofficial,browser/branding/floorp-official,' -i browser/confvars.sh
 
   # prepare api keys
   cp "${srcdir}"/floorp-projects.floorp-core/apis/api-*-key ./
@@ -148,13 +150,13 @@ prepare() {
     # 'mozilla-silence-no-return-type.patch'
     # 'mozilla-bmo531915.patch' # broken patch
     'one_swizzle_to_rule_them_all.patch'
-    'svg-rendering.patch')
-  # 'mozilla-partial-revert-1768632.patch'
-  # 'mozilla-bmo1775202.patch'
-  # 'mozilla-rust-disable-future-incompat.patch'
-  # Firefox patches
-  # 'firefox-kde.patch'
-  # 'firefox-branded-icons.patch')
+    'svg-rendering.patch'
+    # 'mozilla-partial-revert-1768632.patch'
+    # 'mozilla-bmo1775202.patch'
+    # 'mozilla-rust-disable-future-incompat.patch'
+    # Firefox patches
+    # 'firefox-kde.patch'
+    'firefox-branded-icons.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/${src}"
@@ -169,6 +171,7 @@ ac_add_options --disable-artifact-builds
 ac_add_options --with-app-name=${pkgname}
 ac_add_options --with-app-basename=${_pkgname}
 mk_add_options MOZ_OBJDIR=${PWD@Q}/obj-artifact-build-output
+ac_add_options --with-version-file-path=noraneko/static/gecko/config
 
 ac_add_options --prefix=/usr
 ac_add_options --enable-hardening
@@ -184,7 +187,7 @@ ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 
 # Branding
 ac_add_options --enable-update-channel=release
-ac_add_options --enable-official-branding
+ac_add_options --with-branding=browser/branding/floorp-official
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
@@ -246,14 +249,34 @@ ac_add_options --enable-install-strip
 export STRIP_FLAGS="--strip-debug --strip-unneeded"
 END
 
-  # Ablaze Branding
-  sed '/MOZ_APP_VENDOR/d;/MOZ_APP_PROFILE/d' -i browser/branding/official/configure.sh
-  sed 's,\"Mozilla\",\"Ablaze\",' -i browser/moz.configure
-#   sed 's,browser/branding/official,browser/branding/floorp-official,' -i browser/branding/branding-common.mozbuild
-
   # Remove patched rust file checksums
   sed 's/\("files":{\)[^}]*/\1/' -i \
     third_party/rust/*/.cargo-checksum.json
+
+  msg 'Noraneko patch'
+  rm "$srcdir/$_pkgsrc_runtime"/.github/patches/upstream/moz.configure.patch
+  local noraneko_patch=($(ls "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/"))
+  for src in "${noraneko_patch[@]}"; do
+    msg "Applying patch $src"
+    patch -Np1 -i "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/$src"
+  done
+
+  msg 'Injecting Floorp... before-mach step'
+  pushd "$srcdir/$_pkgsrc_runtime/noraneko" || return
+  export NODE_ENV=production
+  deno install --allow-scripts
+  deno task feles-build misc writeVersion
+  deno task feles-build build --phase before-mach
+  popd || return
+
+  msg 'Apply packaging patches'
+  git apply --verbose --ignore-space-change --ignore-whitespace .github/patches/packaging/*.patch
+
+  # generating proper versioning
+  local _firefox_ver="$(cat browser/config/version.txt)"
+  sed "s,$,@${_firefox_ver}," -i noraneko/static/gecko/config/version.txt -i noraneko/static/gecko/config/version_display.txt
+  # fix l10n path for non-firefox directory
+  sed 's,official,floorp-official,g' -i browser/locales/l10n.toml
 }
 
 build() {
@@ -303,7 +326,10 @@ build() {
 ac_add_options --enable-profile-generate=cross
 export MOZ_ENABLE_FULL_SYMBOLS=1
 END
-  ./mach build --priority normal
+  ./mach build
+
+  # copy buildid2 to bin/browser
+  cp noraneko/_dist/buildid2 obj-artifact-build-output/dist/bin/browser/
 
   msg "Profiling instrumented browser..."
   ./mach package
@@ -338,26 +364,21 @@ ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 # L10n
 ac_add_options --with-l10n-base=${srcdir}/firefox-l10n
 END
+  ./mach build
 
-  msg 'Injecting Floorp... before-mach step'
-  pushd "$srcdir/$_pkgsrc_runtime/floorp" || return
-  deno install --allow-scripts
-  NODE_ENV=production deno task feles-build build --phase before-mach
-  popd || return
-
-  msg 'Apply packaging patches'
-  # FIXME: the patch has issue that tries to apply from top directory instead of from branding directory
-  # git apply --ignore-space-change --ignore-whitespace .github/patches/packaging/*.patch
-  ./mach build --priority normal
+  # copy buildid2 to bin/browser
+  cp noraneko/_dist/buildid2 obj-artifact-build-output/dist/bin/browser/
 
   msg 'Injecting Floorp... after-mach step'
-  pushd "$srcdir/$_pkgsrc_runtime/floorp" || return
+  pushd "$srcdir/$_pkgsrc_runtime/noraneko" || return
   deno task feles-build build --phase after-mach
   popd || return
 
+  # avoid symlinks, which make the git apply fails
   rsync -aL obj-artifact-build-output/ obj-artifact-build-output_new/
   mv obj-artifact-build-output obj-artifact-build-output_old
   mv obj-artifact-build-output_new obj-artifact-build-output
+  git apply --unsafe-paths --verbose noraneko/tools/patches/*.patch --directory obj-artifact-build-output/dist/bin
 
   msg 'Building locales...'
   ./mach package
@@ -472,7 +493,7 @@ ObjectPath=/one/Ablaze/Floorp/SearchProvider
 Version=2
 END
 
-  local i theme=official
+  local i theme=floorp-official
   for i in 16 22 24 32 48 64 128 256; do
     install -Dvm644 browser/branding/$theme/default$i.png \
       "$pkgdir/usr/share/icons/hicolor/${i}x${i}/apps/${_reverse_dns_pkgname}.png"
@@ -486,7 +507,6 @@ END
 
   install -Dvm644 "$srcdir/floorp.desktop" \
     "$pkgdir/usr/share/applications/${_reverse_dns_pkgname}.desktop"
-  sed "s,\=floorp,\=${_reverse_dns_pkgname},g" -i "$pkgdir/usr/share/applications/${_reverse_dns_pkgname}.desktop"
 
   # Install a wrapper to avoid confusion about binary path
   install -Dvm755 /dev/stdin "$pkgdir/usr/bin/${_reverse_dns_pkgname}" <<END

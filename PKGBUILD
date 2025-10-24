@@ -7,7 +7,7 @@ _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
 pkgver=12.3.3
-pkgrel=4
+pkgrel=9
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -66,12 +66,12 @@ options=(
 )
 source=("git+https://github.com/Floorp-Projects/Floorp.git#commit=28d0456b71a2f3327c832a10a9ac6d32d6cf30db"
   "floorp-runtime::git+https://github.com/Floorp-Projects/Floorp-runtime#commit=73a0f7dc9fe50b7af48c184ac3bdc88237ba040a"
-  # floorp-projects.unified-l10n-central::git+https://github.com/Floorp-Projects/Unified-l10n-central.git
   "git+https://github.com/mozilla-l10n/firefox-l10n.git"
   "floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git"
   "git+https://github.com/openSUSE/firefox-maintenance.git"
   "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-144-patches-02.tar.xz"
   fix_csd_window_buttons.patch
+  0001-move-user-profile-to-XDG_CONFIG_HOME.patch
   0002-skip-creation-of-user-directory-extensions.patch
   floorp.desktop)
 sha256sums=('SKIP'
@@ -81,6 +81,7 @@ sha256sums=('SKIP'
   'SKIP'
   '63a2cd263b512ea6f9b487a7dcca3b7c673aeedf9c6dc0b7574bc64193515080'
   'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
+  '8b35735a3769e532ff856a3de849be1543c58397f6cbd1e29987a05dcfe615ee'
   '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
   'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092')
 
@@ -94,12 +95,7 @@ prepare() {
   # fix locale compile error
   sed '/brand.dtd/d' -i "$_pkgsrc_runtime"/.github/assets/branding/*/locales/jar.mn
 
-  # clear forced startup pages
-  sed -E 's&^\s*pref\("startup\.homepage.*$&&;/floorp.startup/d' \
-    -i "$_pkgsrc_runtime"/.github/assets/branding/*/pref/firefox-branding.js
-
   # copy branding assets
-  sed '/MOZ_APP_VENDOR/d' -i "$_pkgsrc_runtime"/.github/assets/branding/*/configure.sh
   cp -rf "$_pkgsrc_runtime"/.github/assets/branding/* "$_pkgsrc_runtime"/browser/branding/
 
   sed -i 's|https://@MOZ_APPUPDATE_HOST@/update/6/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%SYSTEM_CAPABILITIES%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/update.xml|https://%NORA_UPDATE_HOST%update.xml|g' "$_pkgsrc_runtime/build/application.ini.in"
@@ -110,11 +106,15 @@ prepare() {
   # prepare api keys
   cp "${srcdir}"/floorp-projects.floorp-core/apis/api-*-key ./
 
-  # patch -Np1 -i "${srcdir}/0001-move-user-profile-to-XDG_CONFIG_HOME.patch"
-  patch -Np1 -i "${srcdir}/0002-skip-creation-of-user-directory-extensions.patch"
-
   # Fix js ICU compatibility error for icu-76.1
   # sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
+
+  msg 'Noraneko patch'
+  local noraneko_patch=($(ls "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/"))
+  for src in "${noraneko_patch[@]}"; do
+    msg "Applying patch $src"
+    patch -Np1 -i "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/$src"
+  done
 
   msg 'Gentoo patch'
   rm -rf $srcdir/firefox-patches/00{21,22}*
@@ -184,7 +184,7 @@ ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 
 # Branding
-ac_add_options --enable-update-channel=release
+ac_add_options --enable-update-channel=nightly
 ac_add_options --with-branding=browser/branding/floorp-official
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
@@ -230,7 +230,6 @@ ac_add_options --enable-raw
 ac_add_options --enable-sandbox
 ac_add_options --enable-wasm-avx
 ac_add_options --enable-webrtc
-# ac_add_options --enable-private-components
 ac_add_options --disable-default-browser-agent
 ac_add_options --disable-parental-controls
 ac_add_options --enable-proxy-bypass-protection
@@ -251,14 +250,6 @@ END
   sed 's/\("files":{\)[^}]*/\1/' -i \
     third_party/rust/*/.cargo-checksum.json
 
-  msg 'Noraneko patch'
-  rm "$srcdir/$_pkgsrc_runtime"/.github/patches/upstream/moz.configure.patch
-  local noraneko_patch=($(ls "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/"))
-  for src in "${noraneko_patch[@]}"; do
-    msg "Applying patch $src"
-    patch -Np1 -i "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/$src"
-  done
-
   msg 'Injecting Floorp, before-mach step'
   pushd "$srcdir/$_pkgsrc_runtime/noraneko" || return
   export NODE_ENV=production
@@ -270,11 +261,13 @@ END
   msg 'Apply packaging patches'
   git apply --verbose --ignore-space-change --ignore-whitespace .github/patches/packaging/*.patch
 
-  # generating proper versioning
   local _firefox_ver="$(cat browser/config/version.txt)"
   sed "s,$,@${_firefox_ver}," -i noraneko/static/gecko/config/version.txt -i noraneko/static/gecko/config/version_display.txt
   # fix l10n path for non-firefox directory
-  sed 's,\{l\}browser/branding/official,\{l\}browser/branding/floorp-official,' -i browser/locales/l10n.toml
+  sed 's,{l}browser/branding/official,{l}browser/branding/floorp-official,' -i browser/locales/l10n.toml
+
+  patch -Np1 -i "${srcdir}/0001-move-user-profile-to-XDG_CONFIG_HOME.patch"
+  patch -Np1 -i "${srcdir}/0002-skip-creation-of-user-directory-extensions.patch"
 }
 
 build() {
@@ -380,7 +373,7 @@ END
 
   msg 'Building locales...'
   ./mach package
-  export MOZ_CHROME_MULTILOCALE="en-US ja zh-TW"
+  export MOZ_CHROME_MULTILOCALE="ja zh-TW"
   for AB_CD in $MOZ_CHROME_MULTILOCALE; do
     msg "Building locales $AB_CD"
     ./mach build chrome-$AB_CD
@@ -426,8 +419,6 @@ pref("browser.urlbar.hideGoButton",        true);
 pref("accessibility.typeaheadfind",        true);
 pref("browser.shell.checkDefaultBrowser",  false);
 pref("browser.EULA.override",              true);
-pref("general.useragent.locale",           "chrome://global/locale/intl.properties");
-pref("intl.locale.requested",              "");
 /* Disable DoH by default */
 pref("network.trr.mode",                   5);
 /* Disable use of Mozilla Normandy service by default */
@@ -468,29 +459,6 @@ sticky_pref("accessibility.typeaheadfind.manual", false);
 sticky_pref("accessibility.typeaheadfind.flashBar", 0);
 END
 
-  local distini="$pkgdir/usr/lib/floorp/distribution/distribution.ini"
-  install -Dvm644 /dev/stdin "$distini" <<END
-[Global]
-id=${_reverse_dns_pkgname}
-version=rolling
-about=Floorp for Arch Linux
-
-[Preferences]
-app.distributor=archlinux
-app.distributor.channel=${pkgname}
-app.partner.archlinux=archlinux
-END
-
-  # search provider
-  local sprovider="$pkgdir/usr/share/gnome-shell/search-providers/${_reverse_dns_pkgname}.search-provider.ini"
-  install -Dm644 /dev/stdin "$sprovider" <<END
-[Shell Search Provider]
-DesktopId=${_reverse_dns_pkgname}.desktop
-BusName=${_reverse_dns_pkgname}.SearchProvider
-ObjectPath=/one/Ablaze/Floorp/SearchProvider
-Version=2
-END
-
   local i theme=floorp-official
   for i in 16 22 24 32 48 64 128 256; do
     install -Dvm644 browser/branding/$theme/default$i.png \
@@ -509,12 +477,12 @@ END
   # Install a wrapper to avoid confusion about binary path
   install -Dvm755 /dev/stdin "$pkgdir/usr/bin/${_reverse_dns_pkgname}" <<END
 #!/bin/sh
-MOZ_LEGACY_HOME=0 /usr/lib/floorp/floorp "\$@"
+MOZ_LEGACY_HOME=0 /usr/lib/floorp/floorp-bin "\$@"
 END
 
   # Replace duplicate binary with wrapper
   # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
-  ln -srfv "$pkgdir/usr/bin/${_reverse_dns_pkgname}" "$pkgdir/usr/lib/floorp/floorp-bin"
+  ln -srfv "$pkgdir/usr/bin/${_reverse_dns_pkgname}" "$pkgdir/usr/lib/floorp/floorp"
   ln -srfv "$pkgdir/usr/bin/${_reverse_dns_pkgname}" "$pkgdir/usr/bin/floorp"
 
   # Use system certificates

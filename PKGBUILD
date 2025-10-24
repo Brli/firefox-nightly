@@ -107,8 +107,6 @@ prepare() {
   # prepare firefox source
   cd "$_pkgsrc_runtime" || exit
 
-  sed 's,browser/branding/unofficial,browser/branding/floorp-official,' -i browser/confvars.sh
-
   # prepare api keys
   cp "${srcdir}"/floorp-projects.floorp-core/apis/api-*-key ./
 
@@ -261,7 +259,7 @@ END
     patch -Np1 -i "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/$src"
   done
 
-  msg 'Injecting Floorp... before-mach step'
+  msg 'Injecting Floorp, before-mach step'
   pushd "$srcdir/$_pkgsrc_runtime/noraneko" || return
   export NODE_ENV=production
   deno install --allow-scripts
@@ -276,7 +274,7 @@ END
   local _firefox_ver="$(cat browser/config/version.txt)"
   sed "s,$,@${_firefox_ver}," -i noraneko/static/gecko/config/version.txt -i noraneko/static/gecko/config/version_display.txt
   # fix l10n path for non-firefox directory
-  sed 's,official,floorp-official,g' -i browser/locales/l10n.toml
+  sed 's,\{l\}browser/branding/official,\{l\}browser/branding/floorp-official,' -i browser/locales/l10n.toml
 }
 
 build() {
@@ -369,7 +367,7 @@ END
   # copy buildid2 to bin/browser
   cp noraneko/_dist/buildid2 obj-artifact-build-output/dist/bin/browser/
 
-  msg 'Injecting Floorp... after-mach step'
+  msg 'Injecting Floorp, after-mach step'
   pushd "$srcdir/$_pkgsrc_runtime/noraneko" || return
   deno task feles-build build --phase after-mach
   popd || return

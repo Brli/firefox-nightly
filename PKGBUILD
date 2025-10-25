@@ -3,91 +3,96 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=146.0a1.20251018.80c73ea6c2f4
-pkgrel=1
+pkgver=146.0a1.20251024.r2447.g16707ce1df11
+pkgrel=5
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
 license=(
-GPL
-LGPL
-MPL
+  GPL
+  LGPL
+  MPL
 )
 url="https://www.mozilla.org/firefox/"
 depends=(
-dbus
-ffmpeg
-gtk3
-libpulse
-libxt
-mime-types
-nss
-ttf-font
+  dbus
+  ffmpeg
+  gtk3
+  libpulse
+  libxt
+  mime-types
+  nss
+  ttf-font
 )
 makedepends=(
-cbindgen
-clang
-diffutils
-dump_syms
-imake
-jack
-lld
-llvm
-mercurial
-mesa
-nasm
-nodejs
-python
-rust
-unzip
-wasi-compiler-rt
-wasi-libc
-wasi-libc++
-wasi-libc++abi
-xorg-server-xvfb
-yasm
-zip
+  cbindgen
+  clang
+  diffutils
+  dump_syms
+  imake
+  jack
+  lld
+  llvm
+  mercurial
+  mesa
+  nasm
+  nodejs
+  python
+  rust
+  unzip
+  wasi-compiler-rt
+  wasi-libc
+  wasi-libc++
+  wasi-libc++abi
+  xorg-server-xvfb
+  yasm
+  zip
 )
 optdepends=(
-'hunspell-en_US: Spell checking, American English'
-'libnotify: Notification integration'
-'networkmanager: Location detection via available WiFi networks'
-'pulseaudio: Audio support'
-'speech-dispatcher: Text-to-Speech'
-'xdg-desktop-portal: Screensharing with Wayland'
+  'hunspell-en_US: Spell checking, American English'
+  'libnotify: Notification integration'
+  'networkmanager: Location detection via available WiFi networks'
+  'pulseaudio: Audio support'
+  'speech-dispatcher: Text-to-Speech'
+  'xdg-desktop-portal: Screensharing with Wayland'
 )
 options=(
-!debug
-!emptydirs
-!lto
-!makeflags
-!strip
+  !debug
+  !emptydirs
+  !lto
+  !makeflags
+  !strip
 )
-_moz_revision=80c73ea6c2f452268aac47363d61f8633beb69fe
 _gentoo_patch=144-patches-02
-source=(hg+https://hg.mozilla.org/mozilla-central#revision=$_moz_revision
-        git+https://github.com/mozilla-l10n/firefox-l10n.git
-        git+https://github.com/openSUSE/firefox-maintenance.git
-        git+https://github.com/Brli/firefox-trunk.git#branch=master
-        librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
-        librewolf-settings::git+https://codeberg.org/librewolf/settings.git
-        arkenfox::git+https://github.com/arkenfox/user.js.git
-        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
-        firefox.desktop
-        identity-icons-brand.svg
-        org.mozilla.firefox-nightly.metainfo.xml
-        fix_csd_window_buttons.patch)
+source=(git+https://github.com/mozilla-firefox/firefox.git
+  git+https://github.com/mozilla-l10n/firefox-l10n.git
+  git+https://github.com/openSUSE/firefox-maintenance.git
+  git+https://github.com/Brli/firefox-trunk.git#branch=master
+  librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
+  librewolf-settings::git+https://codeberg.org/librewolf/settings.git
+  arkenfox::git+https://github.com/arkenfox/user.js.git
+  https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
+  firefox.desktop
+  identity-icons-brand.svg
+  org.mozilla.firefox-nightly.metainfo.xml
+  fix_csd_window_buttons.patch
+  0001-Install-under-remoting-name.patch
+  0002-skip-creation-of-user-directory-extensions.patch
+  0003-move-user-profile-to-XDG_CONFIG_HOME.patch)
 sha256sums=('SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            'SKIP'
-            '63a2cd263b512ea6f9b487a7dcca3b7c673aeedf9c6dc0b7574bc64193515080'
-            '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
-            'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
-            '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
-            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e')
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  '63a2cd263b512ea6f9b487a7dcca3b7c673aeedf9c6dc0b7574bc64193515080'
+  '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
+  'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
+  '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
+  'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
+  'ef63a12975f108f30b00bb3290d9ca76f311d8af9c1d5dfc0d8335ad57e8f77c'
+  '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
+  '22a89f93b568034851076e1395a9d2852ee08de8ef202ca335ee0d96c89da9fb')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
@@ -97,16 +102,16 @@ validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Rel
 _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 
 pkgver() {
-  cd mozilla-central
+  cd firefox
   _pkgver=$(cat browser/config/version.txt)
-  _date=$(hg log -l1 --template '{word(0, date|hgdate)}')
-  printf "%s.%s.%s" "${_pkgver}" "$(date -u +%Y%m%d -d @$_date)" "$(hg identify -i)" | sed 's/\+//g'
+  _date=$(git show -s --format=%ci | cut -d ' ' -f 1 | tr -d '-')
+  _commit=$(git describe --abbrev --tags | sed 's,_,.,g;s,-,.,g' | cut -d '.' -f 5-)
+  printf "%s.%s.%s" "${_pkgver}" "${_date}" "r${_commit}"
 }
 
 prepare() {
   mkdir mozbuild
-  mv firefox-l10n/* mozbuild/
-  cd mozilla-central
+  cd firefox
 
   # Revert NSS requirement
   # sed 's,nss >= 3.101,nss >= 3.100,' -i build/moz.configure/nss.configure
@@ -116,15 +121,18 @@ prepare() {
   # Fix js ICU compatibility error for icu-76.1
   # sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
 
+  # Don't let the branding override our remoting name
+  sed '/^MOZ_APP_REMOTINGNAME=/d' -i browser/branding/nightly/configure.sh
+
   msg 'Gentoo patch'
   # Must check to remove 1988166-musl-remove-nonexisting-system-header-req
+  sed 's,Unused << ,(void),' -i "$srcdir/firefox-patches"/*-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch
   rm -rf $srcdir/firefox-patches/00{07,13,22,23}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-       s,%%WASI_SDK_LLVM_VER%%,20,;
+       s,%%WASI_SDK_LLVM_VER%%,21,;
        s,wasm32-unknown-wasi,wasi,;
-       s,libclang_rt.builtins.a,libclang_rt.builtins-wasm32.a,' -i "$srcdir/firefox-patches/0019-bgo-940031-wasm-support.patch"
+       s,libclang_rt.builtins.a,libclang_rt.builtins-wasm32.a,' -i "$srcdir/firefox-patches"/*-bgo-940031-wasm-support.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
-
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "$srcdir/firefox-patches/$src"
@@ -132,47 +140,47 @@ prepare() {
 
   msg 'opensuse patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
-  local suse_patch=(#'mozilla-nongnome-proxies.patch'
-                    # 'mozilla-kde.patch'
-                    # 'mozilla-ntlm-full-path.patch'
-                    # 'mozilla-aarch64-startup-crash.patch'
-                    # 'mozilla-fix-aarch64-libopus.patch'
-                    # 'mozilla-s390-context.patch'
-                    # 'mozilla-pgo.patch'
-                    # 'mozilla-reduce-rust-debuginfo.patch'
-                    # 'mozilla-bmo1005535.patch'
-                    # 'mozilla-bmo1568145.patch'
-                    # 'mozilla-bmo1504834-part1.patch'
-                    # 'mozilla-bmo1504834-part3.patch'
-                    # 'mozilla-bmo1512162.patch'
-                    # 'mozilla-fix-top-level-asm.patch'
-                    'mozilla-bmo849632.patch'
-                    # 'mozilla-bmo998749.patch'
-                    # 'mozilla-s390x-skia-gradient.patch'
-                    # 'mozilla-libavcodec58_91.patch'
-                    # 'mozilla-silence-no-return-type.patch'
-                    # 'mozilla-bmo531915.patch'
-                    'one_swizzle_to_rule_them_all.patch'
-                    'svg-rendering.patch')
-                    # 'mozilla-partial-revert-1768632.patch'
-                    # 'mozilla-bmo1822730.patch'
-                    # 'mozilla-libproxy-fix.patch'
-                    # 'mozilla-rust-disable-future-incompat.patch'
-                    # 'firefox-branded-icons.patch'
-                    # 'firefox-kde.patch')
+  local suse_patch=( #'mozilla-nongnome-proxies.patch'
+    # 'mozilla-kde.patch'
+    # 'mozilla-ntlm-full-path.patch'
+    # 'mozilla-aarch64-startup-crash.patch'
+    # 'mozilla-fix-aarch64-libopus.patch'
+    # 'mozilla-s390-context.patch'
+    # 'mozilla-pgo.patch'
+    # 'mozilla-reduce-rust-debuginfo.patch'
+    # 'mozilla-bmo1005535.patch'
+    # 'mozilla-bmo1568145.patch'
+    # 'mozilla-bmo1504834-part1.patch'
+    # 'mozilla-bmo1504834-part3.patch'
+    # 'mozilla-bmo1512162.patch'
+    # 'mozilla-fix-top-level-asm.patch'
+    'mozilla-bmo849632.patch'
+    # 'mozilla-bmo998749.patch'
+    # 'mozilla-s390x-skia-gradient.patch'
+    # 'mozilla-libavcodec58_91.patch'
+    # 'mozilla-silence-no-return-type.patch'
+    # 'mozilla-bmo531915.patch'
+    'one_swizzle_to_rule_them_all.patch'
+    'svg-rendering.patch'
+    # 'mozilla-partial-revert-1768632.patch'
+    # 'mozilla-bmo1822730.patch'
+    # 'mozilla-libproxy-fix.patch'
+    # 'mozilla-rust-disable-future-incompat.patch'
+    'firefox-branded-icons.patch')
+  # 'firefox-kde.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/firefox-maintenance/$src"
+    patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/$src"
   done
 
   msg 'librewolf patch'
   local librewolf_patch=('JXL_enable_by_default.patch'
-                         'allow-ubo-private-mode.patch')
-                         # 'sed-patches/stop-undesired-requests.patch'
-                         # 'ui-patches/remove-snippets-from-home.patch'
-                         # 'unity_kde/mozilla-kde.patch'
-                         # 'unity_kde/firefox-kde.patch'
-                         # 'unity_kde/unity-menubar.patch')
+    'allow-ubo-private-mode.patch')
+  # 'sed-patches/stop-undesired-requests.patch'
+  # 'ui-patches/remove-snippets-from-home.patch'
+  # 'unity_kde/mozilla-kde.patch'
+  # 'unity_kde/firefox-kde.patch'
+  # 'unity_kde/unity-menubar.patch')
   for src in "${librewolf_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
@@ -209,7 +217,7 @@ ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
 export RUSTC_OPT_LEVEL=2
 export MOZILLA_OFFICIAL=1
-export MOZ_APP_REMOTINGNAME=${pkgname}
+export MOZ_APP_REMOTINGNAME=$pkgname
 export MOZ_REQUIRE_SIGNING=1
 unset MOZ_TELEMETRY_REPORTING
 unset MOZ_DATA_REPORTING
@@ -246,7 +254,7 @@ ac_add_options --target=x86_64-pc-linux
 END
 
   # Fake mozilla version
-  echo '143.0.1' > config/milestone.txt
+  echo '144.0' >config/milestone.txt
 
   # Desktop file
   sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"
@@ -255,11 +263,13 @@ END
   sed 's/\("files":{\)[^}]*/\1/' -i \
     third_party/rust/*/.cargo-checksum.json
 
-  # patch -Np1 -i "${srcdir}/move-user-profile-to-XDG_CONFIG_HOME.patch"
+  patch -Np1 -i "${srcdir}/0001-Install-under-remoting-name.patch"
+  patch -Np1 -i "${srcdir}/0002-skip-creation-of-user-directory-extensions.patch"
+  patch -Np1 -i "${srcdir}/0003-move-user-profile-to-XDG_CONFIG_HOME.patch"
 }
 
 build() {
-  cd mozilla-central
+  cd firefox
 
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
@@ -307,15 +317,15 @@ END
   msg "Profiling instrumented browser..."
   ./mach package
   LLVM_PROFDATA=llvm-profdata \
-      JARLOG_FILE="$PWD/jarlog" \
-      MOZ_DISABLE_CONTENT_SANDBOX=1 \
-      MOZ_DISABLE_GMP_SANDBOX=1 \
-      MOZ_DISABLE_GPU_SANDBOX=1 \
-      MOZ_DISABLE_RDD_SANDBOX=1 \
-      MOZ_DISABLE_SOCKET_PROCESS_SANDBOX=1 \
-      MOZ_DISABLE_UTILITY_SANDBOX=1 \
-      MOZ_DISABLE_VR_SANDBOX=1 \
-      GTK_A11Y=none NO_AT_BRIDGE=1 dbus-run-session \
+    JARLOG_FILE="$PWD/jarlog" \
+    MOZ_DISABLE_CONTENT_SANDBOX=1 \
+    MOZ_DISABLE_GMP_SANDBOX=1 \
+    MOZ_DISABLE_GPU_SANDBOX=1 \
+    MOZ_DISABLE_RDD_SANDBOX=1 \
+    MOZ_DISABLE_SOCKET_PROCESS_SANDBOX=1 \
+    MOZ_DISABLE_UTILITY_SANDBOX=1 \
+    MOZ_DISABLE_VR_SANDBOX=1 \
+    GTK_A11Y=none NO_AT_BRIDGE=1 dbus-run-session \
     xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
     ./mach python build/pgo/profileserver.py
 
@@ -336,21 +346,15 @@ ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
 ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 
 # L10n
-ac_add_options --with-l10n-base=$srcdir/mozbuild
+ac_add_options --with-l10n-base=$srcdir/firefox-l10n
 END
   ./mach build --priority normal
 
-  if [[ -f $startdir/.crash-stats-api.token ]]; then
-    echo "Building symbol archive..."
-    ./mach buildsymbols
-  fi
-
   msg 'Building locales'
   ./mach package
-#   ./mach package-multi-locale --locales ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk vi zh-CN zh-TW
-#   export MOZ_CHROME_MULTILOCALE="ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk vi zh-CN zh-TW"
+  #  ./mach build chrome-zh-TW
+  #   export MOZ_CHROME_MULTILOCALE="ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk vi zh-CN zh-TW"
   export MOZ_CHROME_MULTILOCALE="en-US zh-TW"
-
   for AB_CD in $MOZ_CHROME_MULTILOCALE; do
     msg "Building locales $AB_CD"
     ./mach build chrome-$AB_CD
@@ -358,7 +362,7 @@ END
 }
 
 package() {
-  cd mozilla-central
+  cd firefox
   DESTDIR="$pkgdir" ./mach install
 
   # install arkenfox user.js
@@ -383,7 +387,7 @@ pref("extensions.autoDisableScopes", 11);
 pref("browser.gnome-search-provider.enabled", true);
 
 // UA override to latest Edge
-pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.3405.111");
+pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.3537.99");
 
 // Scale UI
 // pref("layout.css.devPixelsPerPx",    "1.2");
@@ -473,6 +477,9 @@ app.distributor.channel=${pkgname}
 app.partner.archlinux=archlinux
 END
 
+  # Link up system ONNX runtime
+  ln -srv "$pkgdir/usr/lib/libonnxruntime.so" -t "$pkgdir/usr/lib/$pkgname"
+
   local i theme=nightly
   for i in 16 22 24 32 48 64 128 256; do
     install -Dvm644 browser/branding/$theme/default$i.png \
@@ -517,11 +524,6 @@ BusName=org.mozilla.${pkgname//-/_}.SearchProvider
 ObjectPath=/org/mozilla/${pkgname//-/_}/SearchProvider
 Version=2
 END
-
-  export SOCORRO_SYMBOL_UPLOAD_TOKEN_FILE="$startdir/.crash-stats-api.token"
-  if [[ -f $SOCORRO_SYMBOL_UPLOAD_TOKEN_FILE ]]; then
-    make -C obj uploadsymbols
-  fi
 }
 
 # vim:set sw=2 sts=-1 et:

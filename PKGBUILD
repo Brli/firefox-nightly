@@ -6,8 +6,9 @@ pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
-pkgver=12.3.3
-pkgrel=9
+_firefox_ver=144.0
+pkgver=12.4.0
+pkgrel=1
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -64,9 +65,8 @@ options=(
   !makeflags
   !strip
 )
-source=("git+https://github.com/Floorp-Projects/Floorp.git#commit=28d0456b71a2f3327c832a10a9ac6d32d6cf30db"
-  "floorp-runtime::git+https://github.com/Floorp-Projects/Floorp-runtime#commit=73a0f7dc9fe50b7af48c184ac3bdc88237ba040a"
-  "git+https://github.com/mozilla-l10n/firefox-l10n.git"
+source=("git+https://github.com/Floorp-Projects/Floorp.git#tag=v$pkgver"
+  "floorp-runtime::git+https://github.com/Floorp-Projects/Floorp-runtime#tag=daily-532"
   "floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git"
   "git+https://github.com/openSUSE/firefox-maintenance.git"
   "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-144-patches-02.tar.xz"
@@ -78,12 +78,144 @@ sha256sums=('SKIP'
   'SKIP'
   'SKIP'
   'SKIP'
-  'SKIP'
   '63a2cd263b512ea6f9b487a7dcca3b7c673aeedf9c6dc0b7574bc64193515080'
   'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
   '8b35735a3769e532ff856a3de849be1543c58397f6cbd1e29987a05dcfe615ee'
   '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
   'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092')
+validpgpkeys=(
+  # Mozilla Software Releases <release@mozilla.com>
+  # https://blog.mozilla.org/security/2023/05/11/updated-gpg-key-for-signing-firefox-releases/
+  14F26682D0916CDD81E37B6D61B7B526D98F0353
+)
+# implement official locale xpi
+_url=https://archive.mozilla.org/pub/firefox/releases/$_firefox_ver
+source+=(
+  "firefox-$_firefox_ver-SHA512SUMS::$_url/SHA512SUMS"
+  "firefox-$_firefox_ver-SHA512SUMS.asc::$_url/SHA512SUMS.asc"
+)
+sha256sums+=('SKIP'
+             'SKIP')
+
+_languages=(
+  'ach         "Acholi"'
+  'af          "Afrikaans"'
+  'an          "Aragonese"'
+  'ar          "Arabic"'
+  'ast         "Asturian"'
+  'az          "Azerbaijani"'
+  'be          "Belarusian"'
+  'bg          "Bulgarian"'
+  'bn          "Bengali"'
+  'br          "Breton"'
+  'bs          "Bosnian"'
+  'ca          "Catalan"'
+  'ca-valencia "Catalan (Valencian)"'
+  'cak         "Maya Kaqchikel"'
+  'cs          "Czech"'
+  'cy          "Welsh"'
+  'da          "Danish"'
+  'de          "German"'
+  'dsb         "Lower Sorbian"'
+  'el          "Greek"'
+  'en-CA       "English (Canadian)"'
+  'en-GB       "English (British)"'
+  'en-US       "English (US)"'
+  'eo          "Esperanto"'
+  'es-AR       "Spanish (Argentina)"'
+  'es-CL       "Spanish (Chile)"'
+  'es-ES       "Spanish (Spain)"'
+  'es-MX       "Spanish (Mexico)"'
+  'et          "Estonian"'
+  'eu          "Basque"'
+  'fa          "Persian"'
+  'ff          "Fulah"'
+  'fi          "Finnish"'
+  'fr          "French"'
+  'fur         "Friulian"'
+  'fy-NL       "Frisian"'
+  'ga-IE       "Irish"'
+  'gd          "Gaelic (Scotland)"'
+  'gl          "Galician"'
+  'gn          "Guarani"'
+  'gu-IN       "Gujarati (India)"'
+  'he          "Hebrew"'
+  'hi-IN       "Hindi (India)"'
+  'hr          "Croatian"'
+  'hsb         "Upper Sorbian"'
+  'hu          "Hungarian"'
+  'hy-AM       "Armenian"'
+  'ia          "Interlingua"'
+  'id          "Indonesian"'
+  'is          "Icelandic"'
+  'it          "Italian"'
+  'ja          "Japanese"'
+  'ka          "Georgian"'
+  'kab         "Kabyle"'
+  'kk          "Kazakh"'
+  'km          "Khmer"'
+  'kn          "Kannada"'
+  'ko          "Korean"'
+  'lij         "Ligurian"'
+  'lt          "Lithuanian"'
+  'lv          "Latvian"'
+  'mk          "Macedonian"'
+  'mr          "Marathi"'
+  'ms          "Malay"'
+  'my          "Burmese"'
+  'nb-NO       "Norwegian (Bokmål)"'
+  'ne-NP       "Nepali"'
+  'nl          "Dutch"'
+  'nn-NO       "Norwegian (Nynorsk)"'
+  'oc          "Occitan"'
+  'pa-IN       "Punjabi (India)"'
+  'pl          "Polish"'
+  'pt-BR       "Portuguese (Brazilian)"'
+  'pt-PT       "Portuguese (Portugal)"'
+  'rm          "Romansh"'
+  'ro          "Romanian"'
+  'ru          "Russian"'
+  'sat         "Santali"'
+  'sc          "Sardinian"'
+  'sco         "Scots"'
+  'si          "Sinhala"'
+  'sk          "Slovak"'
+  'skr         "Saraiki"'
+  'sl          "Slovenian"'
+  'son         "Songhai"'
+  'sq          "Albanian"'
+  'sr          "Serbian"'
+  'sv-SE       "Swedish"'
+  'szl         "Silesian"'
+  'ta          "Tamil"'
+  'te          "Telugu"'
+  'tg          "Tajik"'
+  'th          "Thai"'
+  'tl          "Tagalog"'
+  'tr          "Turkish"'
+  'trs         "Chicahuaxtla Triqui"'
+  'uk          "Ukrainian"'
+  'ur          "Urdu"'
+  'uz          "Uzbek"'
+  'vi          "Vietnamese"'
+  'xh          "Xhosa"'
+  'zh-CN       "Chinese (Simplified)"'
+  'zh-TW       "Chinese (Traditional)"'
+)
+
+for _lang in "${_languages[@]}"; do
+  _locale=${_lang%% *}
+  _pkg=firefox-l10n-$_firefox_ver-$_locale.xpi
+  source+=("$_pkg::$_url/linux-x86_64/xpi/$_locale.xpi")
+  sha256sums+=('SKIP')
+  noextract+=($_pkg)
+done
+
+verify() {
+  cd "$SRCDEST"
+  sed -n "s|  linux-x86_64/xpi/|  firefox-l10n-$_firefox_ver-|p" \
+    firefox-$_firefox_ver-SHA512SUMS | sha512sum -c -
+}
 
 prepare() {
   mkdir mozbuild
@@ -184,7 +316,8 @@ ac_add_options --enable-default-toolkit=cairo-gtk3-wayland
 ac_add_options --with-wasi-sysroot=/usr/share/wasi-sysroot
 
 # Branding
-ac_add_options --enable-update-channel=nightly
+export MOZILLA_OFFICIAL=1
+ac_add_options --enable-update-channel=release
 ac_add_options --with-branding=browser/branding/floorp-official
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
@@ -324,6 +457,7 @@ END
 
   msg "Profiling instrumented browser..."
   ./mach package
+
   LLVM_PROFDATA=llvm-profdata \
     JARLOG_FILE="$PWD/jarlog" \
     MOZ_DISABLE_CONTENT_SANDBOX=1 \
@@ -352,8 +486,6 @@ ac_add_options --enable-lto=cross
 ac_add_options --enable-profile-use=cross
 ac_add_options --with-pgo-profile-path=${PWD@Q}/merged.profdata
 ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
-# L10n
-ac_add_options --with-l10n-base=${srcdir}/firefox-l10n
 END
   ./mach build
 
@@ -371,13 +503,7 @@ END
   mv obj-artifact-build-output_new obj-artifact-build-output
   git apply --unsafe-paths --verbose noraneko/tools/patches/*.patch --directory obj-artifact-build-output/dist/bin
 
-  msg 'Building locales...'
-  ./mach package
-  export MOZ_CHROME_MULTILOCALE="ja zh-TW"
-  for AB_CD in $MOZ_CHROME_MULTILOCALE; do
-    msg "Building locales $AB_CD"
-    ./mach build chrome-$AB_CD
-  done
+  bash noraneko/static/gecko/pref/override.sh obj-artifact-build-output/dist/bin/browser/defaults/preferences/firefox.js
 }
 
 package() {
@@ -490,6 +616,14 @@ END
   if [[ -e $nssckbi ]]; then
     ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
   fi
+
+  # install locales
+  for _lang in "${_languages[@]}"; do
+    _locale=${_lang%% *}
+    install -Dm644 $srcdir/firefox-l10n-$_firefox_ver-$_locale.xpi \
+      "$pkgdir/usr/lib/$pkgname/browser/extensions/langpack-$_locale@firefox.mozilla.org.xpi"
+  done
+
 }
 
 # vim:set sw=2 et:

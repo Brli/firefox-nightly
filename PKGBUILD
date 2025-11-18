@@ -3,8 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=146.0a1.20251024.r2447.g16707ce1df11
-pkgrel=5
+pkgver=146.0a1.20251108.r4572.g45e3c8634099
+pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
 license=(
@@ -62,11 +62,10 @@ options=(
   !makeflags
   !strip
 )
-_gentoo_patch=144-patches-02
+_gentoo_patch=144-patches-03
 source=(git+https://github.com/mozilla-firefox/firefox.git
   git+https://github.com/mozilla-l10n/firefox-l10n.git
   git+https://github.com/openSUSE/firefox-maintenance.git
-  git+https://github.com/Brli/firefox-trunk.git#branch=master
   librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
   librewolf-settings::git+https://codeberg.org/librewolf/settings.git
   arkenfox::git+https://github.com/arkenfox/user.js.git
@@ -84,8 +83,7 @@ sha256sums=('SKIP'
   'SKIP'
   'SKIP'
   'SKIP'
-  'SKIP'
-  '63a2cd263b512ea6f9b487a7dcca3b7c673aeedf9c6dc0b7574bc64193515080'
+  'b7ecc64011ce567854875740b7f2dcd1580aab69b28e7f135db47d49badd0ab1'
   '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
   'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
   '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
@@ -127,7 +125,7 @@ prepare() {
   msg 'Gentoo patch'
   # Must check to remove 1988166-musl-remove-nonexisting-system-header-req
   sed 's,Unused << ,(void),' -i "$srcdir/firefox-patches"/*-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch
-  rm -rf $srcdir/firefox-patches/00{07,13,22,23}*
+  rm -rf $srcdir/firefox-patches/00{07,08,13,22}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
        s,%%WASI_SDK_LLVM_VER%%,21,;
        s,wasm32-unknown-wasi,wasi,;

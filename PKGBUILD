@@ -6,8 +6,8 @@ pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
-_firefox_ver=144.0
-pkgver=12.4.0
+_firefox_ver=145.0
+pkgver=12.6.0
 pkgrel=1
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
@@ -66,10 +66,10 @@ options=(
   !strip
 )
 source=("git+https://github.com/Floorp-Projects/Floorp.git#tag=v$pkgver"
-  "floorp-runtime::git+https://github.com/Floorp-Projects/Floorp-runtime#tag=daily-532"
+  "floorp-runtime::git+https://github.com/Floorp-Projects/Floorp-runtime#tag=daily-582"
   "floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git"
   "git+https://github.com/openSUSE/firefox-maintenance.git"
-  "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-144-patches-02.tar.xz"
+  "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-145-patches-01.tar.xz"
   fix_csd_window_buttons.patch
   0001-move-user-profile-to-XDG_CONFIG_HOME.patch
   0002-skip-creation-of-user-directory-extensions.patch
@@ -78,7 +78,7 @@ sha256sums=('SKIP'
   'SKIP'
   'SKIP'
   'SKIP'
-  '63a2cd263b512ea6f9b487a7dcca3b7c673aeedf9c6dc0b7574bc64193515080'
+  '2d64704faa068f7c3017763ae27fbec6917b26510391112987275744f5b32d2c'
   'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
   '8b35735a3769e532ff856a3de849be1543c58397f6cbd1e29987a05dcfe615ee'
   '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
@@ -238,9 +238,6 @@ prepare() {
   # prepare api keys
   cp "${srcdir}"/floorp-projects.floorp-core/apis/api-*-key ./
 
-  # Fix js ICU compatibility error for icu-76.1
-  # sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
-
   msg 'Noraneko patch'
   local noraneko_patch=($(ls "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/"))
   for src in "${noraneko_patch[@]}"; do
@@ -249,7 +246,7 @@ prepare() {
   done
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/00{21,22}*
+  rm -rf $srcdir/firefox-patches/00{12,20,21}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
        s,%%WASI_SDK_LLVM_VER%%,21,g;
        s,wasm32-unknown-wasi,wasi,;
@@ -275,7 +272,7 @@ prepare() {
     # 'mozilla-bmo1512162.patch'
     # 'mozilla-fix-top-level-asm.patch' # broken patch
     'mozilla-bmo849632.patch'
-    'mozilla-bmo998749.patch'
+    # 'mozilla-bmo998749.patch'
     'mozilla-libavcodec58_91.patch'
     # 'mozilla-silence-no-return-type.patch'
     # 'mozilla-bmo531915.patch' # broken patch
@@ -348,7 +345,7 @@ ac_add_options --with-system-zlib
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-libevent
-ac_add_options --with-system-icu
+# ac_add_options --with-system-icu
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-av1
 ac_add_options --enable-system-pixman

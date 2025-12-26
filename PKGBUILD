@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=146.0a1.20251108.r4572.g45e3c8634099
+pkgver=148.0a1.20251209.r552.g7496c8515212
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,7 +62,7 @@ options=(
   !makeflags
   !strip
 )
-_gentoo_patch=144-patches-03
+_gentoo_patch=146-patches-01
 source=(git+https://github.com/mozilla-firefox/firefox.git
   git+https://github.com/mozilla-l10n/firefox-l10n.git
   git+https://github.com/openSUSE/firefox-maintenance.git
@@ -78,19 +78,19 @@ source=(git+https://github.com/mozilla-firefox/firefox.git
   0002-skip-creation-of-user-directory-extensions.patch
   0003-move-user-profile-to-XDG_CONFIG_HOME.patch)
 sha256sums=('SKIP'
-  'SKIP'
-  'SKIP'
-  'SKIP'
-  'SKIP'
-  'SKIP'
-  'b7ecc64011ce567854875740b7f2dcd1580aab69b28e7f135db47d49badd0ab1'
-  '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
-  'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
-  '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
-  'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
-  'ef63a12975f108f30b00bb3290d9ca76f311d8af9c1d5dfc0d8335ad57e8f77c'
-  '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
-  '22a89f93b568034851076e1395a9d2852ee08de8ef202ca335ee0d96c89da9fb')
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            '8aaa188ee055ccf16cad175847f4d42e0f68780e0ecefd62308d188d7004a1f5'
+            '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
+            'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
+            '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
+            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
+            'ef63a12975f108f30b00bb3290d9ca76f311d8af9c1d5dfc0d8335ad57e8f77c'
+            '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
+            '22a89f93b568034851076e1395a9d2852ee08de8ef202ca335ee0d96c89da9fb')
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
@@ -125,7 +125,7 @@ prepare() {
   msg 'Gentoo patch'
   # Must check to remove 1988166-musl-remove-nonexisting-system-header-req
   sed 's,Unused << ,(void),' -i "$srcdir/firefox-patches"/*-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch
-  rm -rf $srcdir/firefox-patches/00{07,08,13,22}*
+  rm -rf $srcdir/firefox-patches/0019*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
        s,%%WASI_SDK_LLVM_VER%%,21,;
        s,wasm32-unknown-wasi,wasi,;
@@ -234,7 +234,7 @@ ac_add_options --with-system-libevent
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
 # ac_add_options --with-system-graphite2
-ac_add_options --with-system-icu
+# ac_add_options --with-system-icu
 # ac_add_options --with-system-av1
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-pixman
@@ -263,7 +263,7 @@ END
 
   patch -Np1 -i "${srcdir}/0001-Install-under-remoting-name.patch"
   patch -Np1 -i "${srcdir}/0002-skip-creation-of-user-directory-extensions.patch"
-  patch -Np1 -i "${srcdir}/0003-move-user-profile-to-XDG_CONFIG_HOME.patch"
+  # patch -Np1 -i "${srcdir}/0003-move-user-profile-to-XDG_CONFIG_HOME.patch"
 }
 
 build() {
@@ -385,7 +385,7 @@ pref("extensions.autoDisableScopes", 11);
 pref("browser.gnome-search-provider.enabled", true);
 
 // UA override to latest Edge
-pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.3537.99");
+pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0");
 
 // Scale UI
 // pref("layout.css.devPixelsPerPx",    "1.2");

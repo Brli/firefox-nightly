@@ -6,8 +6,9 @@ pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
-_firefox_ver=145.0
-pkgver=12.6.0
+_firefox_ver=146.0.1
+_daily=718
+pkgver=12.9.2
 pkgrel=1
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
@@ -27,7 +28,6 @@ makedepends=(
   breezy
   cbindgen
   clang
-  deno
   diffutils
   dump_syms
   imake
@@ -66,23 +66,25 @@ options=(
   !strip
 )
 source=("git+https://github.com/Floorp-Projects/Floorp.git#tag=v$pkgver"
-  "floorp-runtime::git+https://github.com/Floorp-Projects/Floorp-runtime#tag=daily-582"
-  "floorp-projects.floorp-core::git+https://github.com/Floorp-Projects/Floorp-core.git"
+  "floorp-runtime::git+https://github.com/Floorp-Projects/Floorp-runtime#tag=daily-$_daily"
+  "git+https://github.com/Floorp-Projects/Floorp-core.git"
   "git+https://github.com/openSUSE/firefox-maintenance.git"
-  "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-145-patches-01.tar.xz"
+  "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-146-patches-03.tar.xz"
   fix_csd_window_buttons.patch
   0001-move-user-profile-to-XDG_CONFIG_HOME.patch
   0002-skip-creation-of-user-directory-extensions.patch
-  floorp.desktop)
+  floorp.desktop
+  https://github.com/denoland/deno/releases/download/v2.6.3/deno-x86_64-unknown-linux-gnu.zip)
 sha256sums=('SKIP'
   'SKIP'
   'SKIP'
   'SKIP'
-  '2d64704faa068f7c3017763ae27fbec6917b26510391112987275744f5b32d2c'
+  'cade16db4a71415e821fa97989a973f46d5df698f3ef3ae9dc7150eee795d41c'
   'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
   '8b35735a3769e532ff856a3de849be1543c58397f6cbd1e29987a05dcfe615ee'
   '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
-  'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092')
+  'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092'
+  'b3c24dc6f3982607896bd795fd6bcbdc53f3d11e8d8190b2a07fd1881eb1148a')
 validpgpkeys=(
   # Mozilla Software Releases <release@mozilla.com>
   # https://blog.mozilla.org/security/2023/05/11/updated-gpg-key-for-signing-firefox-releases/
@@ -236,7 +238,7 @@ prepare() {
   cd "$_pkgsrc_runtime" || exit
 
   # prepare api keys
-  cp "${srcdir}"/floorp-projects.floorp-core/apis/api-*-key ./
+  cp "${srcdir}"/Floorp-core/apis/api-*-key ./
 
   msg 'Noraneko patch'
   local noraneko_patch=($(ls "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/"))
@@ -246,7 +248,11 @@ prepare() {
   done
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/00{12,20,21}*
+  rm -rf $srcdir/firefox-patches/00{19,20}*
+  rm -rf $srcdir/firefox-patches/firefox-146-patches-03.tar.xz
+  # 0019-bmo-1988166-musl-remove-nonexisting-system-header-req.patch: `ld.lld: error: undefined hidden symbol: __libc_single_threaded`
+  # 0020-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch: `+  Unused << dlopen("libgcc_s.so.1", RTLD_GLOBAL|RTLD_LAZY);`
+  # /build/floorp/src/floorp-runtime/security/sandbox/linux/Sandbox.cpp:781:3: error: use of undeclared identifier 'Unused'
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
        s,%%WASI_SDK_LLVM_VER%%,21,g;
        s,wasm32-unknown-wasi,wasi,;
@@ -260,20 +266,19 @@ prepare() {
   msg 'Opensuse Patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
   local suse_patch=( # xulrunner/gecko patches
-    # 'mozilla-kde.patch'
     'mozilla-ntlm-full-path.patch'
     # 'mozilla-aarch64-startup-crash.patch'
     # 'mozilla-fix-aarch64-libopus.patch'
     # 'mozilla-s390-context.patch'
     # 'mozilla-pgo.patch' # previous patch detected
-    'mozilla-reduce-rust-debuginfo.patch'
+    # 'mozilla-reduce-rust-debuginfo.patch'
     'mozilla-bmo1504834-part1.patch'
     # 'mozilla-bmo1504834-part3.patch'
     # 'mozilla-bmo1512162.patch'
     # 'mozilla-fix-top-level-asm.patch' # broken patch
     'mozilla-bmo849632.patch'
     # 'mozilla-bmo998749.patch'
-    'mozilla-libavcodec58_91.patch'
+    # 'mozilla-libavcodec58_91.patch'
     # 'mozilla-silence-no-return-type.patch'
     # 'mozilla-bmo531915.patch' # broken patch
     'one_swizzle_to_rule_them_all.patch'
@@ -282,7 +287,6 @@ prepare() {
     # 'mozilla-bmo1775202.patch'
     # 'mozilla-rust-disable-future-incompat.patch'
     # Firefox patches
-    # 'firefox-kde.patch'
     'firefox-branded-icons.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
@@ -302,7 +306,7 @@ ac_add_options --with-version-file-path=noraneko/static/gecko/config
 
 ac_add_options --prefix=/usr
 ac_add_options --enable-hardening
-ac_add_options --enable-optimize="-O3 -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -maes -mpopcnt -mpclmul"
+ac_add_options --enable-optimize="-O3 -w -ftree-vectorize -mfpmath=sse -mprfchw -msse3 -mcx16 -msahf"
 ac_add_options --enable-rust-simd
 ac_add_options --enable-wasm-simd
 ac_add_options --enable-linker=lld
@@ -327,9 +331,11 @@ export MOZ_APP_REMOTINGNAME=${_pkgname}
 unset MOZ_REQUIRE_SIGNING
 unset MOZ_DATA_REPORTING
 unset MOZ_TELEMETRY_REPORTING
+export MOZ_PACKAGE_JSSHELL=1
 export OPT_LEVEL="3"
 export RUSTC_OPT_LEVEL="3"
 export MOZ_PACKAGE_JSSHELL=1
+mk_add_options MOZ_PARALLEL_BUILD=24
 
 # Keys
 ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/api-mozilla-key
@@ -381,6 +387,7 @@ END
     third_party/rust/*/.cargo-checksum.json
 
   msg 'Injecting Floorp, before-mach step'
+  export PATH=$PATH:"$srcdir"
   pushd "$srcdir/$_pkgsrc_runtime/noraneko" || return
   export NODE_ENV=production
   deno install --allow-scripts
@@ -423,6 +430,8 @@ build() {
   CXXFLAGS="${CXXFLAGS/-fexceptions/}"
 
   # Compiler setting
+  # export CC=/usr/lib/llvm20/bin/clang
+  # export CXX=/usr/lib/llvm20/bin/clang++
   export AR=llvm-ar
   export CC=clang
   export CC_LD=lld
@@ -431,21 +440,16 @@ build() {
   export NM=llvm-nm
   export RANLIB=llvm-ranlib
 
-  # Zen Browser flags
-  export CFLAGS="$CFLAGS -O3 -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"
-  export CPPFLAGS="$CPPFLAGS -O3 -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"
-  export CXXFLAGS="$CXXFLAGS -O3 -flto=thin -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"
-  export LDFLAGS="$LDFLAGS -Wl,-O3 -Wl,-mllvm,-fp-contract=fast -march=x86-64-v3"
-  export RUSTFLAGS="$RUSTFLAGS -C target-cpu=x86-64-v3 -C target-feature=+sse4.1 -C target-feature=+avx2 -C codegen-units=1 -Clink-args=--icf=safe"
-
   # LTO needs more open files
   ulimit -n 4096
+  export RUST_MIN_STACK=134217728
 
   # Do 3-tier PGO
   msg "Building instrumented browser..."
   cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
 export MOZ_ENABLE_FULL_SYMBOLS=1
+export CARGO_PROFILE_RELEASE_BUILD_OVERRIDE_DEBUG=true
 END
   ./mach build
 
@@ -490,6 +494,7 @@ END
   cp noraneko/_dist/buildid2 obj-artifact-build-output/dist/bin/browser/
 
   msg 'Injecting Floorp, after-mach step'
+  export PATH=$PATH:"$srcdir"
   pushd "$srcdir/$_pkgsrc_runtime/noraneko" || return
   deno task feles-build build --phase after-mach
   popd || return

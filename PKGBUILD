@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=148.0a1.20251209.r552.g7496c8515212
+pkgver=148.0a1.20260104.r3045.ge61d59b5c9a6
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -62,11 +62,10 @@ options=(
   !makeflags
   !strip
 )
-_gentoo_patch=146-patches-01
+_gentoo_patch=146-patches-03
 source=(git+https://github.com/mozilla-firefox/firefox.git
   git+https://github.com/mozilla-l10n/firefox-l10n.git
   git+https://github.com/openSUSE/firefox-maintenance.git
-  librewolf-patch::git+https://gitlab.com/librewolf-community/browser/source.git
   librewolf-settings::git+https://codeberg.org/librewolf/settings.git
   arkenfox::git+https://github.com/arkenfox/user.js.git
   https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
@@ -82,8 +81,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'SKIP'
-            '8aaa188ee055ccf16cad175847f4d42e0f68780e0ecefd62308d188d7004a1f5'
+            'cade16db4a71415e821fa97989a973f46d5df698f3ef3ae9dc7150eee795d41c'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
@@ -123,9 +121,12 @@ prepare() {
   sed '/^MOZ_APP_REMOTINGNAME=/d' -i browser/branding/nightly/configure.sh
 
   msg 'Gentoo patch'
-  # Must check to remove 1988166-musl-remove-nonexisting-system-header-req
-  sed 's,Unused << ,(void),' -i "$srcdir/firefox-patches"/*-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch
-  rm -rf $srcdir/firefox-patches/0019*
+  rm -rf $srcdir/firefox-patches/00{19,20,21}*
+  rm -rf $srcdir/firefox-patches/firefox-146-patches-03.tar.xz
+  rm -rf $srcdir/firefox-patches/*musl*
+  # 0019-bmo-1988166-musl-remove-nonexisting-system-header-req.patch: `ld.lld: error: undefined hidden symbol: __libc_single_threaded`
+  # 0020-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch: `+  Unused << dlopen("libgcc_s.so.1", RTLD_GLOBAL|RTLD_LAZY);`
+  # /build/floorp/src/floorp-runtime/security/sandbox/linux/Sandbox.cpp:781:3: error: use of undeclared identifier 'Unused'
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
        s,%%WASI_SDK_LLVM_VER%%,21,;
        s,wasm32-unknown-wasi,wasi,;
@@ -169,19 +170,6 @@ prepare() {
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/$src"
-  done
-
-  msg 'librewolf patch'
-  local librewolf_patch=('JXL_enable_by_default.patch'
-    'allow-ubo-private-mode.patch')
-  # 'sed-patches/stop-undesired-requests.patch'
-  # 'ui-patches/remove-snippets-from-home.patch'
-  # 'unity_kde/mozilla-kde.patch'
-  # 'unity_kde/firefox-kde.patch'
-  # 'unity_kde/unity-menubar.patch')
-  for src in "${librewolf_patch[@]}"; do
-    msg "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
   done
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
@@ -249,10 +237,11 @@ ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
 ac_add_options --target=x86_64-pc-linux
+mk_add_options MOZ_PARALLEL_BUILD=24
 END
 
   # Fake mozilla version
-  echo '144.0' >config/milestone.txt
+  echo '146.0.2' > config/milestone.txt
 
   # Desktop file
   sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"

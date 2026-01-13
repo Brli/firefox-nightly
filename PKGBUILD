@@ -3,8 +3,8 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-beta
-_pkgver_stable=124.0.1
-pkgver=125.0b3
+_pkgver_stable=146.0.1
+pkgver=147.0rc1
 pkgrel=1
 pkgdesc="Standalone web browser from mozilla.org"
 arch=(x86_64)
@@ -22,7 +22,7 @@ optdepends=('networkmanager: Location detection via available WiFi networks'
             'hunspell-en_US: Spell checking, American English'
             'xdg-desktop-portal: Screensharing with Wayland')
 options=(!emptydirs !makeflags !strip !lto)
-source=("https://ftp.mozilla.org/pub/firefox/releases/${pkgver}/source/firefox-${pkgver}.source.tar.xz"{,.asc}
+source=(git+https://github.com/mozilla-firefox/firefox.git#branch=beta
         hg+https://hg.mozilla.org/l10n-central/zh-TW
         hg+https://www.rosenauer.org/hg/mozilla#branch=firefox123
         librewolf-patch::git+https://codeberg.org/librewolf/source.git
@@ -50,11 +50,13 @@ validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Rel
 # more information.
 _google_api_key=AIzaSyDwr302FpOSkGRpLlUpPThNTDPbXcIn_FM
 
-# Mozilla API keys (see https://location.services.mozilla.com/api)
-# Note: These are for Arch Linux use ONLY. For your own distribution, please
-# get your own set of keys. Feel free to contact heftig@archlinux.org for
-# more information.
-_mozilla_api_key=e05d56db0a694edc8b5aaebda3f2db6a
+pkgver() {
+  cd firefox
+  _pkgver=$(cat browser/config/version.txt)
+  _date=$(git show -s --format=%ci | cut -d ' ' -f 1 | tr -d '-')
+  _commit=$(git describe --abbrev --tags | sed 's,_,.,g;s,-,.,g' | cut -d '.' -f 5-)
+  printf "%s.%s.%s" "${_pkgver}" "${_date}" "r${_commit}"
+}
 
 prepare() {
   mkdir mozbuild
@@ -70,7 +72,12 @@ prepare() {
   # sed 's,icu-i18n >= 73.1,icu-i18n >= 72.1,' -i js/moz.configure
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/{0012*,0024*,0025*,0028*}
+  sed 's,Unused << ,(void),' -i "$srcdir/firefox-patches"/*-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch
+  rm -rf $srcdir/firefox-patches/0019*
+  sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
+       s,%%WASI_SDK_LLVM_VER%%,21,;
+       s,wasm32-unknown-wasi,wasi,;
+       s,libclang_rt.builtins.a,libclang_rt.builtins-wasm32.a,' -i "$srcdir/firefox-patches"/*-bgo-940031-wasm-support.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -126,11 +133,13 @@ prepare() {
    patch -Np1 -i "${srcdir}/firefox-trunk/debian/patches/$src"
   done
 
+  # Don't let the branding override our remoting name
+  sed '/^MOZ_APP_REMOTINGNAME=/d' -i browser/branding/aurora/configure.sh
+
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
   
   echo -n "$_google_api_key" >google-api-key
-  echo -n "$_mozilla_api_key" >mozilla-api-key
 
   cat >../mozconfig <<END
 ac_add_options --enable-application=browser
@@ -162,7 +171,6 @@ unset MOZ_TELEMETRY_REPORTING
 # Keys
 ac_add_options --with-google-location-service-api-keyfile=${PWD@Q}/google-api-key
 ac_add_options --with-google-safebrowsing-api-keyfile=${PWD@Q}/google-api-key
-ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/mozilla-api-key
 
 # System libraries
 ac_add_options --with-system-nspr

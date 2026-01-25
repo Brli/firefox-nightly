@@ -1,6 +1,6 @@
-From 2d3477400a55eaccc5269a34d3ef2c2c7ab54650 Mon Sep 17 00:00:00 2001
-From: BrLi <brli@chakralinux.org>
-Date: Sat, 25 Oct 2025 00:07:28 +0800
+From 8f0833b5ad37a1a133a5d3e9465e3157ccaa2bae Mon Sep 17 00:00:00 2001
+From: Brli <brli@chakralinux.org>
+Date: Thu, 15 Jan 2026 20:49:17 +0800
 Subject: [PATCH] move user profile to XDG_CONFIG_HOME
 
 Floorp patch derived from bugzilla.mozilla.org for Mozilla Firefox
@@ -10,14 +10,12 @@ Support for the Freedesktop.org XDG Base Directory Specification
 
 phabricator url: https://phabricator.services.mozilla.com/D6995
 ---
- toolkit/xre/nsXREDirProvider.cpp       | 129 ++++++++++++++++++++-----
- toolkit/xre/nsXREDirProvider.h         |   6 +-
- xpcom/io/moz.build                     |   1 +
- xpcom/io/nsAppFileLocationProvider.cpp |  14 ++-
- 4 files changed, 126 insertions(+), 24 deletions(-)
+ toolkit/xre/nsXREDirProvider.cpp | 98 ++++++++++++++++++++++++++++----
+ toolkit/xre/nsXREDirProvider.h   |  5 +-
+ 2 files changed, 90 insertions(+), 13 deletions(-)
 
 diff --git a/toolkit/xre/nsXREDirProvider.cpp b/toolkit/xre/nsXREDirProvider.cpp
-index 2ffb9da834..1e668e2cd6 100644
+index 6445643949..6ad78faaf3 100644
 --- a/toolkit/xre/nsXREDirProvider.cpp
 +++ b/toolkit/xre/nsXREDirProvider.cpp
 @@ -1,5 +1,5 @@
@@ -27,7 +25,7 @@ index 2ffb9da834..1e668e2cd6 100644
   * License, v. 2.0. If a copy of the MPL was not distributed with this
   * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
  
-@@ -275,7 +275,7 @@ nsresult nsXREDirProvider::GetBackgroundTasksProfilesRootDir(
+@@ -312,7 +312,7 @@ nsresult nsXREDirProvider::GetBackgroundTasksProfilesRootDir(
   * Get the directory that is the parent of the system-wide directories
   * for extensions and native manifests.
   *
@@ -36,7 +34,7 @@ index 2ffb9da834..1e668e2cd6 100644
   * On Linux this is /usr/{lib,lib64}/mozilla
   *   (for 32- and 64-bit systems respsectively)
   */
-@@ -286,7 +286,7 @@ static nsresult GetSystemParentDirectory(nsIFile** aFile) {
+@@ -323,7 +323,7 @@ static nsresult GetSystemParentDirectory(nsIFile** aFile) {
    rv = GetOSXFolderType(kOnSystemDisk, kApplicationSupportFolderType,
                          getter_AddRefs(localDir));
    if (NS_SUCCEEDED(rv)) {
@@ -45,9 +43,9 @@ index 2ffb9da834..1e668e2cd6 100644
    }
  #  else
    constexpr auto dirname =
-@@ -366,11 +366,6 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
-   } else if (!strcmp(aProperty, XRE_USER_NATIVE_MANIFESTS)) {
-     rv = GetUserDataDirectoryHome(getter_AddRefs(file), false);
+@@ -405,11 +405,6 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
+     rv = GetUserDataDirectoryHome(getter_AddRefs(file), /* aLocal */ false,
+                                   /* aForceLegacy */ true);
      NS_ENSURE_SUCCESS(rv, rv);
 -#  if defined(XP_MACOSX)
 -    rv = file->AppendNative("Mozilla"_ns);
@@ -57,7 +55,7 @@ index 2ffb9da834..1e668e2cd6 100644
    }
  #endif  // defined(XP_UNIX) || defined(XP_MACOSX)
    else if (!strcmp(aProperty, XRE_UPDATE_ROOT_DIR)) {
-@@ -933,7 +928,7 @@ nsresult nsXREDirProvider::GetUpdateRootDir(nsIFile** aResult,
+@@ -973,7 +968,7 @@ nsresult nsXREDirProvider::GetUpdateRootDir(nsIFile** aResult,
              nsDependentCString(hasVendor ? GetAppVendor() : GetAppName())))) {
        return NS_ERROR_FAILURE;
      }
@@ -66,68 +64,19 @@ index 2ffb9da834..1e668e2cd6 100644
      return NS_ERROR_FAILURE;
    }
  
-@@ -1084,17 +1079,19 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
+@@ -1151,7 +1146,11 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
    MOZ_TRY(NS_NewLocalFile(path, getter_AddRefs(localDir)));
  #elif defined(XP_UNIX)
-   const char* homeDir = getenv("HOME");
+   const char* homeDir = PR_GetEnv("HOME");
 +  nsresult rv;
    if (!homeDir || !*homeDir) return NS_ERROR_FAILURE;
--
 +  rv = NS_NewNativeLocalFile(nsDependentCString(homeDir),
 +                             getter_AddRefs(localDir));
 +  NS_ENSURE_SUCCESS(rv, rv);
+ 
  #  ifdef ANDROID /* We want (ProfD == ProfLD) on Android. */
-   aLocal = false;
--#  endif
--
-+#  else
-   if (aLocal) {
-     // If $XDG_CACHE_HOME is defined use it, otherwise use $HOME/.cache.
-     const char* cacheHome = getenv("XDG_CACHE_HOME");
-     if (cacheHome && *cacheHome) {
--      MOZ_TRY(NS_NewNativeLocalFile(nsDependentCString(cacheHome),
-+      MOZ_TRY(nsXREDirProvider::AppendLegacyOrXDGCachePath(homeDir,
-                                     getter_AddRefs(localDir)));
-     } else {
-       MOZ_TRY(NS_NewNativeLocalFile(nsDependentCString(homeDir),
-@@ -1102,17 +1099,33 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
-       MOZ_TRY(localDir->AppendNative(".cache"_ns));
-     }
-   } else {
--    MOZ_TRY(NS_NewNativeLocalFile(nsDependentCString(homeDir),
-+    MOZ_TRY(nsXREDirProvider::AppendLegacyOrXDGHomePath(homeDir,
-                                   getter_AddRefs(localDir)));
-   }
--#else
--#  error "Don't know how to get product dir on your platform"
-+# endif
- #endif
- 
-   localDir.forget(aFile);
-   return NS_OK;
- }
- 
-+nsresult nsXREDirProvider::GetNativeUserManifestsDirectory(nsIFile** aFile) {
-+  nsCOMPtr<nsIFile> localDir;
-+
-+  nsresult rv = GetUserDataDirectoryHome(getter_AddRefs(localDir), false);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+#if defined(XP_MACOSX)
-+  rv = localDir->AppendRelativeNativePath("Floorp"_ns);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+#endif  // XP_MACOSX
-+  // for Linux, this is already handled by GetUserDataDirectoryHome() calls to
-+  // AppendLegacyOrXDGHomePath(), so we dont have to add anything more
-+
-+  localDir.forget(aFile);
-+  return NS_OK;
-+}
-+
- nsresult nsXREDirProvider::GetSysUserExtensionsDirectory(nsIFile** aFile) {
-   nsCOMPtr<nsIFile> localDir;
-   nsresult rv = GetUserDataDirectoryHome(getter_AddRefs(localDir), false);
-@@ -1203,7 +1216,7 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+   MOZ_TRY(NS_NewNativeLocalFile(nsDependentCString(homeDir),
+@@ -1266,7 +1265,7 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
  
  #if defined(XP_MACOSX) || defined(XP_WIN)
  
@@ -136,7 +85,7 @@ index 2ffb9da834..1e668e2cd6 100644
    rv = aFile->AppendNative(nsDependentCString(sXR));
    NS_ENSURE_SUCCESS(rv, rv);
  
-@@ -1213,9 +1226,11 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+@@ -1276,9 +1275,11 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
  
  #elif defined(XP_UNIX)
  
@@ -145,13 +94,13 @@ index 2ffb9da834..1e668e2cd6 100644
 +  static const char* const sXR = ".ablaze";
    rv = aFile->AppendNative(nsDependentCString(sXR));
    NS_ENSURE_SUCCESS(rv, rv);
-+# endif
++#  endif
  
    static const char* const sExtensions = "extensions";
    rv = aFile->AppendNative(nsDependentCString(sExtensions));
-@@ -1227,6 +1242,79 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
-   return NS_OK;
+@@ -1522,6 +1523,79 @@ nsresult nsXREDirProvider::GetLegacyOrXDGHomePath(const char* aHomeDir,
  }
+ #endif  // defined(MOZ_WIDGET_GTK)
  
 +nsresult nsXREDirProvider::AppendLegacyOrXDGCachePath(const char* aHomeDir,
 +                                                      nsIFile** aFile) {
@@ -229,29 +178,26 @@ index 2ffb9da834..1e668e2cd6 100644
  nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
    NS_ASSERTION(aFile, "Null pointer!");
  
-@@ -1277,13 +1365,10 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
-   // The parent of this directory is set in GetUserDataDirectoryHome
-   // XXX: handle gAppData->profile properly
-   // XXXsmaug ...and the rest of the profile creation!
--  rv = aFile->AppendNative(nsDependentCString("mozilla"));
-+  rv = aFile->AppendNative(nsDependentCString("ablaze"));
-   NS_ENSURE_SUCCESS(rv, rv);
- #elif defined(XP_UNIX)
-   nsAutoCString folder;
--  // Make it hidden (by starting with "."), except when local (the
--  // profile is already under ~/.cache or XDG_CACHE_HOME).
--  if (!aLocal) folder.Assign('.');
+@@ -1584,10 +1658,10 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
+   if (!aLocal
+ #  if defined(MOZ_WIDGET_GTK)
+       && (IsForceLegacyHome() || LegacyHomeExists(nullptr))
+-#  endif
+   ) {
+     folder.Assign('.');
+   }
++#  endif
  
    if (!profile.IsEmpty()) {
      // Skip any leading path characters
 diff --git a/toolkit/xre/nsXREDirProvider.h b/toolkit/xre/nsXREDirProvider.h
-index 1b6bb66c76..e6b6f8a023 100644
+index a850e1c63d..17f6a79ad4 100644
 --- a/toolkit/xre/nsXREDirProvider.h
 +++ b/toolkit/xre/nsXREDirProvider.h
-@@ -69,7 +69,10 @@ class nsXREDirProvider final : public nsIDirectoryServiceProvider2,
-   }
- 
-   static nsresult GetUserDataDirectory(nsIFile** aFile, bool aLocal);
+@@ -95,7 +95,10 @@ class nsXREDirProvider final : public nsIDirectoryServiceProvider2,
+     xdgConfigHome
+   };
+ #endif  // defined(MOZ_WIDGET_GTK)
 -
 +  static nsresult AppendLegacyOrXDGCachePath(const char* aHomeDir,
 +                                             nsIFile** aFile);
@@ -260,71 +206,6 @@ index 1b6bb66c76..e6b6f8a023 100644
    /* make sure you clone it, if you need to do stuff to it */
    nsIFile* GetGREDir() { return mGREDir; }
    nsIFile* GetGREBinDir() { return mGREBinDir; }
-@@ -109,6 +112,7 @@ class nsXREDirProvider final : public nsIDirectoryServiceProvider2,
-   nsresult GetFilesInternal(const char* aProperty,
-                             nsISimpleEnumerator** aResult);
-   static nsresult GetUserDataDirectoryHome(nsIFile** aFile, bool aLocal);
-+  static nsresult GetNativeUserManifestsDirectory(nsIFile** aFile);
-   static nsresult GetSysUserExtensionsDirectory(nsIFile** aFile);
- #if defined(XP_UNIX) || defined(XP_MACOSX)
-   static nsresult GetSystemExtensionsDirectory(nsIFile** aFile);
-diff --git a/xpcom/io/moz.build b/xpcom/io/moz.build
-index e746878316..70a4d5037c 100644
---- a/xpcom/io/moz.build
-+++ b/xpcom/io/moz.build
-@@ -165,4 +165,5 @@ if CONFIG["OS_ARCH"] == "Linux" and "lib64" in CONFIG["libdir"]:
- LOCAL_INCLUDES += [
-     "!..",
-     "../build",
-+    "/toolkit/xre",
- ]
-diff --git a/xpcom/io/nsAppFileLocationProvider.cpp b/xpcom/io/nsAppFileLocationProvider.cpp
-index 09806d39d2..ddf815fb0e 100644
---- a/xpcom/io/nsAppFileLocationProvider.cpp
-+++ b/xpcom/io/nsAppFileLocationProvider.cpp
-@@ -13,6 +13,7 @@
- #include "nsIFile.h"
- #include "nsString.h"
- #include "nsSimpleEnumerator.h"
-+#include "nsXREDirProvider.h"
- #include "prenv.h"
- #include "nsCRT.h"
- #if defined(MOZ_WIDGET_COCOA)
-@@ -204,15 +205,25 @@ nsresult nsAppFileLocationProvider::GetProductDirectory(nsIFile** aLocalFile,
-     return rv;
-   }
- #elif defined(XP_UNIX)
--  rv = NS_NewNativeLocalFile(nsDependentCString(PR_GetEnv("HOME")),
-+  const char* homeDir = getenv("HOME");
-+  rv = NS_NewNativeLocalFile(nsDependentCString(homeDir),
-                              getter_AddRefs(localDir));
-   if (NS_FAILED(rv)) {
-     return rv;
-   }
-+#  if defined(MOZ_WIDGET_GTK)
-+  // exclude android/iOS from this check
-+  rv = nsXREDirProvider::AppendLegacyOrXDGHomePath(homeDir,
-+                                                   getter_AddRefs(localDir));
-+  if (NS_FAILED(rv)) {
-+    return rv;
-+  }
-+#  endif
- #else
- #  error dont_know_how_to_get_product_dir_on_your_platform
- #endif
- 
-+#if !defined(MOZ_WIDGET_GTK)
-   rv = localDir->AppendRelativeNativePath(DEFAULT_PRODUCT_DIR);
-   if (NS_FAILED(rv)) {
-     return rv;
-@@ -226,6 +237,7 @@ nsresult nsAppFileLocationProvider::GetProductDirectory(nsIFile** aLocalFile,
-   if (NS_FAILED(rv)) {
-     return rv;
-   }
-+#endif
- 
-   localDir.forget(aLocalFile);
- 
 -- 
-2.51.1
+2.52.0
 

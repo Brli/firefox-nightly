@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=148.0a1.20260104.r3045.ge61d59b5c9a6
+pkgver=149.0a1.20260201.r3491.ge480af4adea0
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -36,6 +36,7 @@ makedepends=(
   mesa
   nasm
   nodejs
+  npm
   python
   rust
   unzip
@@ -62,7 +63,7 @@ options=(
   !makeflags
   !strip
 )
-_gentoo_patch=146-patches-03
+_gentoo_patch=147-patches-01
 source=(git+https://github.com/mozilla-firefox/firefox.git
   git+https://github.com/mozilla-l10n/firefox-l10n.git
   git+https://github.com/openSUSE/firefox-maintenance.git
@@ -81,7 +82,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'cade16db4a71415e821fa97989a973f46d5df698f3ef3ae9dc7150eee795d41c'
+            'c3b8e17090ab7dd25b5d098b30f7cddfa73b0d265c688b96e557d03cda644ab8'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
@@ -121,8 +122,6 @@ prepare() {
   sed '/^MOZ_APP_REMOTINGNAME=/d' -i browser/branding/nightly/configure.sh
 
   msg 'Gentoo patch'
-  rm -rf $srcdir/firefox-patches/00{19,20,21}*
-  rm -rf $srcdir/firefox-patches/firefox-146-patches-03.tar.xz
   rm -rf $srcdir/firefox-patches/*musl*
   # 0019-bmo-1988166-musl-remove-nonexisting-system-header-req.patch: `ld.lld: error: undefined hidden symbol: __libc_single_threaded`
   # 0020-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch: `+  Unused << dlopen("libgcc_s.so.1", RTLD_GLOBAL|RTLD_LAZY);`
@@ -201,7 +200,7 @@ ac_add_options --enable-update-channel=nightly
 ac_add_options --with-distribution-id=org.archlinux
 ac_add_options --with-unsigned-addon-scopes=app,system
 ac_add_options --allow-addon-sideload
-export RUSTC_OPT_LEVEL=2
+export RUSTC_OPT_LEVEL=3
 export MOZILLA_OFFICIAL=1
 export MOZ_APP_REMOTINGNAME=$pkgname
 export MOZ_REQUIRE_SIGNING=1
@@ -221,9 +220,6 @@ ac_add_options --with-system-zlib
 ac_add_options --with-system-libevent
 ac_add_options --with-system-libvpx
 ac_add_options --with-system-harfbuzz
-# ac_add_options --with-system-graphite2
-# ac_add_options --with-system-icu
-# ac_add_options --with-system-av1
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-pixman
 
@@ -241,7 +237,7 @@ mk_add_options MOZ_PARALLEL_BUILD=24
 END
 
   # Fake mozilla version
-  echo '146.0.2' > config/milestone.txt
+  echo '147.0.2' > config/milestone.txt
 
   # Desktop file
   sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"
@@ -260,7 +256,7 @@ build() {
 
   export MOZ_NOSPAM=1
   export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
-  export MOZ_ENABLE_FULL_SYMBOLS=0
+  export MOZ_ENABLE_FULL_SYMBOLS=1
   export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
   export LIBGL_ALWAYS_SOFTWARE=true
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
@@ -272,9 +268,6 @@ build() {
   export NM=llvm-nm
   LDFLAGS+=' -Wl,--undefined-version'
 
-  # Work around https://bugzilla.mozilla.org/show_bug.cgi?id=1969383
-  export RUST_MIN_STACK=16777216
-
   # malloc_usable_size is used in various parts of the codebase
   CFLAGS="${CFLAGS/_FORTIFY_SOURCE=2/_FORTIFY_SOURCE=3}"
   CXXFLAGS="${CXXFLAGS/_FORTIFY_SOURCE=2/_FORTIFY_SOURCE=3}"
@@ -282,14 +275,6 @@ build() {
   # Breaks compilation since https://bugzilla.mozilla.org/show_bug.cgi?id=1896066
   CFLAGS="${CFLAGS/-fexceptions/}"
   CXXFLAGS="${CXXFLAGS/-fexceptions/}"
-
-  # Borrow from Zen Browser, probably no much meaning
-  # https://github.com/zen-browser/desktop/blob/dev/configs/linux/mozconfig
-  export CFLAGS="$CFLAGS -O3 -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"
-  export CPPFLAGS="$CPPFLAGS -O3 -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"
-  export CXXFLAGS="$CXXFLAGS -O3 -flto=thin -ffp-contract=fast -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -mavx2 -mfma -maes -mpopcnt -mpclmul"
-  export LDFLAGS="$LDFLAGS -Wl,-O3 -Wl,-mllvm,-fp-contract=fast -march=x86-64-v3"
-  export RUSTFLAGS="$RUSTFLAGS -C target-cpu=x86-64-v3 -C target-feature=+sse4.1 -C target-feature=+avx2 -C codegen-units=1 -Clink-args=--icf=safe"
 
   # LTO needs more open files
   ulimit -n 4096
@@ -302,6 +287,7 @@ END
   ./mach build --priority normal
 
   msg "Profiling instrumented browser..."
+  ./mach npm ci --prefix tools/terser
   ./mach package
   LLVM_PROFDATA=llvm-profdata \
     JARLOG_FILE="$PWD/jarlog" \

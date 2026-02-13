@@ -6,11 +6,11 @@ pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
-_firefox_ver=147.0
-_daily=738
+_firefox_ver=147.0.3
+_daily=766
 _gentoo_patch=147-patches-01
-pkgver=12.10.2
-pkgrel=3
+pkgver=12.10.3
+pkgrel=2
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -75,6 +75,8 @@ source=(
     "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz"
     fix_csd_window_buttons.patch
     floorp.desktop
+    0001-move-user-profile-to-XDG_CONFIG_HOME.patch
+    0002-skip-creation-of-user-directory-extensions.patch
 )
 sha256sums=('SKIP'
     'SKIP'
@@ -83,6 +85,8 @@ sha256sums=('SKIP'
     'c3b8e17090ab7dd25b5d098b30f7cddfa73b0d265c688b96e557d03cda644ab8'
     'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
     'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092'
+    '8f8baee28fdda7225ba8ad88ad68659472a9c0ec0dad215eec2b6cef4e095dee'
+    '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
 )
 validpgpkeys=(
     # Mozilla Software Releases <release@mozilla.com>
@@ -119,9 +123,6 @@ prepare() {
     # put Floorp into Mozilla source tree "./floorp-runtime/noraneko"
     rm -rfv "$_pkgsrc_runtime/$pkgname"
     cp -rf "$srcdir/$_pkgname" "$_pkgsrc_runtime/noraneko"
-
-    # fix locale compile error
-    sed '/brand.dtd/d' -i "$_pkgsrc_runtime"/.github/assets/branding/*/locales/jar.mn
 
     # copy branding assets
     cp -rf "$_pkgsrc_runtime"/.github/assets/branding/* "$_pkgsrc_runtime"/browser/branding/
@@ -228,7 +229,6 @@ export MOZ_PACKAGE_JSSHELL=1
 export OPT_LEVEL="3"
 export RUSTC_OPT_LEVEL="3"
 export MOZ_PACKAGE_JSSHELL=1
-mk_add_options MOZ_PARALLEL_BUILD=$((nproc + 1))
 
 # Keys
 ac_add_options --with-mozilla-api-keyfile=${PWD@Q}/api-mozilla-key
@@ -293,8 +293,9 @@ END
 
     local _firefox_ver="$(cat browser/config/version.txt)"
     sed "s,$,@${_firefox_ver}," -i noraneko/static/gecko/config/version.txt -i noraneko/static/gecko/config/version_display.txt
-    # fix l10n path for non-firefox directory
-    sed 's,{l}browser/branding/official,{l}browser/branding/floorp-official,' -i browser/locales/l10n.toml
+
+    patch -Np1 -i "${srcdir}/0001-move-user-profile-to-XDG_CONFIG_HOME.patch"
+    patch -Np1 -i "${srcdir}/0002-skip-creation-of-user-directory-extensions.patch"
 }
 
 build() {
@@ -495,12 +496,12 @@ END
     # Install a wrapper to avoid confusion about binary path
     install -Dvm755 /dev/stdin "$pkgdir/usr/bin/${_reverse_dns_pkgname}" <<END
 #!/bin/sh
-MOZ_LEGACY_HOME=0 /usr/lib/floorp/floorp-bin "\$@"
+MOZ_LEGACY_HOME=0 exec /usr/lib/floorp/floorp "\$@"
 END
 
     # Replace duplicate binary with wrapper
     # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
-    ln -srfv "$pkgdir/usr/bin/${_reverse_dns_pkgname}" "$pkgdir/usr/lib/floorp/floorp"
+    ln -srfv "$pkgdir/usr/bin/${_reverse_dns_pkgname}" "$pkgdir/usr/lib/floorp/floorp-bin"
     ln -srfv "$pkgdir/usr/bin/${_reverse_dns_pkgname}" "$pkgdir/usr/bin/floorp"
 
     # Use system certificates

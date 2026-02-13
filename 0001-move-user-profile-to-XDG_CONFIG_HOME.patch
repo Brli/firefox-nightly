@@ -1,6 +1,6 @@
-From 8f0833b5ad37a1a133a5d3e9465e3157ccaa2bae Mon Sep 17 00:00:00 2001
-From: Brli <brli@chakralinux.org>
-Date: Thu, 15 Jan 2026 20:49:17 +0800
+From c479847ad4e2ccacb7fe827a3ea665c289c55f5c Mon Sep 17 00:00:00 2001
+From: BrLi <brli@chakralinux.org>
+Date: Wed, 28 Jan 2026 21:52:13 +0800
 Subject: [PATCH] move user profile to XDG_CONFIG_HOME
 
 Floorp patch derived from bugzilla.mozilla.org for Mozilla Firefox
@@ -10,12 +10,12 @@ Support for the Freedesktop.org XDG Base Directory Specification
 
 phabricator url: https://phabricator.services.mozilla.com/D6995
 ---
- toolkit/xre/nsXREDirProvider.cpp | 98 ++++++++++++++++++++++++++++----
- toolkit/xre/nsXREDirProvider.h   |  5 +-
- 2 files changed, 90 insertions(+), 13 deletions(-)
+ toolkit/xre/nsXREDirProvider.cpp | 97 ++++++++++++++++++++++++++++----
+ toolkit/xre/nsXREDirProvider.h   |  4 ++
+ 2 files changed, 89 insertions(+), 12 deletions(-)
 
 diff --git a/toolkit/xre/nsXREDirProvider.cpp b/toolkit/xre/nsXREDirProvider.cpp
-index 6445643949..6ad78faaf3 100644
+index 5eae0bca99..73dbaba98c 100644
 --- a/toolkit/xre/nsXREDirProvider.cpp
 +++ b/toolkit/xre/nsXREDirProvider.cpp
 @@ -1,5 +1,5 @@
@@ -64,19 +64,20 @@ index 6445643949..6ad78faaf3 100644
      return NS_ERROR_FAILURE;
    }
  
-@@ -1151,7 +1146,11 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
+@@ -1151,8 +1146,11 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
    MOZ_TRY(NS_NewLocalFile(path, getter_AddRefs(localDir)));
  #elif defined(XP_UNIX)
    const char* homeDir = PR_GetEnv("HOME");
 +  nsresult rv;
    if (!homeDir || !*homeDir) return NS_ERROR_FAILURE;
+-
 +  rv = NS_NewNativeLocalFile(nsDependentCString(homeDir),
 +                             getter_AddRefs(localDir));
 +  NS_ENSURE_SUCCESS(rv, rv);
- 
  #  ifdef ANDROID /* We want (ProfD == ProfLD) on Android. */
    MOZ_TRY(NS_NewNativeLocalFile(nsDependentCString(homeDir),
-@@ -1266,7 +1265,7 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+                                 getter_AddRefs(localDir)));
+@@ -1271,7 +1269,7 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
  
  #if defined(XP_MACOSX) || defined(XP_WIN)
  
@@ -85,7 +86,7 @@ index 6445643949..6ad78faaf3 100644
    rv = aFile->AppendNative(nsDependentCString(sXR));
    NS_ENSURE_SUCCESS(rv, rv);
  
-@@ -1276,9 +1275,11 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+@@ -1281,9 +1279,11 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
  
  #elif defined(XP_UNIX)
  
@@ -94,11 +95,11 @@ index 6445643949..6ad78faaf3 100644
 +  static const char* const sXR = ".ablaze";
    rv = aFile->AppendNative(nsDependentCString(sXR));
    NS_ENSURE_SUCCESS(rv, rv);
-+#  endif
++# endif
  
    static const char* const sExtensions = "extensions";
    rv = aFile->AppendNative(nsDependentCString(sExtensions));
-@@ -1522,6 +1523,79 @@ nsresult nsXREDirProvider::GetLegacyOrXDGHomePath(const char* aHomeDir,
+@@ -1527,6 +1527,79 @@ nsresult nsXREDirProvider::GetLegacyOrXDGHomePath(const char* aHomeDir,
  }
  #endif  // defined(MOZ_WIDGET_GTK)
  
@@ -178,34 +179,21 @@ index 6445643949..6ad78faaf3 100644
  nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
    NS_ASSERTION(aFile, "Null pointer!");
  
-@@ -1584,10 +1658,10 @@ nsresult nsXREDirProvider::AppendProfilePath(nsIFile* aFile, bool aLocal) {
-   if (!aLocal
- #  if defined(MOZ_WIDGET_GTK)
-       && (IsForceLegacyHome() || LegacyHomeExists(nullptr))
--#  endif
-   ) {
-     folder.Assign('.');
-   }
-+#  endif
- 
-   if (!profile.IsEmpty()) {
-     // Skip any leading path characters
 diff --git a/toolkit/xre/nsXREDirProvider.h b/toolkit/xre/nsXREDirProvider.h
-index a850e1c63d..17f6a79ad4 100644
+index a850e1c63d..87f1938627 100644
 --- a/toolkit/xre/nsXREDirProvider.h
 +++ b/toolkit/xre/nsXREDirProvider.h
-@@ -95,7 +95,10 @@ class nsXREDirProvider final : public nsIDirectoryServiceProvider2,
-     xdgConfigHome
-   };
- #endif  // defined(MOZ_WIDGET_GTK)
--
+@@ -68,6 +68,10 @@ class nsXREDirProvider final : public nsIDirectoryServiceProvider2,
+   }
+ 
+   static nsresult GetUserDataDirectory(nsIFile** aFile, bool aLocal);
 +  static nsresult AppendLegacyOrXDGCachePath(const char* aHomeDir,
 +                                             nsIFile** aFile);
 +  static nsresult AppendLegacyOrXDGHomePath(const char* aHomeDir,
 +                                            nsIFile** aFile);
-   /* make sure you clone it, if you need to do stuff to it */
-   nsIFile* GetGREDir() { return mGREDir; }
-   nsIFile* GetGREBinDir() { return mGREBinDir; }
+ 
+ #if defined(MOZ_WIDGET_GTK)
+   static nsresult GetLegacyOrXDGEnvValue(const char* aHomeDir,
 -- 
 2.52.0
 

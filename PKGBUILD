@@ -6,11 +6,11 @@ pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
-_firefox_ver=147.0.3
-_daily=766
-_gentoo_patch=147-patches-01
-pkgver=12.10.3
-pkgrel=2
+_firefox_ver=148.0
+_daily=794
+_gentoo_patch=147-patches-02
+pkgver=12.10.4
+pkgrel=1
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -82,7 +82,7 @@ sha256sums=('SKIP'
     'SKIP'
     'SKIP'
     'SKIP'
-    'c3b8e17090ab7dd25b5d098b30f7cddfa73b0d265c688b96e557d03cda644ab8'
+    '28e29d559b13f95bc7ecd4db6bb9187254fe9d37449dfbfff24555c774bc9ac2'
     'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
     'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092'
     '8f8baee28fdda7225ba8ad88ad68659472a9c0ec0dad215eec2b6cef4e095dee'
@@ -143,8 +143,7 @@ prepare() {
     done
 
     msg 'Gentoo patch'
-    rm -rf $srcdir/firefox-patches/00{19,20}*
-    rm -rf $srcdir/firefox-patches/firefox-146-patches-03.tar.xz
+    rm -rf $srcdir/firefox-patches/*musl*
     # 0019-bmo-1988166-musl-remove-nonexisting-system-header-req.patch: `ld.lld: error: undefined hidden symbol: __libc_single_threaded`
     # 0020-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch: `+  Unused << dlopen("libgcc_s.so.1", RTLD_GLOBAL|RTLD_LAZY);`
     # /build/floorp/src/floorp-runtime/security/sandbox/linux/Sandbox.cpp:781:3: error: use of undeclared identifier 'Unused'

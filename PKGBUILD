@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=149.0a1.20260201.r3491.ge480af4adea0
+pkgver=150.0a1.20260223.r2.g257e949587ef
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -63,7 +63,7 @@ options=(
   !makeflags
   !strip
 )
-_gentoo_patch=147-patches-01
+_gentoo_patch=147-patches-02
 source=(git+https://github.com/mozilla-firefox/firefox.git
   git+https://github.com/mozilla-l10n/firefox-l10n.git
   git+https://github.com/openSUSE/firefox-maintenance.git
@@ -82,7 +82,7 @@ sha256sums=('SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'c3b8e17090ab7dd25b5d098b30f7cddfa73b0d265c688b96e557d03cda644ab8'
+            '28e29d559b13f95bc7ecd4db6bb9187254fe9d37449dfbfff24555c774bc9ac2'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'

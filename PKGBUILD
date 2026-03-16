@@ -6,11 +6,11 @@ pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
-_firefox_ver=148.0
-_daily=794
-_gentoo_patch=147-patches-02
-pkgver=12.10.4
-pkgrel=1
+_firefox_ver=148.0.2
+_daily=814
+_gentoo_patch=148-patches-02
+pkgver=12.11.0
+pkgrel=2
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -73,20 +73,23 @@ source=(
     "git+https://github.com/Floorp-Projects/Floorp-core.git"
     "git+https://github.com/openSUSE/firefox-maintenance.git"
     "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz"
-    fix_csd_window_buttons.patch
     floorp.desktop
     0001-move-user-profile-to-XDG_CONFIG_HOME.patch
     0002-skip-creation-of-user-directory-extensions.patch
+    0003-Patch-glsl-optimizer-to-build-with-glibc-2.43.patch
+    0004-Fix-sandbox-to-build-with-glibc-2.43.patch
 )
-sha256sums=('SKIP'
+sha256sums=(
     'SKIP'
     'SKIP'
     'SKIP'
-    '28e29d559b13f95bc7ecd4db6bb9187254fe9d37449dfbfff24555c774bc9ac2'
-    'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
+    'SKIP'
+    '5d6ba65ab7ee203a9a066809434e541050c04a3c74b4ce2d7c4db60ffdf54113'
     'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092'
     '8f8baee28fdda7225ba8ad88ad68659472a9c0ec0dad215eec2b6cef4e095dee'
     '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
+    'c56165ce740d7eeeb5a0a5c3208879a97233576fd030cc0d78074ba81150a394'
+    '8d2182ae8660474ac567482fe6658af77f3b402314e361c846528ae171586245'
 )
 validpgpkeys=(
     # Mozilla Software Releases <release@mozilla.com>
@@ -148,9 +151,7 @@ prepare() {
     # 0020-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch: `+  Unused << dlopen("libgcc_s.so.1", RTLD_GLOBAL|RTLD_LAZY);`
     # /build/floorp/src/floorp-runtime/security/sandbox/linux/Sandbox.cpp:781:3: error: use of undeclared identifier 'Unused'
     sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-       s,%%WASI_SDK_LLVM_VER%%,21,g;
-       s,wasm32-unknown-wasi,wasi,;
-       s,libclang_rt.builtins.a,libclang_rt.builtins-wasm32.a,' -i "$srcdir"/firefox-patches/*-bgo-940031-wasm-support.patch
+       s,%%WASI_SDK_LLVM_VER%%,22,g;' -i "$srcdir"/firefox-patches/*-bgo-940031-wasm-support.patch
     local gentoo_patch=($(ls $srcdir/firefox-patches/))
     for src in "${gentoo_patch[@]}"; do
         msg "Applying patch $src..."
@@ -166,7 +167,7 @@ prepare() {
         # 'mozilla-s390-context.patch'
         # 'mozilla-pgo.patch' # previous patch detected
         # 'mozilla-reduce-rust-debuginfo.patch'
-        'mozilla-bmo1504834-part1.patch'
+        # 'mozilla-bmo1504834-part1.patch'
         # 'mozilla-bmo1504834-part3.patch'
         # 'mozilla-bmo1512162.patch'
         # 'mozilla-fix-top-level-asm.patch' # broken patch
@@ -293,8 +294,15 @@ END
     local _firefox_ver="$(cat browser/config/version.txt)"
     sed "s,$,@${_firefox_ver}," -i noraneko/static/gecko/config/version.txt -i noraneko/static/gecko/config/version_display.txt
 
-    patch -Np1 -i "${srcdir}/0001-move-user-profile-to-XDG_CONFIG_HOME.patch"
-    patch -Np1 -i "${srcdir}/0002-skip-creation-of-user-directory-extensions.patch"
+    msg 'Apply personal patches'
+    local local_patch=($(ls $srcdir/*.patch))
+    for src in "${local_patch[@]}"; do
+        msg "Applying patch $src..."
+        patch -Np1 -i "$src"
+    done
+
+    # Fix for build with WASI toolkit version 22
+    sed 's,wasm32-wasi,wasm32-wasip1,' -i build/moz.configure/toolchain.configure
 }
 
 build() {

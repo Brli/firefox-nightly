@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=150.0a1.20260223.r2.g257e949587ef
+pkgver=150.0a1.20260303.r1700.g83d1a08db47b
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -64,20 +64,23 @@ options=(
   !strip
 )
 _gentoo_patch=147-patches-02
-source=(git+https://github.com/mozilla-firefox/firefox.git
-  git+https://github.com/mozilla-l10n/firefox-l10n.git
-  git+https://github.com/openSUSE/firefox-maintenance.git
-  librewolf-settings::git+https://codeberg.org/librewolf/settings.git
-  arkenfox::git+https://github.com/arkenfox/user.js.git
-  https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
-  firefox.desktop
-  identity-icons-brand.svg
-  org.mozilla.firefox-nightly.metainfo.xml
-  fix_csd_window_buttons.patch
-  0001-Install-under-remoting-name.patch
-  0002-skip-creation-of-user-directory-extensions.patch
-  0003-move-user-profile-to-XDG_CONFIG_HOME.patch)
-sha256sums=('SKIP'
+source=(
+        git+https://github.com/mozilla-firefox/firefox.git
+        git+https://github.com/mozilla-l10n/firefox-l10n.git
+        git+https://github.com/openSUSE/firefox-maintenance.git
+        librewolf-settings::git+https://codeberg.org/librewolf/settings.git
+        arkenfox::git+https://github.com/arkenfox/user.js.git
+        https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
+        firefox.desktop
+        identity-icons-brand.svg
+        org.mozilla.firefox-nightly.metainfo.xml
+        0001-Install-under-remoting-name.patch
+        0002-skip-creation-of-user-directory-extensions.patch
+        0003-Patch-glsl-optimizer-to-build-with-glibc-2.43.patch
+        0004-Fix-sandbox-to-build-with-glibc-2.43.patch
+)
+sha256sums=(
+            'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
@@ -86,10 +89,11 @@ sha256sums=('SKIP'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
-            'e08d0bc5b7e562f5de6998060e993eddada96d93105384960207f7bdf2e1ed6e'
             'ef63a12975f108f30b00bb3290d9ca76f311d8af9c1d5dfc0d8335ad57e8f77c'
             '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
-            '22a89f93b568034851076e1395a9d2852ee08de8ef202ca335ee0d96c89da9fb')
+            'c56165ce740d7eeeb5a0a5c3208879a97233576fd030cc0d78074ba81150a394'
+            '8d2182ae8660474ac567482fe6658af77f3b402314e361c846528ae171586245'
+)
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
 # Google API keys (see http://www.chromium.org/developers/how-tos/api-keys)
@@ -246,9 +250,12 @@ END
   sed 's/\("files":{\)[^}]*/\1/' -i \
     third_party/rust/*/.cargo-checksum.json
 
-  patch -Np1 -i "${srcdir}/0001-Install-under-remoting-name.patch"
-  patch -Np1 -i "${srcdir}/0002-skip-creation-of-user-directory-extensions.patch"
-  # patch -Np1 -i "${srcdir}/0003-move-user-profile-to-XDG_CONFIG_HOME.patch"
+  msg 'Apply personal patches'
+  local local_patch=($(ls $srcdir/*.patch))
+  for src in "${local_patch[@]}"; do
+    msg "Applying patch $src..."
+    patch -Np1 -i "$src"
+  done
 }
 
 build() {

@@ -6,11 +6,11 @@ pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
-_firefox_ver=148.0.2
-_daily=814
-_gentoo_patch=148-patches-02
-pkgver=12.11.0
-pkgrel=2
+_firefox_ver=150.0
+_daily=863
+_gentoo_patch=150-patches-01
+pkgver=12.12.2
+pkgrel=1
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -77,19 +77,21 @@ source=(
     0001-move-user-profile-to-XDG_CONFIG_HOME.patch
     0002-skip-creation-of-user-directory-extensions.patch
     0003-Patch-glsl-optimizer-to-build-with-glibc-2.43.patch
-    0004-Fix-sandbox-to-build-with-glibc-2.43.patch
+    0004-Bug-2023597-Use-wasm32-wasip1-target-for-clang-22.1-.patch
+    0005-encoding_rs-rust-1.95.patch
 )
 sha256sums=(
-    'SKIP'
-    'SKIP'
-    'SKIP'
-    'SKIP'
-    '5d6ba65ab7ee203a9a066809434e541050c04a3c74b4ce2d7c4db60ffdf54113'
-    'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092'
-    '8f8baee28fdda7225ba8ad88ad68659472a9c0ec0dad215eec2b6cef4e095dee'
-    '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
-    'c56165ce740d7eeeb5a0a5c3208879a97233576fd030cc0d78074ba81150a394'
-    '8d2182ae8660474ac567482fe6658af77f3b402314e361c846528ae171586245'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            '20d44da59e5bfef04ec18124537b5f12e3cd9a655617d222188ff26a9ec24d00'
+            'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092'
+            '8f8baee28fdda7225ba8ad88ad68659472a9c0ec0dad215eec2b6cef4e095dee'
+            '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
+            'c56165ce740d7eeeb5a0a5c3208879a97233576fd030cc0d78074ba81150a394'
+            'd6e1dbafe56bc52c8ab6cbf9542cf80e89c1857a71ce08bbbd82804909bcb76f'
+            '763ced1fb083c3a621bf53c9f65b990308c8dcf944e3d61702ecbc882d318bd7'
 )
 validpgpkeys=(
     # Mozilla Software Releases <release@mozilla.com>
@@ -103,7 +105,7 @@ source+=(
     "firefox-$_firefox_ver-SHA512SUMS.asc::$_url/SHA512SUMS.asc"
 )
 sha256sums+=('SKIP'
-    'SKIP'
+             'SKIP'
 )
 
 _languages=(
@@ -151,7 +153,7 @@ prepare() {
     # 0020-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch: `+  Unused << dlopen("libgcc_s.so.1", RTLD_GLOBAL|RTLD_LAZY);`
     # /build/floorp/src/floorp-runtime/security/sandbox/linux/Sandbox.cpp:781:3: error: use of undeclared identifier 'Unused'
     sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-       s,%%WASI_SDK_LLVM_VER%%,22,g;' -i "$srcdir"/firefox-patches/*-bgo-940031-wasm-support.patch
+         s,%%WASI_SDK_LLVM_VER%%,22,g;' -i "$srcdir"/firefox-patches/*-bgo-940031-wasm-support.patch
     local gentoo_patch=($(ls $srcdir/firefox-patches/))
     for src in "${gentoo_patch[@]}"; do
         msg "Applying patch $src..."
@@ -161,28 +163,8 @@ prepare() {
     msg 'Opensuse Patch'
     # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
     local suse_patch=( # xulrunner/gecko patches
-        'mozilla-ntlm-full-path.patch'
-        # 'mozilla-aarch64-startup-crash.patch'
-        # 'mozilla-fix-aarch64-libopus.patch'
-        # 'mozilla-s390-context.patch'
-        # 'mozilla-pgo.patch' # previous patch detected
-        # 'mozilla-reduce-rust-debuginfo.patch'
-        # 'mozilla-bmo1504834-part1.patch'
-        # 'mozilla-bmo1504834-part3.patch'
-        # 'mozilla-bmo1512162.patch'
-        # 'mozilla-fix-top-level-asm.patch' # broken patch
-        'mozilla-bmo849632.patch'
-        # 'mozilla-bmo998749.patch'
-        # 'mozilla-libavcodec58_91.patch'
-        # 'mozilla-silence-no-return-type.patch'
-        # 'mozilla-bmo531915.patch' # broken patch
-        'one_swizzle_to_rule_them_all.patch'
-        'svg-rendering.patch'
-        # 'mozilla-partial-revert-1768632.patch'
-        # 'mozilla-bmo1775202.patch'
-        # 'mozilla-rust-disable-future-incompat.patch'
-        # Firefox patches
-        'firefox-branded-icons.patch')
+        'firefox-branded-icons.patch'
+    )
     for src in "${suse_patch[@]}"; do
         msg "Applying patch $src..."
         patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/${src}"
@@ -251,7 +233,6 @@ ac_add_options --enable-system-pixman
 
 # Features
 ac_add_options --target=x86_64-pc-linux
-ac_add_options --enable-av1
 ac_add_options --enable-eme=widevine
 ac_add_options --enable-jxl
 ac_add_options --enable-audio-backends="pulseaudio,alsa,jack"
@@ -275,10 +256,6 @@ ac_add_options --enable-install-strip
 export STRIP_FLAGS="--strip-debug --strip-unneeded"
 END
 
-    # Remove patched rust file checksums
-    sed 's/\("files":{\)[^}]*/\1/' -i \
-        third_party/rust/*/.cargo-checksum.json
-
     msg 'Injecting Floorp, before-mach step'
     export PATH=$PATH:"$srcdir"
     pushd "$srcdir/$_pkgsrc_runtime/noraneko" || return
@@ -301,8 +278,9 @@ END
         patch -Np1 -i "$src"
     done
 
-    # Fix for build with WASI toolkit version 22
-    sed 's,wasm32-wasi,wasm32-wasip1,' -i build/moz.configure/toolchain.configure
+    # Remove patched rust file checksums
+    sed 's/\("files":{\)[^}]*/\1/' -i \
+        third_party/rust/*/.cargo-checksum.json
 }
 
 build() {
@@ -314,7 +292,6 @@ build() {
     export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
     export MOZ_ENABLE_FULL_SYMBOLS=0
     export MOZ_NOSPAM=1
-    export RUSTFLAGS="-C debuginfo=1"
     export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-$srcdir/xdg}"
     LDFLAGS+=' -Wl,--undefined-version'
     install -dm700 "${XDG_RUNTIME_DIR:?}"
@@ -328,15 +305,8 @@ build() {
     CXXFLAGS="${CXXFLAGS/-fexceptions/}"
 
     # Compiler setting
-    # export CC=/usr/lib/llvm20/bin/clang
-    # export CXX=/usr/lib/llvm20/bin/clang++
-    export AR=llvm-ar
     export CC=clang
-    export CC_LD=lld
     export CXX=clang++
-    export CXX_LD=lld
-    export NM=llvm-nm
-    export RANLIB=llvm-ranlib
 
     # LTO needs more open files
     ulimit -n 4096
@@ -401,7 +371,7 @@ END
     rsync -aL obj-artifact-build-output/ obj-artifact-build-output_new/
     mv obj-artifact-build-output obj-artifact-build-output_old
     mv obj-artifact-build-output_new obj-artifact-build-output
-    git apply --unsafe-paths --verbose noraneko/tools/patches/*.patch --directory obj-artifact-build-output/dist/bin
+    git apply --reject --unsafe-paths --verbose noraneko/tools/patches/*.patch --directory obj-artifact-build-output/dist/bin || true
 
     bash noraneko/static/gecko/pref/override.sh obj-artifact-build-output/dist/bin/browser/defaults/preferences/firefox.js
 }

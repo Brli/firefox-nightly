@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=150.0a1.20260303.r1700.g83d1a08db47b
+pkgver=151.0a1.20260419.r6434.g63719d122f92
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -63,12 +63,13 @@ options=(
   !makeflags
   !strip
 )
-_gentoo_patch=147-patches-02
+_gentoo_patch=149-patches-02
 source=(
         git+https://github.com/mozilla-firefox/firefox.git
         git+https://github.com/mozilla-l10n/firefox-l10n.git
         git+https://github.com/openSUSE/firefox-maintenance.git
         librewolf-settings::git+https://codeberg.org/librewolf/settings.git
+        librewolf-patch::git+https://codeberg.org/librewolf/source.git
         arkenfox::git+https://github.com/arkenfox/user.js.git
         https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz
         firefox.desktop
@@ -77,7 +78,6 @@ source=(
         0001-Install-under-remoting-name.patch
         0002-skip-creation-of-user-directory-extensions.patch
         0003-Patch-glsl-optimizer-to-build-with-glibc-2.43.patch
-        0004-Fix-sandbox-to-build-with-glibc-2.43.patch
 )
 sha256sums=(
             'SKIP'
@@ -85,14 +85,14 @@ sha256sums=(
             'SKIP'
             'SKIP'
             'SKIP'
-            '28e29d559b13f95bc7ecd4db6bb9187254fe9d37449dfbfff24555c774bc9ac2'
+            'SKIP'
+            'bf0e5165a739e5a249a9ff703c21875ce52a227b43aaccce35cb6644aa8de030'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
             'ef63a12975f108f30b00bb3290d9ca76f311d8af9c1d5dfc0d8335ad57e8f77c'
             '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
             'c56165ce740d7eeeb5a0a5c3208879a97233576fd030cc0d78074ba81150a394'
-            '8d2182ae8660474ac567482fe6658af77f3b402314e361c846528ae171586245'
 )
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
@@ -127,13 +127,9 @@ prepare() {
 
   msg 'Gentoo patch'
   rm -rf $srcdir/firefox-patches/*musl*
-  # 0019-bmo-1988166-musl-remove-nonexisting-system-header-req.patch: `ld.lld: error: undefined hidden symbol: __libc_single_threaded`
-  # 0020-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch: `+  Unused << dlopen("libgcc_s.so.1", RTLD_GLOBAL|RTLD_LAZY);`
-  # /build/floorp/src/floorp-runtime/security/sandbox/linux/Sandbox.cpp:781:3: error: use of undeclared identifier 'Unused'
+  rm -rf $srcdir/firefox-patches/00{08,26}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-       s,%%WASI_SDK_LLVM_VER%%,21,;
-       s,wasm32-unknown-wasi,wasi,;
-       s,libclang_rt.builtins.a,libclang_rt.builtins-wasm32.a,' -i "$srcdir/firefox-patches"/*-bgo-940031-wasm-support.patch
+       s,%%WASI_SDK_LLVM_VER%%,22,;' -i "$srcdir/firefox-patches"/*-bgo-940031-wasm-support.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg "Applying patch $src..."
@@ -142,37 +138,25 @@ prepare() {
 
   msg 'opensuse patch'
   # https://github.com/openSUSE/firefox-maintenance/blob/master/firefox/MozillaFirefox.spec
-  local suse_patch=( #'mozilla-nongnome-proxies.patch'
-    # 'mozilla-kde.patch'
-    # 'mozilla-ntlm-full-path.patch'
-    # 'mozilla-aarch64-startup-crash.patch'
-    # 'mozilla-fix-aarch64-libopus.patch'
-    # 'mozilla-s390-context.patch'
-    # 'mozilla-pgo.patch'
-    # 'mozilla-reduce-rust-debuginfo.patch'
-    # 'mozilla-bmo1005535.patch'
-    # 'mozilla-bmo1568145.patch'
-    # 'mozilla-bmo1504834-part1.patch'
-    # 'mozilla-bmo1504834-part3.patch'
-    # 'mozilla-bmo1512162.patch'
-    # 'mozilla-fix-top-level-asm.patch'
-    'mozilla-bmo849632.patch'
-    # 'mozilla-bmo998749.patch'
-    # 'mozilla-s390x-skia-gradient.patch'
-    # 'mozilla-libavcodec58_91.patch'
-    # 'mozilla-silence-no-return-type.patch'
-    # 'mozilla-bmo531915.patch'
-    'one_swizzle_to_rule_them_all.patch'
-    'svg-rendering.patch'
-    # 'mozilla-partial-revert-1768632.patch'
-    # 'mozilla-bmo1822730.patch'
-    # 'mozilla-libproxy-fix.patch'
-    # 'mozilla-rust-disable-future-incompat.patch'
+  local suse_patch=(
     'firefox-branded-icons.patch')
-  # 'firefox-kde.patch')
   for src in "${suse_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/$src"
+  done
+
+  msg 'librewolf patch'
+  local librewolf_patch=(
+                         'custom-ubo-assets-bootstrap-location.patch'
+                         'disable-data-reporting-at-compile-time.patch'
+                         'fullpage-translations.patch'
+                         'remove-openai.patch'
+                         'remove-pingsender.patch'
+                         'xdg-dir.patch'
+                        )
+  for src in "${librewolf_patch[@]}"; do
+    msg "Applying patch $src..."
+    patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
   done
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
@@ -228,7 +212,6 @@ ac_add_options --enable-system-ffi
 ac_add_options --enable-system-pixman
 
 # Features
-ac_add_options --enable-av1
 ac_add_options --enable-sandbox
 ac_add_options --enable-audio-backends='alsa,pulseaudio,jack'
 ac_add_options --enable-jxl
@@ -237,11 +220,10 @@ ac_add_options --disable-crashreporter
 ac_add_options --disable-updater
 ac_add_options --disable-tests
 ac_add_options --target=x86_64-pc-linux
-mk_add_options MOZ_PARALLEL_BUILD=24
 END
 
   # Fake mozilla version
-  echo '147.0.2' > config/milestone.txt
+  echo '149.0' > config/milestone.txt
 
   # Desktop file
   sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"
@@ -269,11 +251,6 @@ build() {
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
   export CC=clang
   export CXX=clang++
-  export CC_LD=lld
-  export CXX_LD=lld
-  export AR=llvm-ar
-  export NM=llvm-nm
-  LDFLAGS+=' -Wl,--undefined-version'
 
   # malloc_usable_size is used in various parts of the codebase
   CFLAGS="${CFLAGS/_FORTIFY_SOURCE=2/_FORTIFY_SOURCE=3}"

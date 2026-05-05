@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=151.0a1.20260419.r6434.g63719d122f92
+pkgver=152.0a1.20260503.r3135.ga353242aeafd
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -63,7 +63,7 @@ options=(
   !makeflags
   !strip
 )
-_gentoo_patch=149-patches-02
+_gentoo_patch=150-patches-02
 source=(
         git+https://github.com/mozilla-firefox/firefox.git
         git+https://github.com/mozilla-l10n/firefox-l10n.git
@@ -77,7 +77,6 @@ source=(
         org.mozilla.firefox-nightly.metainfo.xml
         0001-Install-under-remoting-name.patch
         0002-skip-creation-of-user-directory-extensions.patch
-        0003-Patch-glsl-optimizer-to-build-with-glibc-2.43.patch
 )
 sha256sums=(
             'SKIP'
@@ -86,13 +85,12 @@ sha256sums=(
             'SKIP'
             'SKIP'
             'SKIP'
-            'bf0e5165a739e5a249a9ff703c21875ce52a227b43aaccce35cb6644aa8de030'
+            'dbacf931b7f42dd05aa5d60766c0ed21692f3da47e15e30a948eaeecd347e32d'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
             'ef63a12975f108f30b00bb3290d9ca76f311d8af9c1d5dfc0d8335ad57e8f77c'
             '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
-            'c56165ce740d7eeeb5a0a5c3208879a97233576fd030cc0d78074ba81150a394'
 )
 validpgpkeys=('14F26682D0916CDD81E37B6D61B7B526D98F0353') # Mozilla Software Releases <release@mozilla.com>
 
@@ -127,7 +125,7 @@ prepare() {
 
   msg 'Gentoo patch'
   rm -rf $srcdir/firefox-patches/*musl*
-  rm -rf $srcdir/firefox-patches/00{08,26}*
+  rm -rf $srcdir/firefox-patches/00{08,23,27,28}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
        s,%%WASI_SDK_LLVM_VER%%,22,;' -i "$srcdir/firefox-patches"/*-bgo-940031-wasm-support.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
@@ -147,7 +145,7 @@ prepare() {
 
   msg 'librewolf patch'
   local librewolf_patch=(
-                         'custom-ubo-assets-bootstrap-location.patch'
+                         # 'custom-ubo-assets-bootstrap-location.patch'
                          'disable-data-reporting-at-compile-time.patch'
                          'fullpage-translations.patch'
                          'remove-openai.patch'
@@ -228,16 +226,16 @@ END
   # Desktop file
   sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"
 
-  # Remove patched rust file checksums
-  sed 's/\("files":{\)[^}]*/\1/' -i \
-    third_party/rust/*/.cargo-checksum.json
-
   msg 'Apply personal patches'
   local local_patch=($(ls $srcdir/*.patch))
   for src in "${local_patch[@]}"; do
     msg "Applying patch $src..."
     patch -Np1 -i "$src"
   done
+
+  # Remove patched rust file checksums
+  sed 's/\("files":{\)[^}]*/\1/' -i \
+    third_party/rust/*/.cargo-checksum.json
 }
 
 build() {
@@ -357,6 +355,10 @@ pref("sidebar.new-sidebar.has-used", true);
 pref("sidebar.revamp", true);
 pref("sidebar.verticalTabs", true);
 pref("sidebar.visibility", "expand-on-hover");
+
+// Experimental content blocker
+pref("privacy.trackingprotection.content.protection.enabled", true);
+pref("privacy.trackingprotection.content.protection.enabled", "https://easylist.to/easylist/easylist.txt|https://easylist.to/easylist/easyprivacy.txt|https://easylist-downloads.adblockplus.org/easylistchina.txt|https://raw.githubusercontent.com/cjx82630/cjxlist/master/cjx-annoyance.txt");
 END
 
   install -Dvm644 /dev/stdin "$pref/gentoo.js" <<END

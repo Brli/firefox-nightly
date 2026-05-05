@@ -6,10 +6,10 @@ pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
-_firefox_ver=150.0
-_daily=863
-_gentoo_patch=150-patches-01
-pkgver=12.12.2
+_firefox_ver=150.0.1
+_daily=880
+_gentoo_patch=150-patches-02
+pkgver=12.13.0
 pkgrel=1
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
@@ -77,21 +77,17 @@ source=(
     0001-move-user-profile-to-XDG_CONFIG_HOME.patch
     0002-skip-creation-of-user-directory-extensions.patch
     0003-Patch-glsl-optimizer-to-build-with-glibc-2.43.patch
-    0004-Bug-2023597-Use-wasm32-wasip1-target-for-clang-22.1-.patch
-    0005-encoding_rs-rust-1.95.patch
 )
 sha256sums=(
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            '20d44da59e5bfef04ec18124537b5f12e3cd9a655617d222188ff26a9ec24d00'
+            'dbacf931b7f42dd05aa5d60766c0ed21692f3da47e15e30a948eaeecd347e32d'
             'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092'
             '8f8baee28fdda7225ba8ad88ad68659472a9c0ec0dad215eec2b6cef4e095dee'
             '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
             'c56165ce740d7eeeb5a0a5c3208879a97233576fd030cc0d78074ba81150a394'
-            'd6e1dbafe56bc52c8ab6cbf9542cf80e89c1857a71ce08bbbd82804909bcb76f'
-            '763ced1fb083c3a621bf53c9f65b990308c8dcf944e3d61702ecbc882d318bd7'
 )
 validpgpkeys=(
     # Mozilla Software Releases <release@mozilla.com>

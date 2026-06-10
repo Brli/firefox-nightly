@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=152.0a1.20260503.r3135.ga353242aeafd
+pkgver=153.0a1.20260604.r4034.ga88a631360c1
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -63,7 +63,7 @@ options=(
   !makeflags
   !strip
 )
-_gentoo_patch=150-patches-02
+_gentoo_patch=151-patches-01
 source=(
         git+https://github.com/mozilla-firefox/firefox.git
         git+https://github.com/mozilla-l10n/firefox-l10n.git
@@ -85,7 +85,7 @@ sha256sums=(
             'SKIP'
             'SKIP'
             'SKIP'
-            'dbacf931b7f42dd05aa5d60766c0ed21692f3da47e15e30a948eaeecd347e32d'
+            '51536b5757cf1d3cf610f57e48826ba734837f8fa7a21cf932ba7c300ee313d3'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
@@ -125,7 +125,7 @@ prepare() {
 
   msg 'Gentoo patch'
   rm -rf $srcdir/firefox-patches/*musl*
-  rm -rf $srcdir/firefox-patches/00{08,23,27,28}*
+  rm -rf $srcdir/firefox-patches/00{08,17,23,28}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
        s,%%WASI_SDK_LLVM_VER%%,22,;' -i "$srcdir/firefox-patches"/*-bgo-940031-wasm-support.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
@@ -147,7 +147,7 @@ prepare() {
   local librewolf_patch=(
                          # 'custom-ubo-assets-bootstrap-location.patch'
                          'disable-data-reporting-at-compile-time.patch'
-                         'fullpage-translations.patch'
+                         # 'fullpage-translations.patch'
                          'remove-openai.patch'
                          'remove-pingsender.patch'
                          'xdg-dir.patch'
@@ -221,7 +221,7 @@ ac_add_options --target=x86_64-pc-linux
 END
 
   # Fake mozilla version
-  echo '149.0' > config/milestone.txt
+  echo '151.0' > config/milestone.txt
 
   # Desktop file
   sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"
@@ -240,13 +240,16 @@ END
 
 build() {
   cd firefox
+  rm -rf .git
 
-  export MOZ_NOSPAM=1
-  export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
-  export MOZ_ENABLE_FULL_SYMBOLS=1
-  export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
-  export LIBGL_ALWAYS_SOFTWARE=true
   export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
+  export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
+  export MOZ_ENABLE_FULL_SYMBOLS=1
+  export MOZ_NOSPAM=1
+  export MOZ_SOURCE_REPO="https://github.com/mozilla-firefox/firefox"
+  export MOZ_SOURCE_CHANGESET="a88a631360c11753a059a9792693cbe12383404e"
+  export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
+  export LIBGL_ALWAYS_SOFTWARE=true
   export CC=clang
   export CXX=clang++
 
@@ -269,17 +272,9 @@ END
   ./mach build --priority normal
 
   msg "Profiling instrumented browser..."
-  ./mach npm ci --prefix tools/terser
   ./mach package
   LLVM_PROFDATA=llvm-profdata \
     JARLOG_FILE="$PWD/jarlog" \
-    MOZ_DISABLE_CONTENT_SANDBOX=1 \
-    MOZ_DISABLE_GMP_SANDBOX=1 \
-    MOZ_DISABLE_GPU_SANDBOX=1 \
-    MOZ_DISABLE_RDD_SANDBOX=1 \
-    MOZ_DISABLE_SOCKET_PROCESS_SANDBOX=1 \
-    MOZ_DISABLE_UTILITY_SANDBOX=1 \
-    MOZ_DISABLE_VR_SANDBOX=1 \
     GTK_A11Y=none NO_AT_BRIDGE=1 dbus-run-session \
     xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \
     ./mach python build/pgo/profileserver.py

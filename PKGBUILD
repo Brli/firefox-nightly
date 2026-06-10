@@ -7,10 +7,10 @@ _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
 _firefox_ver=151.0
-_daily=911
-_gentoo_patch=150-patches-02
-pkgver=12.14.2
-pkgrel=1
+_daily=927
+_gentoo_patch=151-patches-01
+pkgver=12.14.2.r107.g41f9b51
+pkgrel=2
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -68,24 +68,24 @@ options=(
     !strip
 )
 source=(
-    "git+https://github.com/Floorp-Projects/Floorp.git#tag=v$pkgver"
+    "git+https://github.com/Floorp-Projects/Floorp.git#commit=41f9b515222d2df1a97604fe5d3caec9abfb2bda"
     "floorp-runtime::git+https://github.com/Floorp-Projects/Floorp-runtime#tag=daily-$_daily"
     "git+https://github.com/Floorp-Projects/Floorp-core.git"
     "git+https://github.com/openSUSE/firefox-maintenance.git"
+    "librewolf-patch::git+https://codeberg.org/librewolf/source.git"
     "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz"
     floorp.desktop
-    0001-move-user-profile-to-XDG_CONFIG_HOME.patch
-    0002-skip-creation-of-user-directory-extensions.patch
-    0003-Patch-glsl-optimizer-to-build-with-glibc-2.43.patch
+    0001-skip-creation-of-user-directory-extensions.patch
+    0002-Patch-glsl-optimizer-to-build-with-glibc-2.43.patch
 )
 sha256sums=(
             'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
-            'dbacf931b7f42dd05aa5d60766c0ed21692f3da47e15e30a948eaeecd347e32d'
+            'SKIP'
+            '51536b5757cf1d3cf610f57e48826ba734837f8fa7a21cf932ba7c300ee313d3'
             'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092'
-            '8f8baee28fdda7225ba8ad88ad68659472a9c0ec0dad215eec2b6cef4e095dee'
             '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
             'c56165ce740d7eeeb5a0a5c3208879a97233576fd030cc0d78074ba81150a394'
 )
@@ -117,6 +117,11 @@ for _lang in "${_languages[@]}"; do
     sha256sums+=('SKIP')
     noextract+=($_pkg)
 done
+
+pkgver() {
+    cd "$_pkgsrc_runtime/noraneko"
+    git describe --long --tags --abbrev=7 | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//'
+}
 
 prepare() {
     mkdir mozbuild
@@ -164,6 +169,19 @@ prepare() {
     for src in "${suse_patch[@]}"; do
         msg "Applying patch $src..."
         patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/${src}"
+    done
+
+    msg 'librewolf patch'
+    local librewolf_patch=(
+                            # 'custom-ubo-assets-bootstrap-location.patch'
+                            'fullpage-translations.patch'
+                            'remove-openai.patch'
+                            'remove-pingsender.patch'
+                            # 'xdg-dir.patch'
+                            )
+    for src in "${librewolf_patch[@]}"; do
+        msg "Applying patch $src..."
+        patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
     done
 
     # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
@@ -252,6 +270,13 @@ ac_add_options --enable-install-strip
 export STRIP_FLAGS="--strip-debug --strip-unneeded"
 END
 
+    msg 'Apply personal patches'
+    local local_patch=($(ls $srcdir/*.patch))
+    for src in "${local_patch[@]}"; do
+        msg "Applying patch $src..."
+        patch -Np1 -i "$src"
+    done
+
     msg 'Injecting Floorp, before-mach step'
     export PATH=$PATH:"$srcdir"
     pushd "$srcdir/$_pkgsrc_runtime/noraneko" || return
@@ -266,13 +291,6 @@ END
 
     local _firefox_ver="$(cat browser/config/version.txt)"
     sed "s,$,@${_firefox_ver}," -i noraneko/static/gecko/config/version.txt -i noraneko/static/gecko/config/version_display.txt
-
-    msg 'Apply personal patches'
-    local local_patch=($(ls $srcdir/*.patch))
-    for src in "${local_patch[@]}"; do
-        msg "Applying patch $src..."
-        patch -Np1 -i "$src"
-    done
 
     # Remove patched rust file checksums
     sed 's/\("files":{\)[^}]*/\1/' -i \
@@ -367,7 +385,7 @@ END
     rsync -aL obj-artifact-build-output/ obj-artifact-build-output_new/
     mv obj-artifact-build-output obj-artifact-build-output_old
     mv obj-artifact-build-output_new obj-artifact-build-output
-    git apply --reject --unsafe-paths --verbose noraneko/tools/patches/*.patch --directory obj-artifact-build-output/dist/bin || true
+    git apply --check --apply --reject --unsafe-paths --verbose noraneko/tools/patches/*.patch --directory obj-artifact-build-output/dist/bin
 
     bash noraneko/static/gecko/pref/override.sh obj-artifact-build-output/dist/bin/browser/defaults/preferences/firefox.js
 }

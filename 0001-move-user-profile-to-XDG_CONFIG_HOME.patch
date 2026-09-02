@@ -1,7 +1,7 @@
-From c479847ad4e2ccacb7fe827a3ea665c289c55f5c Mon Sep 17 00:00:00 2001
+From da1da6eedd580dd97263a2c4fa910cdb651221a5 Mon Sep 17 00:00:00 2001
 From: BrLi <brli@chakralinux.org>
-Date: Wed, 28 Jan 2026 21:52:13 +0800
-Subject: [PATCH] move user profile to XDG_CONFIG_HOME
+Date: Mon, 27 Jul 2026 08:17:03 +0800
+Subject: [PATCH 1/2] move user profile to XDG_CONFIG_HOME
 
 Floorp patch derived from bugzilla.mozilla.org for Mozilla Firefox
 
@@ -10,31 +10,15 @@ Support for the Freedesktop.org XDG Base Directory Specification
 
 phabricator url: https://phabricator.services.mozilla.com/D6995
 ---
- toolkit/xre/nsXREDirProvider.cpp | 97 ++++++++++++++++++++++++++++----
- toolkit/xre/nsXREDirProvider.h   |  4 ++
- 2 files changed, 89 insertions(+), 12 deletions(-)
+ toolkit/xre/nsXREDirProvider.cpp | 109 +++++++++++++++++++++++++------
+ toolkit/xre/nsXREDirProvider.h   |   4 ++
+ 2 files changed, 93 insertions(+), 20 deletions(-)
 
 diff --git a/toolkit/xre/nsXREDirProvider.cpp b/toolkit/xre/nsXREDirProvider.cpp
-index 5eae0bca99..73dbaba98c 100644
+index fea288aa5b6..dc4993ac554 100644
 --- a/toolkit/xre/nsXREDirProvider.cpp
 +++ b/toolkit/xre/nsXREDirProvider.cpp
-@@ -1,5 +1,5 @@
- /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
--/* This Source Code Form is subject to the terms of the Mozilla Public
-+/* This Source Code Form is subject to the terms of the Ablaze Public
-  * License, v. 2.0. If a copy of the MPL was not distributed with this
-  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
- 
-@@ -312,7 +312,7 @@ nsresult nsXREDirProvider::GetBackgroundTasksProfilesRootDir(
-  * Get the directory that is the parent of the system-wide directories
-  * for extensions and native manifests.
-  *
-- * On OSX this is /Library/Application Support/Mozilla
-+ * On OSX this is /Library/Application Support/Ablaze
-  * On Linux this is /usr/{lib,lib64}/mozilla
-  *   (for 32- and 64-bit systems respsectively)
-  */
-@@ -323,7 +323,7 @@ static nsresult GetSystemParentDirectory(nsIFile** aFile) {
+@@ -339,7 +339,7 @@ static nsresult GetSystemParentDirectory(nsIFile** aFile) {
    rv = GetOSXFolderType(kOnSystemDisk, kApplicationSupportFolderType,
                          getter_AddRefs(localDir));
    if (NS_SUCCEEDED(rv)) {
@@ -43,7 +27,7 @@ index 5eae0bca99..73dbaba98c 100644
    }
  #  else
    constexpr auto dirname =
-@@ -405,11 +405,6 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
+@@ -421,11 +421,6 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
      rv = GetUserDataDirectoryHome(getter_AddRefs(file), /* aLocal */ false,
                                    /* aForceLegacy */ true);
      NS_ENSURE_SUCCESS(rv, rv);
@@ -55,7 +39,7 @@ index 5eae0bca99..73dbaba98c 100644
    }
  #endif  // defined(XP_UNIX) || defined(XP_MACOSX)
    else if (!strcmp(aProperty, XRE_UPDATE_ROOT_DIR)) {
-@@ -973,7 +968,7 @@ nsresult nsXREDirProvider::GetUpdateRootDir(nsIFile** aResult,
+@@ -984,7 +979,7 @@ nsresult nsXREDirProvider::GetUpdateRootDir(nsIFile** aResult,
              nsDependentCString(hasVendor ? GetAppVendor() : GetAppName())))) {
        return NS_ERROR_FAILURE;
      }
@@ -64,7 +48,7 @@ index 5eae0bca99..73dbaba98c 100644
      return NS_ERROR_FAILURE;
    }
  
-@@ -1151,8 +1146,11 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
+@@ -1162,8 +1157,11 @@ nsresult nsXREDirProvider::GetUserDataDirectoryHome(nsIFile** aFile,
    MOZ_TRY(NS_NewLocalFile(path, getter_AddRefs(localDir)));
  #elif defined(XP_UNIX)
    const char* homeDir = PR_GetEnv("HOME");
@@ -77,7 +61,7 @@ index 5eae0bca99..73dbaba98c 100644
  #  ifdef ANDROID /* We want (ProfD == ProfLD) on Android. */
    MOZ_TRY(NS_NewNativeLocalFile(nsDependentCString(homeDir),
                                  getter_AddRefs(localDir)));
-@@ -1271,7 +1269,7 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+@@ -1282,7 +1280,7 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
  
  #if defined(XP_MACOSX) || defined(XP_WIN)
  
@@ -86,7 +70,7 @@ index 5eae0bca99..73dbaba98c 100644
    rv = aFile->AppendNative(nsDependentCString(sXR));
    NS_ENSURE_SUCCESS(rv, rv);
  
-@@ -1281,9 +1279,11 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
+@@ -1292,9 +1290,11 @@ nsresult nsXREDirProvider::AppendSysUserExtensionPath(nsIFile* aFile) {
  
  #elif defined(XP_UNIX)
  
@@ -99,7 +83,37 @@ index 5eae0bca99..73dbaba98c 100644
  
    static const char* const sExtensions = "extensions";
    rv = aFile->AppendNative(nsDependentCString(sExtensions));
-@@ -1527,6 +1527,79 @@ nsresult nsXREDirProvider::GetLegacyOrXDGHomePath(const char* aHomeDir,
+@@ -1336,7 +1336,10 @@ nsresult nsXREDirProvider::AppendFromAppData(nsIFile* aFile, bool aIsDotted) {
+   if (gAppData->profile) {
+     nsAutoCString profile;
+     profile = gAppData->profile;
+-    MOZ_TRY(aFile->AppendRelativeNativePath(profile));
++    ToLowerCase(profile);
++
++    MOZ_TRY(aFile->AppendRelativeNativePath(aIsDotted ? ("."_ns + profile)
++                                                      : profile));
+   } else {
+     nsAutoCString vendor;
+     nsAutoCString appName;
+@@ -1512,15 +1515,8 @@ nsresult nsXREDirProvider::GetLegacyOrXDGHomePath(const char* aHomeDir,
+       return NS_OK;
+     }
+
+-    // If the build was made against a specific profile name, MOZ_APP_PROFILE=
+-    // then make sure we respect this and dont move to XDG directory
+-    if (gAppData->profile) {
+-      MOZ_TRY(NS_NewNativeLocalFile(nsDependentCString(aHomeDir),
+-                                    getter_AddRefs(localDir)));
+-    } else {
+-      MOZ_TRY(GetLegacyOrXDGConfigHome(aHomeDir, getter_AddRefs(localDir)));
+-      MOZ_TRY(localDir->Clone(getter_AddRefs(parentDir)));
+-    }
++    MOZ_TRY(GetLegacyOrXDGConfigHome(aHomeDir, getter_AddRefs(localDir)));
++    MOZ_TRY(localDir->Clone(getter_AddRefs(parentDir)));
+
+     MOZ_TRY(AppendFromAppData(localDir, false));
+   }
+@@ -1538,6 +1534,79 @@ nsresult nsXREDirProvider::GetLegacyOrXDGHomePath(const char* aHomeDir,
  }
  #endif  // defined(MOZ_WIDGET_GTK)
  
@@ -180,10 +194,10 @@ index 5eae0bca99..73dbaba98c 100644
    NS_ASSERTION(aFile, "Null pointer!");
  
 diff --git a/toolkit/xre/nsXREDirProvider.h b/toolkit/xre/nsXREDirProvider.h
-index a850e1c63d..87f1938627 100644
+index 6c7e1990d3b..7fd60ff9cd5 100644
 --- a/toolkit/xre/nsXREDirProvider.h
 +++ b/toolkit/xre/nsXREDirProvider.h
-@@ -68,6 +68,10 @@ class nsXREDirProvider final : public nsIDirectoryServiceProvider2,
+@@ -67,6 +67,10 @@ class nsXREDirProvider final : public nsIDirectoryServiceProvider2,
    }
  
    static nsresult GetUserDataDirectory(nsIFile** aFile, bool aLocal);
@@ -195,5 +209,5 @@ index a850e1c63d..87f1938627 100644
  #if defined(MOZ_WIDGET_GTK)
    static nsresult GetLegacyOrXDGEnvValue(const char* aHomeDir,
 -- 
-2.52.0
+2.55.0
 

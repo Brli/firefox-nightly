@@ -6,11 +6,11 @@ pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
-_firefox_ver=151.0
-_daily=927
-_gentoo_patch=151-patches-01
-pkgver=12.14.2.r107.g41f9b51
-pkgrel=2
+_firefox_ver=153.0.1 # for locale.xpi directory
+_daily=1016
+_gentoo_patch=153-patches-01
+pkgver=12.16.4
+pkgrel=4
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -68,15 +68,15 @@ options=(
     !strip
 )
 source=(
-    "git+https://github.com/Floorp-Projects/Floorp.git#commit=41f9b515222d2df1a97604fe5d3caec9abfb2bda"
+    "git+https://github.com/Floorp-Projects/Floorp.git#tag=v${pkgver}"
     "floorp-runtime::git+https://github.com/Floorp-Projects/Floorp-runtime#tag=daily-$_daily"
     "git+https://github.com/Floorp-Projects/Floorp-core.git"
     "git+https://github.com/openSUSE/firefox-maintenance.git"
     "librewolf-patch::git+https://codeberg.org/librewolf/source.git"
     "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz"
     floorp.desktop
-    0001-skip-creation-of-user-directory-extensions.patch
-    0002-Patch-glsl-optimizer-to-build-with-glibc-2.43.patch
+    0001-Bug-2057577-DOM-Media-Add-FFmpeg-63-support.-r-alwu-.patch
+    0002-skip-creation-of-user-directory-extensions.patch
 )
 sha256sums=(
             'SKIP'
@@ -84,10 +84,10 @@ sha256sums=(
             'SKIP'
             'SKIP'
             'SKIP'
-            '51536b5757cf1d3cf610f57e48826ba734837f8fa7a21cf932ba7c300ee313d3'
+            '9dc3e9423eea9b8bf16cd7cc2545a539717e9b32c1e4242a332988ff0add923e'
             'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092'
-            '5ef41e4533a1023c12ed8e8b8305dd58b2a543ba659e64cffd5126586f7c2970'
-            'c56165ce740d7eeeb5a0a5c3208879a97233576fd030cc0d78074ba81150a394'
+            '55aeec4d098990e91f881de32126ea91576b0d185e322b561241c513ea5b9fcd'
+            'c89533c765a8b663be8b9830a4e218405c964c016f7673efec15fceb58c8f693'
 )
 validpgpkeys=(
     # Mozilla Software Releases <release@mozilla.com>
@@ -118,11 +118,6 @@ for _lang in "${_languages[@]}"; do
     noextract+=($_pkg)
 done
 
-pkgver() {
-    cd "$_pkgsrc_runtime/noraneko"
-    git describe --long --tags --abbrev=7 | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/^v//'
-}
-
 prepare() {
     mkdir mozbuild
 
@@ -142,14 +137,16 @@ prepare() {
     cp "${srcdir}"/Floorp-core/apis/api-*-key ./
 
     msg 'Noraneko patch'
+    rm -rf "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/toolkit-mozapps-update-tests-data-sharedUpdateXML.js.patch"
     local noraneko_patch=($(ls "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/"))
     for src in "${noraneko_patch[@]}"; do
-        msg "Applying patch $src"
+        msg2 "Applying patch $src"
         patch -Np1 -i "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/$src"
     done
 
     msg 'Gentoo patch'
     rm -rf $srcdir/firefox-patches/*musl*
+    rm -rf $srcdir/firefox-patches/0024*
     # 0019-bmo-1988166-musl-remove-nonexisting-system-header-req.patch: `ld.lld: error: undefined hidden symbol: __libc_single_threaded`
     # 0020-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch: `+  Unused << dlopen("libgcc_s.so.1", RTLD_GLOBAL|RTLD_LAZY);`
     # /build/floorp/src/floorp-runtime/security/sandbox/linux/Sandbox.cpp:781:3: error: use of undeclared identifier 'Unused'
@@ -157,7 +154,7 @@ prepare() {
          s,%%WASI_SDK_LLVM_VER%%,22,g;' -i "$srcdir"/firefox-patches/*-bgo-940031-wasm-support.patch
     local gentoo_patch=($(ls $srcdir/firefox-patches/))
     for src in "${gentoo_patch[@]}"; do
-        msg "Applying patch $src..."
+        msg2 "Applying patch $src..."
         patch -Np1 -i "$srcdir/firefox-patches/$src"
     done
 
@@ -167,20 +164,19 @@ prepare() {
         'firefox-branded-icons.patch'
     )
     for src in "${suse_patch[@]}"; do
-        msg "Applying patch $src..."
+        msg2 "Applying patch $src..."
         patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/${src}"
     done
 
     msg 'librewolf patch'
     local librewolf_patch=(
                             # 'custom-ubo-assets-bootstrap-location.patch'
-                            'fullpage-translations.patch'
                             'remove-openai.patch'
                             'remove-pingsender.patch'
                             # 'xdg-dir.patch'
                             )
     for src in "${librewolf_patch[@]}"; do
-        msg "Applying patch $src..."
+        msg2 "Applying patch $src..."
         patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
     done
 
@@ -273,7 +269,7 @@ END
     msg 'Apply personal patches'
     local local_patch=($(ls $srcdir/*.patch))
     for src in "${local_patch[@]}"; do
-        msg "Applying patch $src..."
+        msg2 "Applying patch $src..."
         patch -Np1 -i "$src"
     done
 
@@ -289,8 +285,8 @@ END
     msg 'Apply packaging patches'
     git apply --verbose --ignore-space-change --ignore-whitespace .github/patches/packaging/*.patch
 
-    local _firefox_ver="$(cat browser/config/version.txt)"
-    sed "s,$,@${_firefox_ver}," -i noraneko/static/gecko/config/version.txt -i noraneko/static/gecko/config/version_display.txt
+    local _runtime_ver="$(cat browser/config/version.txt)"
+    sed "s,$,@${_runtime_ver}," -i noraneko/static/gecko/config/version.txt -i noraneko/static/gecko/config/version_display.txt
 
     # Remove patched rust file checksums
     sed 's/\("files":{\)[^}]*/\1/' -i \
@@ -303,6 +299,8 @@ build() {
     export LIBGL_ALWAYS_SOFTWARE=true
     export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
     export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
+    export MOZ_SOURCE_REPO="https://github.com/mozilla-firefox/firefox"
+    export MOZ_SOURCE_CHANGESET="$(git rev-parse HEAD)"
     export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
     export MOZ_ENABLE_FULL_SYMBOLS=0
     export MOZ_NOSPAM=1
@@ -343,13 +341,6 @@ END
 
     LLVM_PROFDATA=llvm-profdata \
         JARLOG_FILE="$PWD/jarlog" \
-        MOZ_DISABLE_CONTENT_SANDBOX=1 \
-        MOZ_DISABLE_GMP_SANDBOX=1 \
-        MOZ_DISABLE_GPU_SANDBOX=1 \
-        MOZ_DISABLE_RDD_SANDBOX=1 \
-        MOZ_DISABLE_SOCKET_PROCESS_SANDBOX=1 \
-        MOZ_DISABLE_UTILITY_SANDBOX=1 \
-        MOZ_DISABLE_VR_SANDBOX=1 \
         MOZ_REMOTE_SETTINGS_DEVTOOLS=1 \
         GTK_A11Y=none NO_AT_BRIDGE=1 dbus-run-session \
         xvfb-run -s "-screen 0 1920x1080x24 -nolisten local" \

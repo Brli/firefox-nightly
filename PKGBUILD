@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=156.0a1.20260815.r662.g98f1235b79c1
+pkgver=157.0a1.20260903.r1526.g3c6e9f0700b5
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -63,7 +63,7 @@ options=(
   !makeflags
   !strip
 )
-_gentoo_patch=154-patches-01
+_gentoo_patch=155-patches-04
 source=(
         git+https://github.com/mozilla-firefox/firefox.git
         git+https://github.com/mozilla-l10n/firefox-l10n.git
@@ -85,7 +85,7 @@ sha256sums=(
             'SKIP'
             'SKIP'
             'SKIP'
-            '9dc3e9423eea9b8bf16cd7cc2545a539717e9b32c1e4242a332988ff0add923e'
+            '44389430272fc70fb5a86a19f75e24792fd500581431abee8fd042712c364841'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
@@ -117,17 +117,15 @@ prepare() {
   # Revert ICU requirement
   # sed 's,icu-i18n >= 76.1,icu-i18n >= 75.1,' -i js/moz.configure
 
-  # Fix js ICU compatibility error for icu-76.1
-  # sed 's/icu-i18n/icu-uc &/' -i js/moz.configure
-
   # Don't let the branding override our remoting name
   sed '/^MOZ_APP_REMOTINGNAME=/d' -i browser/branding/nightly/configure.sh
 
   msg 'Gentoo patch'
   rm -rf $srcdir/firefox-patches/*musl*
-  rm -rf $srcdir/firefox-patches/00{08,10,17}*
+  rm -rf $srcdir/firefox-patches/0026*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-       s,%%WASI_SDK_LLVM_VER%%,22,;' -i "$srcdir/firefox-patches"/*-bgo-940031-wasm-support.patch
+       s,%%WASI_SDK_LLVM_VER%%,22,g;
+       s,noeh,,g' -i "$srcdir"/firefox-patches/*-bgo-940031-wasm-support-firefox-155.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
     msg2 "Applying patch $src..."
@@ -221,7 +219,7 @@ ac_add_options --target=x86_64-pc-linux
 END
 
   # Fake mozilla version
-  echo '154.0' > config/milestone.txt
+  echo '155.0' > config/milestone.txt
 
   # Desktop file
   sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"

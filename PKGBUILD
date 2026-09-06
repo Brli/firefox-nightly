@@ -6,11 +6,11 @@ pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
-_firefox_ver=153.0.1 # for locale.xpi directory
-_daily=1016
-_gentoo_patch=153-patches-01
-pkgver=12.16.4
-pkgrel=4
+_firefox_ver=155.0 # for locale.xpi directory
+_daily=1061
+_gentoo_patch=155-patches-04
+pkgver=12.17.1
+pkgrel=1
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
 license=(MPL GPL LGPL)
@@ -75,7 +75,6 @@ source=(
     "librewolf-patch::git+https://codeberg.org/librewolf/source.git"
     "https://dev.gentoo.org/~juippis/mozilla/patchsets/firefox-${_gentoo_patch}.tar.xz"
     floorp.desktop
-    0001-Bug-2057577-DOM-Media-Add-FFmpeg-63-support.-r-alwu-.patch
     0002-skip-creation-of-user-directory-extensions.patch
 )
 sha256sums=(
@@ -84,9 +83,8 @@ sha256sums=(
             'SKIP'
             'SKIP'
             'SKIP'
-            '9dc3e9423eea9b8bf16cd7cc2545a539717e9b32c1e4242a332988ff0add923e'
+            '44389430272fc70fb5a86a19f75e24792fd500581431abee8fd042712c364841'
             'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092'
-            '55aeec4d098990e91f881de32126ea91576b0d185e322b561241c513ea5b9fcd'
             'c89533c765a8b663be8b9830a4e218405c964c016f7673efec15fceb58c8f693'
 )
 validpgpkeys=(
@@ -146,12 +144,9 @@ prepare() {
 
     msg 'Gentoo patch'
     rm -rf $srcdir/firefox-patches/*musl*
-    rm -rf $srcdir/firefox-patches/0024*
-    # 0019-bmo-1988166-musl-remove-nonexisting-system-header-req.patch: `ld.lld: error: undefined hidden symbol: __libc_single_threaded`
-    # 0020-bgo-910309-dont-link-widevineplugin-to-libgcc_s.patch: `+  Unused << dlopen("libgcc_s.so.1", RTLD_GLOBAL|RTLD_LAZY);`
-    # /build/floorp/src/floorp-runtime/security/sandbox/linux/Sandbox.cpp:781:3: error: use of undeclared identifier 'Unused'
     sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-         s,%%WASI_SDK_LLVM_VER%%,22,g;' -i "$srcdir"/firefox-patches/*-bgo-940031-wasm-support.patch
+         s,%%WASI_SDK_LLVM_VER%%,22,g;
+         s,noeh,,g' -i "$srcdir"/firefox-patches/*-bgo-940031-wasm-support-firefox-155.patch
     local gentoo_patch=($(ls $srcdir/firefox-patches/))
     for src in "${gentoo_patch[@]}"; do
         msg2 "Applying patch $src..."
@@ -373,11 +368,14 @@ END
     popd || return
 
     # avoid symlinks, which make the git apply fails
+    msg2 'rsync'
     rsync -aL obj-artifact-build-output/ obj-artifact-build-output_new/
     mv obj-artifact-build-output obj-artifact-build-output_old
     mv obj-artifact-build-output_new obj-artifact-build-output
+    msg2 'git apply'
+    rm noraneko/tools/patches/custom-app-icons-manager.windows.patch
     git apply --check --apply --reject --unsafe-paths --verbose noraneko/tools/patches/*.patch --directory obj-artifact-build-output/dist/bin
-
+    msg2 'bash override'
     bash noraneko/static/gecko/pref/override.sh obj-artifact-build-output/dist/bin/browser/defaults/preferences/firefox.js
 }
 

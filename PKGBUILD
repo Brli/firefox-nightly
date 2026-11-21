@@ -3,7 +3,7 @@
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
 
 pkgname=firefox-nightly
-pkgver=157.0a1.20260903.r1526.g3c6e9f0700b5
+pkgver=162.0a1.20261107.r960.gac7b5e4bc10b
 pkgrel=1
 pkgdesc="Fast, Private & Safe Web Browser - Nightly branch"
 arch=(x86_64)
@@ -37,6 +37,7 @@ makedepends=(
   nasm
   nodejs
   npm
+  onnxruntime
   python
   rust
   unzip
@@ -55,6 +56,7 @@ optdepends=(
   'pulseaudio: Audio support'
   'speech-dispatcher: Text-to-Speech'
   'xdg-desktop-portal: Screensharing with Wayland'
+  'onnxruntime: Local machine learning features such as smart tab groups'
 )
 options=(
   !debug
@@ -63,7 +65,7 @@ options=(
   !makeflags
   !strip
 )
-_gentoo_patch=155-patches-04
+_gentoo_patch=159-patches-02
 source=(
         git+https://github.com/mozilla-firefox/firefox.git
         git+https://github.com/mozilla-l10n/firefox-l10n.git
@@ -85,7 +87,7 @@ sha256sums=(
             'SKIP'
             'SKIP'
             'SKIP'
-            '44389430272fc70fb5a86a19f75e24792fd500581431abee8fd042712c364841'
+            '4de62f581e1a580a077312a101979e8397c80a0c439a8897145bb9b430d0795c'
             '5e13c1ba92819db099979579e2833d07438657e473e8831b9c654635d28ccf58'
             'a9b8b4a0a1f4a7b4af77d5fc70c2686d624038909263c795ecc81e0aec7711e9'
             '0488650eec53e2a565718e28dbbca4279250ad6bc7cbfdb449eeb349fbc22291'
@@ -122,9 +124,9 @@ prepare() {
 
   msg 'Gentoo patch'
   rm -rf $srcdir/firefox-patches/*musl*
-  rm -rf $srcdir/firefox-patches/0026*
+  rm -rf $srcdir/firefox-patches/00{26,28,29,30}*
   sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-       s,%%WASI_SDK_LLVM_VER%%,22,g;
+       s,%%WASI_SDK_LLVM_VER%%,23,g;
        s,noeh,,g' -i "$srcdir"/firefox-patches/*-bgo-940031-wasm-support-firefox-155.patch
   local gentoo_patch=($(ls $srcdir/firefox-patches/))
   for src in "${gentoo_patch[@]}"; do
@@ -141,19 +143,19 @@ prepare() {
     patch -Np1 -i "${srcdir}/firefox-maintenance/firefox/$src"
   done
 
-  msg 'librewolf patch'
-  local librewolf_patch=(
-                         # 'custom-ubo-assets-bootstrap-location.patch'
-                         # 'disable-data-reporting-at-compile-time.patch'
-                         # 'fullpage-translations.patch'
-                         # 'remove-openai.patch'
-                         'remove-pingsender.patch'
-                         #'xdg-dir.patch'
-                        )
-  for src in "${librewolf_patch[@]}"; do
-    msg2 "Applying patch $src..."
-    patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
-  done
+  # msg 'librewolf patch'
+  # local librewolf_patch=(
+  #                        # 'custom-ubo-assets-bootstrap-location.patch'
+  #                        # 'disable-data-reporting-at-compile-time.patch'
+  #                        # 'fullpage-translations.patch'
+  #                        # 'remove-openai.patch'
+  #                        'remove-pingsender.patch'
+  #                        #'xdg-dir.patch'
+  #                       )
+  # for src in "${librewolf_patch[@]}"; do
+  #   msg2 "Applying patch $src..."
+  #   patch -Np1 -i "${srcdir}/librewolf-patch/patches/$src"
+  # done
 
   # EVENT__SIZEOF_TIME_T does not exist on upstream libevent, see event-config.h.cmake
   sed -i '/CHECK_EVENT_SIZEOF(TIME_T, time_t);/d' ipc/chromium/src/base/message_pump_libevent.cc
@@ -168,10 +170,8 @@ mk_add_options MOZ_OBJDIR=${PWD@Q}/obj
 ac_add_options --prefix=/usr
 ac_add_options --enable-release
 ac_add_options --enable-hardening
-ac_add_options --enable-wasm-avx
 ac_add_options --enable-optimize="-O3 -march=x86-64-v3 -msse3 -mssse3 -msse4.1 -msse4.2 -mavx -maes -mpopcnt -mpclmul"
 ac_add_options --enable-rust-simd
-ac_add_options --enable-wasm-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
@@ -203,12 +203,14 @@ ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libevent
 ac_add_options --with-system-libvpx
-ac_add_options --with-system-harfbuzz
+# ac_add_options --with-system-harfbuzz
+# ac_add_options --with-system-graphite2
 ac_add_options --enable-system-ffi
 ac_add_options --enable-system-pixman
 
 # Features
 ac_add_options --enable-sandbox
+ac_add_options --with-onnx-runtime=/usr/lib
 ac_add_options --enable-audio-backends='alsa,pulseaudio,jack'
 ac_add_options --enable-jxl
 ac_add_options --disable-necko-wifi
@@ -219,7 +221,7 @@ ac_add_options --target=x86_64-pc-linux
 END
 
   # Fake mozilla version
-  echo '155.0' > config/milestone.txt
+  echo '157.0' > config/milestone.txt
 
   # Desktop file
   sed "s,@MOZ_APP_NAME@,${pkgname},g" -i "${srcdir}/firefox.desktop"
@@ -266,7 +268,7 @@ build() {
   cat >.mozconfig ../mozconfig - <<END
 ac_add_options --enable-profile-generate=cross
 END
-  ./mach build --priority normal
+  ./mach build
 
   msg "Profiling instrumented browser..."
   ./mach package
@@ -295,13 +297,13 @@ ac_add_options --with-pgo-jarlog=${PWD@Q}/jarlog
 # L10n
 ac_add_options --with-l10n-base=$srcdir/firefox-l10n
 END
-  ./mach build --priority normal
+  ./mach build
 
   msg 'Building locales'
   ./mach package
   #  ./mach build chrome-zh-TW
   #   export MOZ_CHROME_MULTILOCALE="ar cs da de el en-US en-GB es-ES fr hu id it ja ko lt nl nn-NO pl pt-BR pt-PT ru sv-SE th tr uk vi zh-CN zh-TW"
-  export MOZ_CHROME_MULTILOCALE="en-US zh-TW"
+  export MOZ_CHROME_MULTILOCALE="ja zh-TW"
   for AB_CD in $MOZ_CHROME_MULTILOCALE; do
     msg "Building locales $AB_CD"
     ./mach build chrome-$AB_CD
@@ -312,13 +314,16 @@ package() {
   cd firefox
   DESTDIR="$pkgdir" ./mach install
 
+  local appdir="$pkgdir/usr/lib/$pkgname"
+  touch "$appdir/is-packaged-app"
+
   # install arkenfox user.js
-  install -Dvm644 "$srcdir/arkenfox/user.js" "$pkgdir/usr/lib/${pkgname}/browser/defaults/preferences/arkenfox.js"
+  install -Dvm644 "$srcdir/arkenfox/user.js" "$appdir/browser/defaults/preferences/arkenfox.js"
 
   # install librewolf policy
-  install -Dvm644 "$srcdir/librewolf-settings/distribution/policies.json" "$pkgdir/usr/lib/${pkgname}/distribution/policies.json"
+  install -Dvm644 "$srcdir/librewolf-settings/distribution/policies.json" "$appdir/distribution/policies.json"
 
-  local pref="$pkgdir/usr/lib/${pkgname}/browser/defaults/preferences"
+  local pref="$appdir/browser/defaults/preferences"
   install -Dvm644 /dev/stdin "$pref/vendor.js" <<END
 // Default download to /tmp
 pref("browser.download.folderList", 2);
@@ -334,7 +339,7 @@ pref("extensions.autoDisableScopes", 11);
 pref("browser.gnome-search-provider.enabled", true);
 
 // UA override to latest Edge
-pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) AppleWebKit/605.1.15 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/605.1.15 Edg/151.0.4129.86");
+pref("general.useragent.override", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36");
 
 // Scale UI
 // pref("layout.css.devPixelsPerPx",    "1.2");
@@ -415,7 +420,7 @@ sticky_pref("accessibility.typeaheadfind.manual", false);
 sticky_pref("accessibility.typeaheadfind.flashBar", 0);
 END
 
-  local distini="$pkgdir/usr/lib/${pkgname}/distribution/distribution.ini"
+  local distini="$appdir/distribution/distribution.ini"
   install -Dvm644 /dev/stdin "$distini" <<END
 [Global]
 id=archlinux
@@ -429,7 +434,7 @@ app.partner.archlinux=archlinux
 END
 
   # Link up system ONNX runtime
-  ln -srv "$pkgdir/usr/lib/libonnxruntime.so" -t "$pkgdir/usr/lib/$pkgname"
+  ln -srfv "$pkgdir/usr/lib/libonnxruntime.so" -t "$appdir"
 
   local i theme=nightly
   for i in 16 22 24 32 48 64 128 256; do
@@ -459,10 +464,10 @@ END
 
   # Replace duplicate binary with wrapper
   # https://bugzilla.mozilla.org/show_bug.cgi?id=658850
-  ln -srfv "$pkgdir/usr/bin/${pkgname}" "$pkgdir/usr/lib/${pkgname}/${pkgname}"
+  ln -srfv "$pkgdir/usr/bin/${pkgname}" "$appdir/${pkgname}"
 
   # Use system certificates
-  local nssckbi="$pkgdir/usr/lib/${pkgname}/libnssckbi.so"
+  local nssckbi="$appdir/libnssckbi.so"
   if [[ -e $nssckbi ]]; then
     ln -srfv "$pkgdir/usr/lib/libnssckbi.so" "$nssckbi"
   fi

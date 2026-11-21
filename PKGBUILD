@@ -1,3 +1,4 @@
+#shellcheck disable=SC2034,SC2154
 # Maintainer: Jan Alexander Steffens (heftig) <heftig@archlinux.org>
 # Contributor: Ionut Biru <ibiru@archlinux.org>
 # Contributor: Jakub Schmidtke <sjakub@gmail.com>
@@ -6,10 +7,10 @@ pkgname=floorp
 _pkgname=Floorp
 _reverse_dns_pkgname=one.ablaze.floorp
 _pkgsrc_runtime='floorp-runtime'
-_firefox_ver=155.0 # for locale.xpi directory
-_daily=1061
-_gentoo_patch=155-patches-04
-pkgver=12.17.1
+_firefox_ver=159.0.1 # for locale.xpi directory
+_daily=1179
+_gentoo_patch=159-patches-02
+pkgver=12.21.1
 pkgrel=1
 pkgdesc="Firefox fork by Ryosuke Asano, a Japanese community"
 arch=(x86_64)
@@ -40,6 +41,7 @@ makedepends=(
     mesa
     nasm
     nodejs
+    onnxruntime
     python-dulwich
     rsync
     rust
@@ -56,6 +58,7 @@ optdepends=(
     'hunspell-en_US: Spell checking, American English'
     'libnotify: Notification integration'
     'networkmanager: Location detection via available WiFi networks'
+    'onnxruntime: Local machine learning features such as smart tab groups'
     'pulseaudio: Audio support'
     'speech-dispatcher: Text-to-Speech'
     'xdg-desktop-portal: Screensharing with Wayland'
@@ -83,7 +86,7 @@ sha256sums=(
             'SKIP'
             'SKIP'
             'SKIP'
-            '44389430272fc70fb5a86a19f75e24792fd500581431abee8fd042712c364841'
+            '4de62f581e1a580a077312a101979e8397c80a0c439a8897145bb9b430d0795c'
             'f883a43af53f08e5b36ae89a643a2c32913a90c330e169d8b52f9158984dc092'
             'c89533c765a8b663be8b9830a4e218405c964c016f7673efec15fceb58c8f693'
 )
@@ -113,44 +116,44 @@ for _lang in "${_languages[@]}"; do
     _pkg=firefox-l10n-$_firefox_ver-$_locale.xpi
     source+=("$_pkg::$_url/linux-x86_64/xpi/$_locale.xpi")
     sha256sums+=('SKIP')
-    noextract+=($_pkg)
+    noextract+=("$_pkg")
 done
 
 prepare() {
     mkdir mozbuild
 
     # put Floorp into Mozilla source tree "./floorp-runtime/noraneko"
-    rm -rfv "$_pkgsrc_runtime/$pkgname"
-    cp -rf "$srcdir/$_pkgname" "$_pkgsrc_runtime/noraneko"
+    rm -rfv "${_pkgsrc_runtime}/${pkgname}"
+    cp -rf "${srcdir}/${_pkgname}" "${_pkgsrc_runtime}/noraneko"
 
     # copy branding assets
-    cp -rf "$_pkgsrc_runtime"/.github/assets/branding/* "$_pkgsrc_runtime"/browser/branding/
+    cp -rf "${_pkgsrc_runtime}"/.github/assets/branding/* "${_pkgsrc_runtime}"/browser/branding/
 
-    sed -i 's|https://@MOZ_APPUPDATE_HOST@/update/6/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%SYSTEM_CAPABILITIES%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/update.xml|https://%NORA_UPDATE_HOST%update.xml|g' "$_pkgsrc_runtime/build/application.ini.in"
+    sed -i 's|https://@MOZ_APPUPDATE_HOST@/update/6/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%SYSTEM_CAPABILITIES%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/update.xml|https://%NORA_UPDATE_HOST%update.xml|g' "${_pkgsrc_runtime}/build/application.ini.in"
 
     # prepare firefox source
-    cd "$_pkgsrc_runtime" || exit
+    cd "${_pkgsrc_runtime}" || exit
 
     # prepare api keys
     cp "${srcdir}"/Floorp-core/apis/api-*-key ./
 
     msg 'Noraneko patch'
-    rm -rf "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/toolkit-mozapps-update-tests-data-sharedUpdateXML.js.patch"
-    local noraneko_patch=($(ls "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/"))
+    rm -rf "${srcdir}/${_pkgsrc_runtime}/.github/patches/upstream/toolkit-mozapps-update-tests-data-sharedUpdateXML.js.patch"
+    local noraneko_patch=($(ls "${srcdir}/${_pkgsrc_runtime}/.github/patches/upstream/"))
     for src in "${noraneko_patch[@]}"; do
         msg2 "Applying patch $src"
-        patch -Np1 -i "$srcdir/$_pkgsrc_runtime/.github/patches/upstream/$src"
+        patch -Np1 -i "${srcdir}/${_pkgsrc_runtime}/.github/patches/upstream/$src"
     done
 
     msg 'Gentoo patch'
-    rm -rf $srcdir/firefox-patches/*musl*
+    rm -rf "${srcdir}/firefox-patches/"*musl*
     sed 's,%%PORTAGE_WORKDIR%%/wasi-sdk-%%WASI_SDK_VER%%-%%WASI_ARCH%%-linux,/usr,;
-         s,%%WASI_SDK_LLVM_VER%%,22,g;
-         s,noeh,,g' -i "$srcdir"/firefox-patches/*-bgo-940031-wasm-support-firefox-155.patch
-    local gentoo_patch=($(ls $srcdir/firefox-patches/))
+         s,%%WASI_SDK_LLVM_VER%%,23,g;
+         s,noeh,,g' -i "${srcdir}"/firefox-patches/*-bgo-940031-wasm-support-firefox-155.patch
+    local gentoo_patch=($(ls "${srcdir}/firefox-patches/"))
     for src in "${gentoo_patch[@]}"; do
         msg2 "Applying patch $src..."
-        patch -Np1 -i "$srcdir/firefox-patches/$src"
+        patch -Np1 -i "${srcdir}/firefox-patches/$src"
     done
 
     msg 'Opensuse Patch'
@@ -190,7 +193,6 @@ ac_add_options --prefix=/usr
 ac_add_options --enable-hardening
 ac_add_options --enable-optimize="-O3 -w -ftree-vectorize -mfpmath=sse -mprfchw -msse3 -mcx16 -msahf"
 ac_add_options --enable-rust-simd
-ac_add_options --enable-wasm-simd
 ac_add_options --enable-linker=lld
 ac_add_options --disable-elf-hack
 ac_add_options --disable-bootstrap
@@ -229,7 +231,8 @@ ac_add_options --with-system-jpeg
 ac_add_options --with-system-webp
 ac_add_options --with-system-zlib
 ac_add_options --with-system-libvpx
-ac_add_options --with-system-harfbuzz
+ac_add_options --with-onnx-runtime=/usr/lib
+# ac_add_options --with-system-harfbuzz
 ac_add_options --with-system-libevent
 ac_add_options --with-system-icu
 ac_add_options --enable-system-ffi
@@ -243,7 +246,6 @@ ac_add_options --enable-jxl
 ac_add_options --enable-audio-backends="pulseaudio,alsa,jack"
 ac_add_options --enable-raw
 ac_add_options --enable-sandbox
-ac_add_options --enable-wasm-avx
 ac_add_options --enable-webrtc
 ac_add_options --disable-default-browser-agent
 ac_add_options --disable-parental-controls
@@ -262,15 +264,15 @@ export STRIP_FLAGS="--strip-debug --strip-unneeded"
 END
 
     msg 'Apply personal patches'
-    local local_patch=($(ls $srcdir/*.patch))
+    local local_patch=($(ls "${srcdir}"/*.patch))
     for src in "${local_patch[@]}"; do
         msg2 "Applying patch $src..."
         patch -Np1 -i "$src"
     done
 
     msg 'Injecting Floorp, before-mach step'
-    export PATH=$PATH:"$srcdir"
-    pushd "$srcdir/$_pkgsrc_runtime/noraneko" || return
+    export PATH=$PATH:"${srcdir}"
+    pushd "${srcdir}/${_pkgsrc_runtime}/noraneko" || return
     export NODE_ENV=production
     deno install --allow-scripts
     deno task feles-build misc writeVersion
@@ -289,17 +291,17 @@ END
 }
 
 build() {
-    cd "$_pkgsrc_runtime" || exit
+    cd "${_pkgsrc_runtime}" || exit
 
     export LIBGL_ALWAYS_SOFTWARE=true
     export MACH_BUILD_PYTHON_NATIVE_PACKAGE_SOURCE=pip
     export MOZ_BUILD_DATE="$(date -u${SOURCE_DATE_EPOCH:+d @$SOURCE_DATE_EPOCH} +%Y%m%d%H%M%S)"
     export MOZ_SOURCE_REPO="https://github.com/mozilla-firefox/firefox"
     export MOZ_SOURCE_CHANGESET="$(git rev-parse HEAD)"
-    export MOZBUILD_STATE_PATH="$srcdir/mozbuild"
+    export MOZBUILD_STATE_PATH="${srcdir}/mozbuild"
     export MOZ_ENABLE_FULL_SYMBOLS=0
     export MOZ_NOSPAM=1
-    export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-$srcdir/xdg}"
+    export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-${srcdir}/xdg}"
     LDFLAGS+=' -Wl,--undefined-version'
     install -dm700 "${XDG_RUNTIME_DIR:?}"
 
@@ -362,8 +364,8 @@ END
     cp noraneko/_dist/buildid2 obj-artifact-build-output/dist/bin/browser/
 
     msg 'Injecting Floorp, after-mach step'
-    export PATH=$PATH:"$srcdir"
-    pushd "$srcdir/$_pkgsrc_runtime/noraneko" || return
+    export PATH=$PATH:"${srcdir}"
+    pushd "${srcdir}/${_pkgsrc_runtime}/noraneko" || return
     deno task feles-build build --phase after-mach
     popd || return
 
@@ -380,7 +382,7 @@ END
 }
 
 package() {
-    cd "$_pkgsrc_runtime" || exit
+    cd "${_pkgsrc_runtime}" || exit
     DESTDIR="$pkgdir" ./mach install
 
     local pref="$pkgdir/usr/lib/floorp/browser/defaults/preferences"
@@ -470,7 +472,7 @@ END
     install -Dvm644 browser/branding/$theme/content/about-logo.svg \
         "$pkgdir/usr/share/icons/hicolor/scalable/apps/${_reverse_dns_pkgname}.svg"
 
-    install -Dvm644 "$srcdir/floorp.desktop" \
+    install -Dvm644 "${srcdir}/floorp.desktop" \
         "$pkgdir/usr/share/applications/${_reverse_dns_pkgname}.desktop"
 
     # Install a wrapper to avoid confusion about binary path
@@ -493,8 +495,8 @@ END
     # install locales
     for _lang in "${_languages[@]}"; do
         _locale=${_lang%% *}
-        install -Dm644 $srcdir/firefox-l10n-$_firefox_ver-$_locale.xpi \
-            "$pkgdir/usr/lib/$pkgname/browser/extensions/langpack-$_locale@firefox.mozilla.org.xpi"
+        install -Dm644 "${srcdir}/firefox-l10n-$_firefox_ver-$_locale.xpi" \
+            "$pkgdir/usr/lib/${pkgname}/browser/extensions/langpack-$_locale@firefox.mozilla.org.xpi"
     done
 
 }
